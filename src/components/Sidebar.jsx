@@ -7,8 +7,8 @@ const Sidebar = () => {
   const location = useLocation();
 
   const sidebarItems = [
-    { id: 'ai-chat', icon: 'bx-chat', label: 'AI Chat', path: '/chat' },
-    { id: 'search', icon: 'bx-search', label: 'Search', path: '/search' },
+    { id: 'ai-chat', icon: 'bx-chat', label: 'AI Chat', path: '/ai-chat' },
+    { id: 'search', icon: 'bx-search', label: 'AI Search', path: '/ai-search' },
     { id: 'citation', icon: 'bx-book', label: 'Citation Search', path: '/citation' },
     { id: 'advance', icon: 'bx-search-alt', label: 'Advance Search', path: '/search' },
     { id: 'chat', icon: 'bx-chat', label: 'Chat', path: '/chat' },

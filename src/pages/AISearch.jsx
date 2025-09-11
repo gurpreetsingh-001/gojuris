@@ -6,7 +6,6 @@ const AISearch = () => {
   const [searchQuery, setSearchQuery] = useState('Ask AI');
   const [searchesRemaining, setSearchesRemaining] = useState(true);
 
-  // Remove empty space on top
   useEffect(() => {
     document.body.style.paddingTop = '0';
     
@@ -25,15 +24,17 @@ const AISearch = () => {
       <Sidebar />
       
       <div className="gojuris-main">
-        {/* Header */}
         <div className="gojuris-header">
           <div className="header-content">
-            <h1 className="gojuris-title">GOJURIS</h1>
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+            />
             <button className="login-btn">Login</button>
           </div>
         </div>
 
-        {/* AI Search Content */}
         <div className="ai-search-content-with-sidebar">
           <div className="search-header">
             <div className="search-badge">

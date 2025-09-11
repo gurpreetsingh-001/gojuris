@@ -40,8 +40,11 @@ const Dashboard = () => {
       <div className="dashboard-container-compact">
         <div className="dashboard-header-compact">
           <div className="gojuris-logo-compact">
-            <span className="gojuris-text-compact">GOJURIS</span>
-            <span className="ai-superscript-compact">AI</span>
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+            />
           </div>
           
           <div className="dashboard-subtitle-compact">
@@ -52,8 +55,8 @@ const Dashboard = () => {
         <div className="services-grid-compact">
           {services.map((service, index) => (
             <div key={index} className="service-card-compact">
-              <div className="service-icon-compact">
-                <i className={`bx ${service.icon}`}></i>
+              <div className="service-icon-compact" style={{ borderColor: '#8b5cf6' }}>
+                <i className={`bx ${service.icon}`} style={{ color: '#8b5cf6' }}></i>
               </div>
               <div className="service-content-compact">
                 <h3 className="service-title-compact">{service.title}</h3>

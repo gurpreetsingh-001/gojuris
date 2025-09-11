@@ -15,7 +15,6 @@ const Citation = () => {
   const [isPageOpen, setIsPageOpen] = useState(false);
   const [isCourtOpen, setIsCourtOpen] = useState(false);
 
-  // Remove empty space on top
   useEffect(() => {
     document.body.style.paddingTop = '0';
     
@@ -46,7 +45,6 @@ const Citation = () => {
 
   const handleSearch = (type) => {
     console.log('Search type:', type);
-    // Navigate to results page
   };
 
   return (
@@ -54,15 +52,17 @@ const Citation = () => {
       <Sidebar />
       
       <div className="gojuris-main">
-        {/* Header */}
         <div className="gojuris-header">
           <div className="header-content">
-            <h1 className="gojuris-title">GOJURIS</h1>
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+            />
             <button className="login-btn">Login</button>
           </div>
         </div>
 
-        {/* Citation Content */}
         <div className="citation-container" style={{ padding: '2rem' }}>
           <div className="citation-content">
             <h1 className="citation-main-title">Citation Search (Law Journals of India)</h1>

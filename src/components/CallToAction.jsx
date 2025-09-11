@@ -90,13 +90,15 @@ const CallToAction = () => {
             </div>
           </div>
           
-          <a href="#" className="btn btn-primary btn-lg me-3">
-            Start Consultation
-            <i className="bx bx-right-arrow-alt lh-1 fs-4 ms-2"></i>
-          </a>
-          <a href="#" className="btn btn-outline-primary btn-lg">
-            Learn More
-          </a>
+          <div className="d-flex align-items-center gap-3">
+            <a href="/signup" className="btn btn-primary btn-lg d-flex align-items-center">
+              <span>Signup</span>
+              <i className="bx bx-right-arrow-alt ms-2"></i>
+            </a>
+            <a href="#" className="btn btn-outline-primary btn-lg">
+              Learn More
+            </a>
+          </div>
         </div>
       </div>
     </section>

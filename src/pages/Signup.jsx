@@ -26,7 +26,6 @@ const Signup = () => {
   const handleSignup = (e) => {
     e.preventDefault();
     
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
@@ -37,7 +36,6 @@ const Signup = () => {
       return;
     }
     
-    // Navigate to dashboard after successful signup
     console.log('Signup data:', formData);
     navigate('/dashboard');
   };
@@ -54,12 +52,11 @@ const Signup = () => {
             <div className="login-form-wrapper">
               {/* Logo */}
               <div className="login-logo">
-                <div className="logo-icon-gj">
-                  <i className="bx bx-certification"></i>
-                </div>
-                <div className="logo-text">
-                  <span className="legal-text">Legal AI</span>
-                </div>
+                <img 
+                  src="/logo.png" 
+                  alt="GoJuris Logo" 
+                  style={{ height: '64px', width: 'auto' }}
+                />
               </div>
 
               {/* Form */}
@@ -150,7 +147,6 @@ const Signup = () => {
                     </div>
                   </div>
 
-                  {/* Terms Agreement */}
                   <div className="form-group">
                     <div className="form-check d-flex align-items-start">
                       <input
@@ -221,8 +217,11 @@ const Signup = () => {
               
               <div className="brand-footer">
                 <div className="gojuris-logo">
-                  <i className="bx bx-certification"></i>
-                  <span>GOJURIS</span>
+                  <img 
+                    src="/logo.png" 
+                    alt="GoJuris Logo" 
+                    style={{ height: '24px', width: 'auto' }}
+                  />
                 </div>
                 <div className="tagline">
                   &nbsp;&nbsp; AI Solutions for Legal Excellence

@@ -48,12 +48,11 @@ const VideoSection = () => {
       className="container text-center pb-5 mb-3 mb-md-4 mb-lg-5" 
       ref={sectionRef}
     >
-      <h2 className="h1 pt-1 mb-4">See What Makes Us Different</h2>
+      <h2 className="h1 pt-1 mb-4">See,how Gojuris AI Works</h2>
       <div className="row justify-content-center mb-md-2 mb-lg-5">
         <div className="col-lg-6 col-md-8">
           <p className="fs-lg text-muted mb-lg-0">
-            Your best care begins here. Hurry up to get top health care quality 
-            from leading doctors of the world.
+           Watch our quick demo and see how Gojuris AI transforms legal research into a faster, smarter experience
           </p>
         </div>
       </div>

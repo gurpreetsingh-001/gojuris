@@ -66,7 +66,7 @@ const Testimonials = () => {
     <section className="bg-secondary py-5">
       <div className="container py-md-3 py-lg-5">
         <div className="text-center mb-5">
-          <h2 className="h1 mb-4">What Our Patients Say</h2>
+          <h2 className="h1 mb-4">Success Stories with Gojuris</h2>
           <p className="fs-lg text-muted">
             Don't just take our word for it. Here's what our patients have to say about their experience.
           </p>

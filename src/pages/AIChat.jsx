@@ -6,7 +6,6 @@ const AIChat = () => {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
 
-  // Remove empty space on top
   useEffect(() => {
     document.body.style.paddingTop = '0';
     
@@ -28,7 +27,6 @@ const AIChat = () => {
       setChatHistory([...chatHistory, { type: 'user', text: message }]);
       setMessage('');
       
-      // Simulate AI response
       setTimeout(() => {
         setChatHistory(prev => [...prev, { 
           type: 'ai', 
@@ -44,17 +42,16 @@ const AIChat = () => {
 
   return (
     <div className="ai-chat-layout-with-nav">
-      {/* Purple Navigation Sidebar */}
       <Sidebar />
       
-      {/* Chat-specific Sidebar */}
       <div className="ai-chat-sidebar">
         <div className="sidebar-header">
           <div className="gojuris-logo">
-            <div className="logo-icon-gj">
-              <i className="bx bx-certification"></i>
-            </div>
-            <span className="logo-text">GOJURIS</span>
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+            />
           </div>
         </div>
         
@@ -86,7 +83,6 @@ const AIChat = () => {
         </div>
       </div>
 
-      {/* Main Chat Area */}
       <div className="ai-chat-main">
         <div className="chat-header">
           <div className="chat-title">
@@ -125,7 +121,6 @@ const AIChat = () => {
             )}
           </div>
           
-          {/* Quick Questions */}
           {chatHistory.length === 0 && (
             <div className="quick-questions">
               {quickQuestions.map((question, index) => (
@@ -141,7 +136,6 @@ const AIChat = () => {
           )}
         </div>
         
-        {/* Chat Input */}
         <div className="chat-input-section">
           <form onSubmit={handleSendMessage} className="chat-form">
             <div className="chat-input-wrapper">

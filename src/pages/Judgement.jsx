@@ -8,7 +8,6 @@ const Judgement = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    // Remove medical site body padding
     document.body.style.paddingTop = '0';
     
     return () => {
@@ -49,10 +48,12 @@ const Judgement = () => {
         <div className="judgement-header">
           <div className="header-top">
             <div className="gojuris-logo-section">
-              <div className="logo-icon">
-                <i className="bx bx-certification"></i>
-              </div>
-              <h1 className="gojuris-title">GOJURIS</h1>
+             
+              <img 
+                src="/logo.png" 
+                alt="GoJuris Logo" 
+                style={{ height: '64px', width: 'auto' }}
+              />
             </div>
             
             <div className="header-actions">

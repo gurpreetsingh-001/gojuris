@@ -6,14 +6,13 @@ const Results = () => {
   const [activeTab, setActiveTab] = useState('all-courts');
 
   useEffect(() => {
-  // Remove medical site body padding
-  document.body.style.paddingTop = '0';
-  
-  // Cleanup when leaving page
-  return () => {
-    document.body.style.paddingTop = ''; // Restore original
-  };
-}, []);
+    document.body.style.paddingTop = '0';
+    
+    return () => {
+      document.body.style.paddingTop = '';
+    };
+  }, []);
+
   const searchResults = [
     {
       id: 1,
@@ -22,25 +21,22 @@ const Results = () => {
       court: "M.P.HIGH COURT",
       excerpt: "Code of Criminal Procedure -- S.439 -- Indian Penal Code -- S.302 -- Indian Penal Code -- S.201ORDER P.N.S. Chouhan, J.- Arguments heard. 2. The applicant is facing charge of murdering his own wife and concealing her dead body. The evidence was read over which shows that on the pertinent night the applicant had come to the house of his in laws where his wife was residing and had a talk",
       highlightTerms: ["murdering", "wife"]
-      
     },
-      {
-      id: 1,
+    {
+      id: 2,
       title: "Sawanlal Vs. State of Madhya Pradesh",
       date: "16-07-1992",
       court: "M.P.HIGH COURT",
       excerpt: "Code of Criminal Procedure -- S.439 -- Indian Penal Code -- S.302 -- Indian Penal Code -- S.201ORDER P.N.S. Chouhan, J.- Arguments heard. 2. The applicant is facing charge of murdering his own wife and concealing her dead body. The evidence was read over which shows that on the pertinent night the applicant had come to the house of his in laws where his wife was residing and had a talk",
       highlightTerms: ["murdering", "wife"]
-      
     },
-      {
-      id: 1,
+    {
+      id: 3,
       title: "Sawanlal Vs. State of Madhya Pradesh",
       date: "16-07-1992",
       court: "M.P.HIGH COURT",
       excerpt: "Code of Criminal Procedure -- S.439 -- Indian Penal Code -- S.302 -- Indian Penal Code -- S.201ORDER P.N.S. Chouhan, J.- Arguments heard. 2. The applicant is facing charge of murdering his own wife and concealing her dead body. The evidence was read over which shows that on the pertinent night the applicant had come to the house of his in laws where his wife was residing and had a talk",
       highlightTerms: ["murdering", "wife"]
-      
     }
   ];
 
@@ -58,20 +54,21 @@ const Results = () => {
       <Sidebar />
       
       <div className="gojuris-main">
-        {/* Header */}
         <div className="gojuris-header">
           <div className="header-content">
-            <h1 className="gojuris-title">GOJURIS</h1>
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+            />
             <button className="login-btn">Login</button>
           </div>
         </div>
 
-        {/* Search Title */}
         <div className="search-title-section">
           <h2 className="search-title">Murder By Wife</h2>
         </div>
 
-        {/* Tabs */}
         <div className="search-tabs-section">
           <button 
             className={`tab-button ${activeTab === 'all-courts' ? 'active' : ''}`}
@@ -87,7 +84,6 @@ const Results = () => {
           </button>
         </div>
 
-        {/* Filters */}
         <div className="filters-section">
           <div className="filter-controls">
             <select className="filter-dropdown">
@@ -98,12 +94,11 @@ const Results = () => {
             
             <select className="filter-dropdown">
               <option>All COURTS</option>
-             
-    <option>Supreme Court</option>
-    <option>High Court</option>
-    <option>District Court</option>
-    <option>Family Court</option>
-    <option>Consumer Court</option>
+              <option>Supreme Court</option>
+              <option>High Court</option>
+              <option>District Court</option>
+              <option>Family Court</option>
+              <option>Consumer Court</option>
             </select>
             
             <button className="sort-button">Sort by Date</button>
@@ -114,7 +109,6 @@ const Results = () => {
           </div>
         </div>
 
-        {/* Results */}
         <div className="search-results">
           {searchResults.map((result, index) => (
             <div key={result.id} className="result-item">
@@ -138,8 +132,7 @@ const Results = () => {
                 dangerouslySetInnerHTML={highlightText(result.excerpt, result.highlightTerms)}
               ></div>
               
-             <a href={`/judgement/${result.id}`} className="read-judgement">Read Judgement.</a>
-
+              <a href={`/judgement/${result.id}`} className="read-judgement">Read Judgement.</a>
             </div>
           ))}
         </div>

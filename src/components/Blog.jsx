@@ -36,7 +36,7 @@ const Blog = () => {
     <section className="container py-5 mb-md-3 mb-lg-5">
       <div className="d-md-flex align-items-center justify-content-between text-center text-md-start mb-5">
         <div>
-          <h2 className="h1 mb-md-0">Latest News & Healthy Tips</h2>
+          <h2 className="h1 mb-md-0">Latest News </h2>
           <p className="text-muted mb-0">Stay updated with the latest health information and medical insights</p>
         </div>
         <a href="#" className="btn btn-outline-primary">

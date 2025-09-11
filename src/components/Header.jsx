@@ -43,7 +43,6 @@ const Header = () => {
   }, []);
 
   const scrollToSection = (sectionId) => {
-    // If we're on search page, navigate to home first
     if (location.pathname === '/search') {
       navigate('/');
       setTimeout(() => {
@@ -105,11 +104,11 @@ const Header = () => {
       <header className={`header navbar navbar-expand-lg fixed-top navbar-sticky w-100 ${isScrolled ? 'scrolled' : ''}`}>
         <div className="container px-3">
           <a href="/" className="navbar-brand pe-3" onClick={handleLogoClick}>
-            <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-                 style={{ width: '40px', height: '40px' }}>
-              <i className="bx bx-plus-medical text-white"></i>
-            </div>
-            Silicon
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+            />
           </a>
           
           <div className={`offcanvas offcanvas-end ${isOffcanvasOpen ? 'show' : ''}`}>
@@ -138,7 +137,7 @@ const Header = () => {
                     className={`nav-link btn btn-link ${location.pathname === '/search' ? 'active' : ''}`}
                     onClick={navigateToSearch}
                   >
-                    Search
+                    Why Us
                   </button>
                 </li>
                 <li className="nav-item">
@@ -146,7 +145,7 @@ const Header = () => {
                     className="nav-link btn btn-link" 
                     onClick={() => scrollToSection('services')}
                   >
-                    Services
+                    Latest
                   </button>
                 </li>
                 <li className="nav-item">
@@ -154,7 +153,7 @@ const Header = () => {
                     className="nav-link btn btn-link" 
                     onClick={() => scrollToSection('doctors')}
                   >
-                    Doctors
+                    Products
                   </button>
                 </li>
                 <li className="nav-item">
@@ -162,7 +161,7 @@ const Header = () => {
                     className="nav-link btn btn-link" 
                     onClick={() => scrollToSection('contact')}
                   >
-                    Contact
+                    Subscriptions
                   </button>
                 </li>
               </ul>
@@ -180,9 +179,7 @@ const Header = () => {
             </div>      
           </div>
 
-          {/* Right side controls - Fixed layout */}
           <div className="d-flex align-items-center ms-auto">
-            {/* Theme Switcher with both Light and Dark labels */}
             <div className="d-flex align-items-center me-3">
               <span className="text-muted me-2 d-none d-sm-inline" style={{ fontSize: '0.875rem' }}>
                 Light
@@ -201,18 +198,16 @@ const Header = () => {
               </span>
             </div>
 
-            {/* CTA Button */}
             <a 
-              href="#contact" 
+              href="login" 
               className="btn btn-primary btn-sm rounded d-none d-lg-inline-flex me-3"
               onClick={handleContactClick}
               style={{ whiteSpace: 'nowrap' }}
             >
               <i className="bx bx-calendar-plus fs-5 lh-1 me-1"></i>
-              Book Now
+              Login
             </a>
 
-            {/* Mobile Toggle */}
             <button 
               type="button" 
               className="navbar-toggler" 

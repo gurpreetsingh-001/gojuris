@@ -1,7 +1,8 @@
 // src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/header';
+import Header from '../components/Header';
+
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ const Login = () => {
 
   return (
     <>
-    <Header/>
+  <Header/>
     <div className="login-page-wrapper">
       <div className="login-layout">
         <div className="login-container">

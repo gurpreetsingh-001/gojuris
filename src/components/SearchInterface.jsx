@@ -69,6 +69,11 @@ const SearchInterface = () => {
         <div className="row justify-content-center">
           <div className="col-12">
             <div className="search-card-compact">
+              {/* Try Chat Header */}
+              <div className="search-header-section">
+                <h2 className="search-main-heading">Try Chat</h2>
+              </div>
+
               {/* Tabs Row */}
               <div className="tabs-row">
                 {tabs.map((tab) => (

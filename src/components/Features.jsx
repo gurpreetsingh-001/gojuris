@@ -116,11 +116,11 @@ const Features = () => {
     <>
       {/* Features Section */}
       <section className="container py-5 mb-2 mb-md-4 mb-lg-5" ref={featuresRef}>
-        <div className="text-center mb-5">
+        <div className="text-center" style={{ marginBottom: '2px' }}>
           <h2 className="h1 mb-3 text-primary">What's New in GoJuris.ai</h2>
         </div>
         
-        <div className="row row-cols-1 row-cols-md-3 g-4 pt-2 pt-md-4 pb-lg-2">
+        <div className="row row-cols-1 row-cols-md-3 g-4  pt-md-4 pb-lg-2">
           {features.map((feature, index) => (
             <div key={index} className="col">
               <div className="card flex-column align-items-center card-hover border-primary h-100 feature-card text-center p-4">

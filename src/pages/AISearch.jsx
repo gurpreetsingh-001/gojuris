@@ -1,10 +1,12 @@
 // src/pages/AISearch.jsx  
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import Navbar from '../components/Navbar';
 
 const AISearch = () => {
   const [searchQuery, setSearchQuery] = useState('Ask AI');
   const [searchesRemaining, setSearchesRemaining] = useState(true);
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -19,21 +21,19 @@ const AISearch = () => {
     console.log('AI Search:', searchQuery);
   };
 
+  const handleVoiceSearch = () => {
+    setIsListening(!isListening);
+    // Add voice search functionality here
+    console.log('Voice search clicked');
+  };
+
   return (
     <div className="gojuris-layout">
       <Sidebar />
       
       <div className="gojuris-main">
-        <div className="gojuris-header">
-          <div className="header-content">
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
-              style={{ height: '64px', width: 'auto' }}
-            />
-            <button className="login-btn">Login</button>
-          </div>
-        </div>
+        {/* Replace the old header with Navbar component */}
+        <Navbar />
 
         <div className="ai-search-content-with-sidebar">
           <div className="search-header">
@@ -58,16 +58,26 @@ const AISearch = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Ask AI"
                   />
-                  <button type="submit" className="search-submit">
-                    <i className="bx bx-search"></i>
-                  </button>
+                  <div className="search-buttons">
+                    <button 
+                      type="button" 
+                      className={`voice-search-btn ${isListening ? 'listening' : ''}`}
+                      onClick={handleVoiceSearch}
+                      title="Voice search"
+                    >
+                      <i className="bx bx-microphone"></i>
+                    </button>
+                    <button type="submit" className="search-submit">
+                      <i className="bx bx-search"></i>
+                    </button>
+                  </div>
                 </div>
               </form>
               
               {searchesRemaining && (
                 <div className="search-info">
-                  <p className="searches-text">You have searches remaining.</p>
-                  <a href="#" className="upgrade-link">Upgrade Plan</a>
+                  <p className="searches-text">Replace This text</p>
+                  <a href="#" className="upgrade-link">Related Queries</a>
                 </div>
               )}
             </div>
@@ -87,6 +97,83 @@ const AISearch = () => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .search-input-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .ai-search-input {
+          flex: 1;
+          padding-right: 100px; /* Make space for both buttons */
+        }
+
+        .search-buttons {
+          position: absolute;
+          right: 8px;
+          display: flex;
+          gap: 4px;
+          align-items: center;
+        }
+
+        .voice-search-btn {
+          background: none;
+          border: none;
+          padding: 8px;
+          border-radius: 50%;
+          cursor: pointer;
+          color: #6B7280;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+        }
+
+        .voice-search-btn:hover {
+          background-color: #F3F4F6;
+          color: #8B5CF6;
+        }
+
+        .voice-search-btn.listening {
+          color: #EF4444;
+          animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        .search-submit {
+          background: #8B5CF6;
+          border: none;
+          padding: 8px;
+          border-radius: 50%;
+          cursor: pointer;
+          color: white;
+          transition: background-color 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+        }
+
+        .search-submit:hover {
+          background: #7C3AED;
+        }
+      `}</style>
     </div>
   );
 };

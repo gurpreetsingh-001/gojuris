@@ -1,7 +1,7 @@
 // src/components/Blog.jsx
 import React from 'react';
 
-const Blog = () => {
+const  NewsJudgement = () => {
   const blogPosts = [
     {
       title: 'Understanding COVID-19 Vaccination: What You Need to Know',
@@ -36,7 +36,7 @@ const Blog = () => {
     <section className="container py-5 mb-md-3 mb-lg-5">
       <div className="d-md-flex align-items-center justify-content-between text-center text-md-start mb-5">
         <div>
-          <h2 className="h1 mb-md-0">Judgement </h2>
+          <h2 className="h1 mb-md-0">Latest Law Points </h2>
           <p className="text-muted mb-0">Stay updated with the latest health information and medical insights</p>
         </div>
         <a href="#" className="btn btn-outline-primary">
@@ -89,4 +89,4 @@ const Blog = () => {
   );
 };
 
-export default Blog;
+export default NewsJudgement;

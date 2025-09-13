@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const Dashboard = () => {
   const services = [
@@ -39,13 +39,7 @@ const Dashboard = () => {
     <div className="dashboard-page-compact">
       <div className="dashboard-container-compact">
         <div className="dashboard-header-compact">
-          <div className="gojuris-logo-compact">
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
-              style={{ height: '64px', width: 'auto' }}
-            />
-          </div>
+          
           
           <div className="dashboard-subtitle-compact">
             <p>Offering a cutting-edge legal research AI tool. Accessible via web and app. Click for details. Empowering legal professionals with AI-driven insights.</p>

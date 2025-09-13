@@ -11,6 +11,7 @@ import Testimonials from '../components/Testimonials';
 import Blog from '../components/Blog';
 import ContactMap from '../components/ContactMap';
 import Contact from '../components/Contact';
+import NewsJudgement from '../components/NewsJudgement';
 
 const Home = () => {
   return (
@@ -21,9 +22,13 @@ const Home = () => {
       <VideoSection />
       <Services />
       <CallToAction />
-      <Team />
-      <Testimonials />
+      <NewsJudgement/>
       <Blog />
+      
+      <Team />
+      
+      <Testimonials />
+      
       <ContactMap />
       {/* <Contact /> */}
     </>

@@ -1,6 +1,7 @@
 // src/pages/Citation.jsx
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import Navbar from '../components/Navbar';
 
 const Citation = () => {
   const [selectedJournal, setSelectedJournal] = useState('Select a option');
@@ -52,16 +53,8 @@ const Citation = () => {
       <Sidebar />
       
       <div className="gojuris-main">
-        <div className="gojuris-header">
-          <div className="header-content">
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
-              style={{ height: '64px', width: 'auto' }}
-            />
-            <button className="login-btn">Login</button>
-          </div>
-        </div>
+        {/* Replace the old header with Navbar component */}
+        <Navbar />
 
         <div className="citation-container" style={{ padding: '2rem' }}>
           <div className="citation-content">
@@ -215,23 +208,7 @@ const Citation = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="citation-actions">
-                <div className="citation-buttons">
-                  <button 
-                    className="citation-search-btn primary"
-                    onClick={() => handleSearch('citations')}
-                  >
-                    Search Citations
-                  </button>
-                  <button 
-                    className="citation-search-btn secondary"
-                    onClick={() => handleSearch('supreme-court')}
-                  >
-                    Search in Supreme Court
-                  </button>
-                </div>
-                
+   
                 <div className="citation-court-field">
                   <div className="citation-dropdown-wrapper full-width">
                     <button
@@ -266,6 +243,17 @@ const Citation = () => {
                     )}
                   </div>
                 </div>
+              <div className="citation-actions">
+                <div className="citation-buttons">
+                  <button 
+                    className="citation-search-btn primary"
+                    onClick={() => handleSearch('citations')}
+                  >
+                    Search Citations
+                  </button>
+                  
+                </div>
+             
               </div>
             </div>
           </div>

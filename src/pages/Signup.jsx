@@ -1,6 +1,7 @@
 // src/pages/Signup.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/header';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -45,19 +46,14 @@ const Signup = () => {
   };
 
   return (
+    <>
+    <Header/>
     <div className="login-page-wrapper">
       <div className="login-layout">
         <div className="login-container">
           <div className="login-left">
             <div className="login-form-wrapper">
-              {/* Logo */}
-              <div className="login-logo">
-                <img 
-                  src="/logo.png" 
-                  alt="GoJuris Logo" 
-                  style={{ height: '64px', width: 'auto' }}
-                />
-              </div>
+              
 
               {/* Form */}
               <div className="login-form">
@@ -233,6 +229,7 @@ const Signup = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

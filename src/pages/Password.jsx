@@ -1,6 +1,7 @@
 // src/pages/Password.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Header from '../components/header';
 
 const Password = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Password = () => {
 
   const handleContinue = (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    // navigate('/dashboard');
   };
 
   const handleGoBack = () => {
@@ -20,19 +21,15 @@ const Password = () => {
   };
 
   return (
+    <>
+    <Header/>
     <div className="login-page-wrapper">
       <div className="login-layout">
         <div className="login-container">
           <div className="login-left">
             <div className="login-form-wrapper">
-              {/* Logo */}
-              <div className="login-logo">
-                <img 
-                  src="/logo.png" 
-                  alt="GoJuris Logo" 
-                  style={{ height: '64px', width: 'auto' }}
-                />
-              </div>
+              
+             
 
               {/* Form */}
               <div className="login-form">
@@ -111,6 +108,7 @@ const Password = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

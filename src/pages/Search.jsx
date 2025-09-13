@@ -137,6 +137,11 @@ const Search = () => {
                   <div className="col-md-6">
                     <input
                       type="text"
+                      style={{ 
+    width: '100%', 
+    minWidth: '400px',
+    padding: '12px 16px'
+  }}
                       className="form-field-input"
                       placeholder="Appellant"
                       value={formData.appellant}
@@ -146,6 +151,11 @@ const Search = () => {
                   <div className="col-md-6">
                     <input
                       type="text"
+                      style={{ 
+    width: '100%', 
+    minWidth: '400px',
+    padding: '12px 16px'
+  }}
                       className="form-field-input"
                       placeholder="Respondent"
                       value={formData.respondent}
@@ -155,6 +165,11 @@ const Search = () => {
                   <div className="col-md-6">
                     <input
                       type="text"
+                      style={{ 
+    width: '100%', 
+    minWidth: '400px',
+    padding: '12px 16px'
+  }}
                       className="form-field-input"
                       placeholder="Judge"
                       value={formData.judge}
@@ -164,6 +179,11 @@ const Search = () => {
                   <div className="col-md-6">
                     <input
                       type="text"
+                      style={{ 
+    width: '100%', 
+    minWidth: '400px',
+    padding: '12px 16px'
+  }}
                       className="form-field-input"
                       placeholder="Advocate"
                       value={formData.advocate}
@@ -173,6 +193,11 @@ const Search = () => {
                   <div className="col-md-6">
                     <input
                       type="text"
+                      style={{ 
+    width: '100%', 
+    minWidth: '400px',
+    padding: '12px 16px'
+  }}
                       className="form-field-input"
                       placeholder="Case No."
                       value={formData.caseNo}

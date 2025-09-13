@@ -193,6 +193,7 @@ const Services = () => {
       <section id="services" className="container pb-4 mb-md-2 mb-lg-4" ref={servicesRef}>
         <div className="row">
           <div className="col-lg-4 text-center text-lg-start pb-3 pb-lg-0 mb-3 mb-lg-0">
+            <h1 className='text-center mb-3 text-primary p-4'>Why Us</h1>                                                 
             <h2 className="h1 mb-3">Highly Innovative Technology & Services</h2>
             <p className="pb-3 mb-0 mb-lg-2">
               GoJuris provides cutting-edge legal research tools powered by artificial intelligence. 
@@ -204,6 +205,7 @@ const Services = () => {
           </div>
           
           <div className="col-xl-7 col-lg-8 offset-xl-1">
+            <h1 className='text-center mb-4 text-primary p-4'>Coverage</h1>
             <div className="row row-cols-1 row-cols-md-2 g-3">
               {services.map((service, index) => (
                 <div key={index} className="col">

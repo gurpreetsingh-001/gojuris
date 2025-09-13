@@ -1,6 +1,7 @@
 // src/pages/Results.jsx
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import Navbar from '../components/Navbar';
 
 const Results = () => {
   const [activeTab, setActiveTab] = useState('all-courts');
@@ -19,6 +20,7 @@ const Results = () => {
       title: "Sawanlal Vs. State of Madhya Pradesh",
       date: "16-07-1992",
       court: "M.P.HIGH COURT",
+      accuracy: 95,
       excerpt: "Code of Criminal Procedure -- S.439 -- Indian Penal Code -- S.302 -- Indian Penal Code -- S.201ORDER P.N.S. Chouhan, J.- Arguments heard. 2. The applicant is facing charge of murdering his own wife and concealing her dead body. The evidence was read over which shows that on the pertinent night the applicant had come to the house of his in laws where his wife was residing and had a talk",
       highlightTerms: ["murdering", "wife"]
     },
@@ -27,6 +29,7 @@ const Results = () => {
       title: "Sawanlal Vs. State of Madhya Pradesh",
       date: "16-07-1992",
       court: "M.P.HIGH COURT",
+      accuracy: 95,
       excerpt: "Code of Criminal Procedure -- S.439 -- Indian Penal Code -- S.302 -- Indian Penal Code -- S.201ORDER P.N.S. Chouhan, J.- Arguments heard. 2. The applicant is facing charge of murdering his own wife and concealing her dead body. The evidence was read over which shows that on the pertinent night the applicant had come to the house of his in laws where his wife was residing and had a talk",
       highlightTerms: ["murdering", "wife"]
     },
@@ -35,6 +38,7 @@ const Results = () => {
       title: "Sawanlal Vs. State of Madhya Pradesh",
       date: "16-07-1992",
       court: "M.P.HIGH COURT",
+      accuracy: 95,
       excerpt: "Code of Criminal Procedure -- S.439 -- Indian Penal Code -- S.302 -- Indian Penal Code -- S.201ORDER P.N.S. Chouhan, J.- Arguments heard. 2. The applicant is facing charge of murdering his own wife and concealing her dead body. The evidence was read over which shows that on the pertinent night the applicant had come to the house of his in laws where his wife was residing and had a talk",
       highlightTerms: ["murdering", "wife"]
     }
@@ -54,16 +58,8 @@ const Results = () => {
       <Sidebar />
       
       <div className="gojuris-main">
-        <div className="gojuris-header">
-          <div className="header-content">
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
-              style={{ height: '64px', width: 'auto' }}
-            />
-            <button className="login-btn">Login</button>
-          </div>
-        </div>
+        {/* Replace the old header with Navbar component */}
+        <Navbar />
 
         <div className="search-title-section">
           <h2 className="search-title">Murder By Wife</h2>
@@ -112,9 +108,15 @@ const Results = () => {
         <div className="search-results">
           {searchResults.map((result, index) => (
             <div key={result.id} className="result-item">
-              <h3 className="result-title">
-                {index + 1}. {result.title}
-              </h3>
+              <div className="result-header">
+                <h3 className="result-title">
+                  {index + 1}. {result.title}
+                </h3>
+                <div className="accuracy-badge">
+                  <i className="bx bx-target-lock text-success me-1"></i>
+                  <span className="accuracy-text">Accuracy: {result.accuracy}%</span>
+                </div>
+              </div>
               
               <div className="result-meta">
                 <span className="result-date">
@@ -137,6 +139,106 @@ const Results = () => {
           ))}
         </div>
       </div>
+
+      <style jsx>{`
+        .result-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 12px;
+          gap: 15px;
+        }
+
+        .result-title {
+          flex: 1;
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #1F2937;
+          line-height: 1.4;
+        }
+
+        .accuracy-badge {
+          display: flex;
+          align-items: center;
+          background: #F0FDF4;
+          border: 1px solid #BBF7D0;
+          border-radius: 20px;
+          padding: 4px 12px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .accuracy-text {
+          font-size: 13px;
+          font-weight: 600;
+          color: #15803D;
+        }
+
+        .result-item {
+          background: white;
+          border: 1px solid #E5E7EB;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 16px;
+          transition: box-shadow 0.2s ease;
+        }
+
+        .result-item:hover {
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-meta {
+          display: flex;
+          gap: 24px;
+          margin-bottom: 12px;
+          font-size: 14px;
+          color: #6B7280;
+        }
+
+        .result-meta span {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .result-content {
+          font-size: 14px;
+          line-height: 1.6;
+          color: #374151;
+          margin-bottom: 12px;
+        }
+
+        .result-content mark {
+          background: #FEF3C7;
+          color: #92400E;
+          padding: 2px 4px;
+          border-radius: 3px;
+        }
+
+        .read-judgement {
+          color: #8B5CF6;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 14px;
+        }
+
+        .read-judgement:hover {
+          color: #7C3AED;
+          text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+          .result-header {
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .accuracy-badge {
+            align-self: flex-start;
+          }
+        }
+      `}</style>
     </div>
   );
 };

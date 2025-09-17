@@ -388,14 +388,31 @@ const processSearchResults = (searchResults, userMessage) => {
                       <i className={`bx ${msg.type === 'user' ? 'bx-user' : 'bx-bot'}`}></i>
                     </div>
                     <div className="message-content">
-                      <pre style={{ 
-                        whiteSpace: 'pre-wrap', 
-                        wordWrap: 'break-word',
-                        fontFamily: 'inherit',
-                        margin: 0
-                      }}>
-                        {msg.text}
-                      </pre>
+                     {msg.type === 'ai' && msg.metadata?.isApiResponse ? (
+  <div 
+    className="api-response-content"
+    dangerouslySetInnerHTML={{ 
+      __html: msg.text
+        .replace(/<p>/g, '<p style="margin: 0.8em 0; line-height: 1.6;">')
+        .replace(/<strong>/g, '<strong style="color: #2c3e50; font-weight: 600;">')
+        .replace(/<ul>/g, '<ul style="margin: 0.5em 0; padding-left: 1.5em;">')
+        .replace(/<li>/g, '<li style="margin: 0.4em 0; line-height: 1.5;">')
+        .replace(/<a/g, '<a style="color: #3498db; text-decoration: none; font-weight: 500;"')
+        .replace(/<\/a>/g, '</a>')
+        .replace(/<em>/g, '<em style="font-style: italic; color: #666;">')
+        .replace(/<\/ul><p>/g, '</ul><p style="margin-top: 1.2em;">')
+    }} 
+  />
+) : (
+  <pre style={{ 
+    whiteSpace: 'pre-wrap', 
+    wordWrap: 'break-word',
+    fontFamily: 'inherit',
+    margin: 0
+  }}>
+    {msg.text}
+  </pre>
+)}
                       {msg.metadata && msg.metadata.isApiResponse && (
                         <small className="text-muted d-block mt-2">
                           ✅ API Response 
@@ -694,6 +711,29 @@ const processSearchResults = (searchResults, userMessage) => {
           font-family: inherit;
           margin: 0;
         }
+          .api-response-content {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.api-response-content p:first-child {
+  margin-top: 0;
+}
+
+.api-response-content p:last-child {
+  margin-bottom: 0;
+}
+
+.api-response-content a:hover {
+  border-bottom: 1px solid #3498db;
+}
+
+.api-response-content ul ul {
+  margin: 0.3em 0;
+  padding-left: 1.2em;
+}
       `}</style>
     </div>
   );

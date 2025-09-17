@@ -1,7 +1,8 @@
-// src/pages/Login.jsx
+// src/pages/Login.jsx - Update existing file
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import ApiService from '../services/apiService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -9,10 +10,30 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleContinue = (e) => {
+  const handleContinue = async (e) => {
     e.preventDefault();
-    if (email.trim()) {
+    
+    if (!email.trim()) {
+      setError('Email address is required');
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // For now, just navigate to password page
+      // Later, you might want to check if user exists first
       navigate('/password', { state: { email } });
+    } catch (error) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -28,12 +49,13 @@ const Login = () => {
           <div className="login-container">
             <div className="login-left">
               <div className="login-form-wrapper">
-                {/* Form */}
                 <div className="login-form">
                   <h1 className="login-title">Welcome back</h1>
                   
+                  {/* Error Message */}
                   {error && (
                     <div className="alert alert-danger mb-3" role="alert">
+                      <i className="bx bx-error-circle me-2"></i>
                       {error}
                     </div>
                   )}
@@ -42,15 +64,15 @@ const Login = () => {
                     <div className="form-group">
                       <input
                         type="email"
-                        className="form-input"
+                        className={`form-input ${error ? 'is-invalid' : ''}`}
                         placeholder="Email address*"
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
-                          setError(''); // Clear error when user types
+                          if (error) setError(''); // Clear error when user types
                         }}
-                        required
                         disabled={isLoading}
+                        required
                       />
                     </div>
                     
@@ -64,7 +86,7 @@ const Login = () => {
                           <span className="spinner-border spinner-border-sm me-2" role="status">
                             <span className="visually-hidden">Loading...</span>
                           </span>
-                          Processing...
+                          Continue
                         </>
                       ) : (
                         'Continue'
@@ -75,7 +97,11 @@ const Login = () => {
                   <div className="login-footer">
                     <p className="signup-text">
                       Don't have an account? 
-                      <button onClick={handleSignUp} className="signup-link">
+                      <button 
+                        onClick={handleSignUp} 
+                        className="signup-link"
+                        disabled={isLoading}
+                      >
                         Sign Up
                       </button>
                     </p>
@@ -85,15 +111,15 @@ const Login = () => {
                     </div>
                     
                     <div className="social-login">
-                      <button className="social-btn">
+                      <button className="social-btn" disabled={isLoading}>
                         <i className="bx bx-phone"></i>
                         Continue with phone
                       </button>
-                      <button className="social-btn">
+                      <button className="social-btn" disabled={isLoading}>
                         <i className="bx bxl-apple"></i>
                         Continue with Apple
                       </button>
-                      <button className="social-btn">
+                      <button className="social-btn" disabled={isLoading}>
                         <i className="bx bxl-google"></i>
                         Continue with Google
                       </button>
@@ -128,7 +154,7 @@ const Login = () => {
                     />
                   </div>
                   <div className="tagline">
-                   &nbsp;&nbsp; AI Solutions for Legal Excellence
+                    &nbsp;&nbsp;AI Solutions for Legal Excellence
                     <i className="bx bx-right-arrow-alt"></i>
                   </div>
                 </div>

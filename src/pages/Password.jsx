@@ -1,7 +1,8 @@
-// src/pages/Password.jsx
+// src/pages/Password.jsx - Update existing file
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
+import ApiService from '../services/apiService';
 
 const Password = () => {
   const navigate = useNavigate();
@@ -12,48 +13,6 @@ const Password = () => {
   const [error, setError] = useState('');
   
   const email = location.state?.email || 'xyz@email.com';
-
-  // API Base URL
-  const API_BASE_URL = 'http://108.60.219.166:8001';
-
-  const handleLogin = async (username, password) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': '*/*'
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store tokens
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('expiresAt', data.expiresAt);
-        localStorage.setItem('userEmail', username);
-        
-        return { success: true, data };
-      } else {
-        return { 
-          success: false, 
-          error: data.message || 'Invalid username or password' 
-        };
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: 'Network error. Please try again.' 
-      };
-    }
-  };
 
   const handleContinue = async (e) => {
     e.preventDefault();
@@ -67,18 +26,32 @@ const Password = () => {
     setError('');
 
     try {
-      const result = await handleLogin(email, password);
+      console.log('🔐 Attempting login...');
       
-      if (result.success) {
-        // Login successful - redirect to dashboard
-        navigate('/dashboard');
-      } else {
-        // Login failed - show error
-        setError(result.error);
-      }
+      // Call login API
+      const loginData = {
+        username: email, // API expects username, using email
+        password: password
+      };
+
+      const result = await ApiService.loginUser(loginData);
+      
+      console.log('✅ Login successful:', result);
+      
+      // Navigate to dashboard on successful login
+      navigate('/dashboard');
+
     } catch (error) {
-      console.error('Login failed:', error);
-      setError('An unexpected error occurred. Please try again.');
+      console.error('❌ Login error:', error);
+      
+      // Handle specific login errors
+      if (error.message.includes('Invalid') || error.message.includes('incorrect')) {
+        setError('Invalid email or password. Please try again.');
+      } else if (error.message.includes('not found')) {
+        setError('Account not found. Please check your email or sign up.');
+      } else {
+        setError(error.message || 'Login failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -96,10 +69,10 @@ const Password = () => {
           <div className="login-container">
             <div className="login-left">
               <div className="login-form-wrapper">
-                {/* Form */}
                 <div className="login-form">
                   <h1 className="login-title">Enter your password</h1>
                   
+                  {/* Error Message */}
                   {error && (
                     <div className="alert alert-danger mb-3" role="alert">
                       <i className="bx bx-error-circle me-2"></i>
@@ -111,7 +84,12 @@ const Password = () => {
                     <div className="form-group">
                       <div className="email-display">
                         <span className="email-text">{email}</span>
-                        <button type="button" onClick={handleGoBack} className="edit-email">
+                        <button 
+                          type="button" 
+                          onClick={handleGoBack} 
+                          className="edit-email"
+                          disabled={isLoading}
+                        >
                           Edit
                         </button>
                       </div>
@@ -121,15 +99,15 @@ const Password = () => {
                       <div className="password-input-wrapper">
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          className="form-input"
+                          className={`form-input ${error ? 'is-invalid' : ''}`}
                           placeholder="Password*"
                           value={password}
                           onChange={(e) => {
                             setPassword(e.target.value);
-                            setError(''); // Clear error when user types
+                            if (error) setError(''); // Clear error when user types
                           }}
-                          required
                           disabled={isLoading}
+                          required
                         />
                         <button
                           type="button"
@@ -152,7 +130,7 @@ const Password = () => {
                           <span className="spinner-border spinner-border-sm me-2" role="status">
                             <span className="visually-hidden">Loading...</span>
                           </span>
-                          Signing in...
+                          Signing In...
                         </>
                       ) : (
                         'Continue'
@@ -161,15 +139,13 @@ const Password = () => {
                   </form>
 
                   <div className="login-footer">
-                    <button onClick={handleGoBack} className="go-back-btn" disabled={isLoading}>
+                    <button 
+                      onClick={handleGoBack} 
+                      className="go-back-btn"
+                      disabled={isLoading}
+                    >
                       Go back
                     </button>
-                    
-                    <div className="mt-3 text-center">
-                      <a href="#" className="text-primary text-decoration-none">
-                        Forgot your password?
-                      </a>
-                    </div>
                   </div>
                 </div>
               </div>

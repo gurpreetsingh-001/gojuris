@@ -44,131 +44,161 @@ const AIChat = () => {
   ];
 
   // Handle message sending - ONLY API responses
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
+  // src/pages/AIChat.jsx - Updated handleSendMessage function
+// src/pages/AIChat.jsx - DEBUGGING VERSION
+// src/pages/AIChat.jsx - USING SIMPLIFIED AI CHAT SEARCH
+const handleSendMessage = async (e) => {
+  e.preventDefault();
+  
+  if (!message.trim() || isLoading) return;
+
+  const userMessage = message;
+  setMessage('');
+  setIsLoading(true);
+  setError('');
+
+  // Add user message to chat
+  setChatHistory(prev => [...prev, { 
+    type: 'user', 
+    text: userMessage,
+    timestamp: new Date().toLocaleTimeString()
+  }]);
+
+  try {
+    // Step 1: Generate AI Embedding
+    console.log('🧠 Generating AI embedding for:', userMessage);
+    const embeddingData = await ApiService.generateEmbedding(userMessage);
     
-    if (!message.trim() || isLoading) return;
+    if (!embeddingData) {
+      throw new Error('Failed to generate embedding');
+    }
 
-    const userMessage = message;
-    setMessage('');
-    setIsLoading(true);
-    setError('');
+    const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
+    
+    if (!Array.isArray(embeddingVector)) {
+      throw new Error('Invalid embedding format received');
+    }
 
-    // Add user message to chat
-    setChatHistory(prev => [...prev, { type: 'user', text: userMessage }]);
+    console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
 
+    // Step 2: AI Chat Search with SIMPLIFIED payload
     try {
-      // Step 1: Generate AI Embedding
-      console.log('🧠 Generating AI embedding for:', userMessage);
-      const embeddingData = await ApiService.generateEmbedding(userMessage);
+      console.log('💬 Starting AI Chat Search...');
       
-      if (!embeddingData) {
-        throw new Error('Failed to generate embedding');
-      }
-
-      // Extract embedding vector from response
-      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
-      
-      if (!Array.isArray(embeddingVector)) {
-        throw new Error('Invalid embedding format received');
-      }
-
-      console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
-
-      // Step 2: Search judgements with AI embedding
-      const searchModel = {
-        searchItems: [
-          {
-            keycode: "",
-            query: userMessage,
-            subject: "",
-            fulltext: "",
-            headnote: "",
-            judgement: "",
-            appellant: "",
-            respondent: "",
-            caseNo: "",
-            yearFrom: null,
-            yearTo: null,
-            isAi: true,
-            queryVector: embeddingVector
-          }
-        ],
-        sorting: "relevance",
-        paging: {
-          page: 1,
-          pageSize: 10
-        },
-        inst: "",
+      const searchResults = await ApiService.searchJudgementsWithAI(userMessage, embeddingVector, {
+        searchType: 'chat',  // ✅ This triggers simplified payload
+        pageSize: 5,
+        page: 0,
+        sortBy: "relevance",
+        sortOrder: "desc",
         prompt: "Find relevant legal cases"
-      };
+      });
 
-      console.log('🔍 Searching judgements with AI...');
-      const searchResults = await ApiService.searchJudgementsWithAI(searchModel);
-
-      // Process and display ONLY API response
-      let aiResponse = '';
-      let resultsCount = 0;
-
-      if (searchResults) {
-        // Handle different possible response structures
-        const results = searchResults.results || 
-                        searchResults.data || 
-                        searchResults.judgements || 
-                        searchResults.items || 
-                        [];
-
-        resultsCount = Array.isArray(results) ? results.length : 0;
-
-        if (searchResults.response) {
-          // If API provides a direct response
-          aiResponse = searchResults.response;
-        } else if (searchResults.message) {
-          // If API provides a message
-          aiResponse = searchResults.message;
-        } else if (resultsCount > 0) {
-          // If we have results but no direct response, format them
-          aiResponse = formatSearchResults(results, userMessage);
-        } else if (searchResults.error) {
-          // If API returns error
-          aiResponse = `API Error: ${searchResults.error}`;
-        } else {
-          // If response structure is unknown
-          aiResponse = JSON.stringify(searchResults, null, 2);
-        }
-      } else {
-        aiResponse = 'No response received from API';
-      }
-
-      // Add AI response to chat - ONLY API response
+      console.log('📋 AI Chat Search Results:', searchResults);
+      
+      // Process results
+      let aiResponse = processSearchResults(searchResults, userMessage);
+      
       setChatHistory(prev => [...prev, { 
         type: 'ai', 
         text: aiResponse,
         metadata: {
           embeddingGenerated: true,
           vectorLength: embeddingVector.length,
-          resultsFound: resultsCount,
-          isApiResponse: true
-        }
+          resultsFound: searchResults?.results?.length || 0,
+          isApiResponse: true,
+          searchType: 'AI Chat (Simplified)',
+          searchQuery: userMessage
+        },
+        timestamp: new Date().toLocaleTimeString()
       }]);
 
-    } catch (error) {
-      console.error('❌ API Error:', error);
-      setError(error.message || 'API request failed');
+    } catch (aiSearchError) {
+      console.warn('⚠️ AI Chat Search failed, trying regular search:', aiSearchError);
       
-      // Show actual API error to user
-      setChatHistory(prev => [...prev, { 
-        type: 'ai', 
-        text: `API Error: ${error.message}`,
-        isError: true,
-        metadata: {
-          isApiResponse: true
-        }
-      }]);
-    } finally {
-      setIsLoading(false);
+      // Fallback to regular search (also simplified)
+      try {
+        console.log('🔄 Falling back to regular search...');
+        
+        const regularSearchResults = await ApiService.searchJudgements_Chat(userMessage, {
+          pageSize: 5,
+          page: 1,
+          sortBy: "relevance"
+        });
+
+        let fallbackResponse = processSearchResults(regularSearchResults, userMessage);
+        fallbackResponse = `Based on keyword search:\n\n${fallbackResponse}`;
+        
+        setChatHistory(prev => [...prev, { 
+          type: 'ai', 
+          text: fallbackResponse,
+          metadata: {
+            resultsFound: regularSearchResults?.results?.length || 0,
+            isApiResponse: true,
+            searchType: 'Regular Search (Fallback)',
+            searchQuery: userMessage
+          },
+          timestamp: new Date().toLocaleTimeString()
+        }]);
+
+      } catch (regularSearchError) {
+        console.error('❌ Both searches failed:', regularSearchError);
+        
+        setChatHistory(prev => [...prev, { 
+          type: 'ai', 
+          text: `I'm experiencing technical difficulties right now. Please try with a simpler question or try again in a few minutes.`,
+          isError: true,
+          timestamp: new Date().toLocaleTimeString()
+        }]);
+      }
     }
-  };
+
+  } catch (generalError) {
+    console.error('❌ General Error:', generalError);
+    
+    setChatHistory(prev => [...prev, { 
+      type: 'ai', 
+      text: `I encountered an error: ${generalError.message}. Please try again.`,
+      isError: true,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Helper function to process search results
+const processSearchResults = (searchResults, userMessage) => {
+  if (!searchResults) {
+    return 'No response received from the legal database.';
+  }
+
+  // Check for direct response
+  if (searchResults.response && typeof searchResults.response === 'string') {
+    return searchResults.response;
+  }
+  
+  if (searchResults.message && typeof searchResults.message === 'string') {
+    return searchResults.message;
+  }
+
+  if (searchResults.summary && typeof searchResults.summary === 'string') {
+    return searchResults.summary;
+  }
+
+  // Check for results array
+  if (searchResults.results && Array.isArray(searchResults.results)) {
+    const results = searchResults.results;
+    if (results.length > 0) {
+      return formatSearchResults(results, userMessage);
+    } else {
+      return `I searched for "${userMessage}" but couldn't find specific matching legal cases. Could you try with more specific legal terms or case names?`;
+    }
+  }
+
+  // Fallback - show raw response for debugging
+  return `I received a response but couldn't parse it properly. Please try rephrasing your question.\n\nDebug info: ${JSON.stringify(searchResults, null, 2).substring(0, 500)}...`;
+};
 
   // Format search results if API returns raw data
   const formatSearchResults = (results, query) => {

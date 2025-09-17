@@ -69,40 +69,45 @@ const AISearch = () => {
     }
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    
-    if (!searchQuery.trim() || isLoading) return;
+  // src/pages/AISearch.jsx - USING ADVANCED SEARCH
+const handleSearch = async (e) => {
+  e.preventDefault();
+  
+  if (!searchQuery.trim() || isLoading) return;
 
-    setIsLoading(true);
-    setError('');
+  setIsLoading(true);
+  setError('');
 
-    try {
-      console.log('🔍 AI Search for:', searchQuery);
+  try {
+    if (searchType === 'ai') {
+      // Generate embedding
+      const embeddingData = await ApiService.generateEmbedding(searchQuery);
+      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
       
-      // Generate embedding for search query
-      const embeddingVector = await generateEmbedding(searchQuery);
+      // AI Search with ADVANCED payload (all filters)
+      const results = await ApiService.searchJudgementsWithAI(searchQuery, embeddingVector, {
+        searchType: 'advanced',  // ✅ This triggers full payload with filters
+        ...filters,
+        pageSize: 20
+      });
       
-      if (!embeddingVector) {
-        throw new Error('Failed to generate embedding for search');
-      }
-
-      console.log('✅ Search embedding ready:', embeddingVector.slice(0, 5), '...');
+      setSearchResults(results.results || []);
+    } else {
+      // Regular search
+      const results = await ApiService.searchJudgements_Chat(searchQuery, {
+        ...filters,
+        pageSize: 20
+      });
       
-      // Here you would call /Judgement/Search with the embedding vector
-      // For now, we'll simulate the search result
-      setTimeout(() => {
-        console.log('🎯 Search completed with AI embedding');
-        alert(`AI Search completed!\n\nQuery: "${searchQuery}"\nEmbedding generated: ${embeddingVector.length} dimensions\n\nReady for judgement search integration.`);
-        setIsLoading(false);
-      }, 2000);
-
-    } catch (error) {
-      console.error('❌ AI Search error:', error);
-      setError(error.message || 'Search failed. Please try again.');
-      setIsLoading(false);
+      setSearchResults(results.results || []);
     }
-  };
+
+  } catch (error) {
+    setError(error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleVoiceSearch = () => {
     setIsListening(!isListening);

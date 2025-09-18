@@ -1,22 +1,16 @@
-// src/pages/AISearch.jsx  
+// src/pages/AISearch.jsx - Updated to handle exact API response structure
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import ApiService from '../services/apiService';
 
 const AISearch = () => {
-  const [searchQuery, setSearchQuery] = useState('Ask AI');
-  const [searchesRemaining, setSearchesRemaining] = useState(true);
-  const [isListening, setIsListening] = useState(false);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // API Configuration
-  const API_BASE_URL = 'http://108.60.219.166:8001'; // Replace with your actual API URL
-
-  // Get token from localStorage
-  const getAccessToken = () => {
-    return localStorage.getItem('accessToken');
-  };
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -26,92 +20,88 @@ const AISearch = () => {
     };
   }, []);
 
-  // AI Embedding API Call
-  const generateEmbedding = async (userMessage) => {
-    const token = getAccessToken();
-    if (!token) {
-      throw new Error('No access token found. Please login again.');
-    }
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    
+    if (!searchQuery.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/AI/Embedding`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          message: userMessage
-        })
+      console.log('🤖 Starting AI Search process...');
+      console.log('Query:', searchQuery);
+
+      // Step 1: Generate embedding
+      const embeddingData = await ApiService.generateEmbedding(searchQuery);
+      console.log('✅ Embedding generated');
+      
+      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data || embeddingData;
+      
+      if (!embeddingVector || !Array.isArray(embeddingVector)) {
+        throw new Error('Invalid embedding response from API');
+      }
+
+      console.log(`✅ Embedding vector length: ${embeddingVector.length}`);
+
+      // Step 2: AI Search
+      const apiResponse = await ApiService.searchJudgementsWithAI_ForSearch(searchQuery, embeddingVector, {
+        pageSize: 25,
+        page: 1,
+        sortBy: "relevance",
+        sortOrder: "desc"
       });
 
-      if (response.status === 401) {
-        // Token expired, redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-        return null;
+      console.log('✅ AI Search API Response:', apiResponse);
+
+      // Handle the exact API structure: { total: number, hits: array }
+      const searchResults = apiResponse.hits || [];
+      const totalCount = apiResponse.total || 0;
+
+      console.log(`📊 Processing ${searchResults.length} results from total ${totalCount}`);
+
+      if (searchResults.length === 0) {
+        setError('No results found for your search query. Try different keywords.');
+        setIsLoading(false);
+        return;
       }
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
+      // Store results in sessionStorage with the exact structure needed
+      const resultsData = {
+        query: searchQuery,
+        results: searchResults,  // Using 'results' key for consistency with Results component
+        totalCount: totalCount,
+        searchType: 'AI Search',
+        timestamp: new Date().toISOString(),
+        originalApiResponse: {
+          total: apiResponse.total,
+          hits: apiResponse.hits
+        }
+      };
 
-      const data = await response.json();
-      console.log('✅ AI Search Embedding generated:', data);
-      
-      // Return the embedding vector
-      return data.embedding || data.vector || data.data;
-      
+      console.log('💾 Storing results in sessionStorage');
+      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+
+      // Navigate to Results page
+      console.log('🚀 Navigating to results page...');
+      navigate('/results');
+
     } catch (error) {
-      console.error('❌ AI Search Embedding failed:', error);
-      throw error;
+      console.error('❌ AI Search failed:', error);
+      setError(error.message || 'AI Search failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  // src/pages/AISearch.jsx - USING ADVANCED SEARCH
-const handleSearch = async (e) => {
-  e.preventDefault();
-  
-  if (!searchQuery.trim() || isLoading) return;
-
-  setIsLoading(true);
-  setError('');
-
-  try {
-    if (searchType === 'ai') {
-      // Generate embedding
-      const embeddingData = await ApiService.generateEmbedding(searchQuery);
-      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
-      
-      // AI Search with ADVANCED payload (all filters)
-      const results = await ApiService.searchJudgementsWithAI(searchQuery, embeddingVector, {
-        searchType: 'advanced',  // ✅ This triggers full payload with filters
-        ...filters,
-        pageSize: 20
-      });
-      
-      setSearchResults(results.results || []);
-    } else {
-      // Regular search
-      const results = await ApiService.searchJudgements_Chat(searchQuery, {
-        ...filters,
-        pageSize: 20
-      });
-      
-      setSearchResults(results.results || []);
-    }
-
-  } catch (error) {
-    setError(error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
 
   const handleVoiceSearch = () => {
     setIsListening(!isListening);
     console.log('Voice search clicked');
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setError('');
   };
 
   return (
@@ -155,20 +145,32 @@ const handleSearch = async (e) => {
                   <div className="search-buttons">
                     <button 
                       type="button" 
-                      className={`voice-search-btn ${isListening ? 'listening' : ''}`}
+                      className={`voice-search-btn ${isListening ? 'active' : ''}`}
                       onClick={handleVoiceSearch}
                       disabled={isLoading}
                       title="Voice search"
                     >
                       <i className="bx bx-microphone"></i>
                     </button>
+                    
+                    {searchQuery && !isLoading && (
+                      <button 
+                        type="button" 
+                        className="clear-search-btn"
+                        onClick={handleClearSearch}
+                        title="Clear search"
+                      >
+                        <i className="bx bx-x"></i>
+                      </button>
+                    )}
+                    
                     <button 
                       type="submit" 
                       className="search-submit"
                       disabled={isLoading || !searchQuery.trim()}
                     >
                       {isLoading ? (
-                        <div className="loading-spinner"></div>
+                        <i className="bx bx-loader bx-spin"></i>
                       ) : (
                         <i className="bx bx-search"></i>
                       )}
@@ -176,31 +178,33 @@ const handleSearch = async (e) => {
                   </div>
                 </div>
               </form>
-              
-              {searchesRemaining && (
-                <div className="search-info">
-                  <p className="searches-text">AI-powered semantic search ready</p>
-                  <a href="#" className="upgrade-link">Related Queries</a>
-                </div>
+            </div>
+            
+            <div className="search-info">
+              <p className="searches-text">
+                {isLoading ? 'Searching legal database...' : 'AI-powered semantic search ready'}
+              </p>
+              {!isLoading && (
+                <p className="searches-text" style={{ color: 'var(--gj-primary)', marginTop: '0.5rem' }}>
+                  Related Queries
+                </p>
               )}
             </div>
           </div>
           
-          <div className="search-description">
-            <h2 className="description-title">
-              Making legal search easy for you
-            </h2>
-            <p className="description-text">
+          <div className="dashboard-footer">
+            <p className="footer-text">Making legal search easy for you</p>
+            <p className="footer-includes">
               Tailored for legal professionals, our advanced AI search simplifies legal research. 
               Effortlessly access judgments, statutes, and citations using natural language queries.
             </p>
-            <p className="includes-text">
-              Includes: Case Law Codes | Rules & Constitutions | Practical Guidance | Treatises
+            <p className="footer-includes">
+              <strong>Includes:</strong> Case Law Codes | Rules & Constitutions | Practical Guidance | Treatises
             </p>
           </div>
         </div>
       </div>
-
+  
       <style jsx>{`
         .loading-spinner {
           width: 16px;

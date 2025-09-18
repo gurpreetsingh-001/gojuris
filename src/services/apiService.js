@@ -1,7 +1,7 @@
-// src/services/apiService.js - COMPLETE FILE WITH DYNAMIC PAYLOAD SYSTEM
+// src/services/apiService.js - COMPLETE FILE WITH ALL FUNCTIONALITY
 class ApiService {
   constructor() {
-    this.baseURL = 'http://108.60.219.166:8001';
+    this.baseURL = 'http://216.172.100.173:8001';
     this.defaultTimeout = 30000;
   }
 
@@ -26,21 +26,32 @@ class ApiService {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('expiresAt');
     localStorage.removeItem('userEmail');
-    window.location.href = '/login';
+
+    // Only redirect if we're not already on login/signup pages
+    const currentPath = window.location.pathname;
+    if (!['/login', '/password', '/signup', '/'].includes(currentPath)) {
+      window.location.href = '/login';
+    }
   }
 
   isAuthenticated() {
     const token = this.getAccessToken();
     const expiresAt = localStorage.getItem('expiresAt');
-    
+
     if (!token || !expiresAt) {
       return false;
     }
 
     const now = new Date();
     const expiry = new Date(expiresAt);
-    
-    return now < expiry;
+
+    // Check if token is expired
+    if (now >= expiry) {
+      this.clearTokensAndRedirect();
+      return false;
+    }
+
+    return true;
   }
 
   logout() {
@@ -50,96 +61,80 @@ class ApiService {
   // ================ CORE API METHODS ================
   async makeRequest(endpoint, options = {}) {
     const token = this.getAccessToken();
-    
+
     if (!token) {
       throw new Error('No access token found. Please login again.');
     }
 
+    const url = `${this.baseURL}${endpoint}`;
     const config = {
+      timeout: this.defaultTimeout,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
         ...options.headers,
       },
       ...options,
     };
 
-    // Add timeout to prevent hanging
+    console.log(`🚀 Making ${config.method || 'GET'} request to:`, url);
+    console.log('📋 Request config:', config);
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.defaultTimeout);
+    const timeoutId = setTimeout(() => controller.abort(), config.timeout);
 
     try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
+      const response = await fetch(url, {
         ...config,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
+      console.log(`📡 Response status:`, response.status);
 
-      if (response.status === 401) {
-        const refreshed = await this.refreshToken();
-        if (refreshed) {
-          config.headers.Authorization = `Bearer ${this.getAccessToken()}`;
-          const retryResponse = await fetch(`${this.baseURL}${endpoint}`, {
-            ...config,
-            signal: controller.signal
-          });
-          return this.handleResponse(retryResponse);
-        } else {
+      if (!response.ok) {
+        // Handle authentication errors
+        if (response.status === 401) {
+          console.log('🔐 Authentication failed, redirecting to login');
           this.clearTokensAndRedirect();
-          return null;
+          throw new Error('Session expired. Please login again.');
         }
+
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          console.error('❌ Error Response JSON:', errorData);
+          errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
+        } catch (e) {
+          try {
+            const errorText = await response.text();
+            console.error('❌ Error Response Text:', errorText);
+            errorMessage = errorText || errorMessage;
+          } catch (e2) {
+            console.error('❌ Could not read error response');
+          }
+        }
+
+        throw new Error(errorMessage);
       }
 
-      return this.handleResponse(response);
+      try {
+        const data = await response.json();
+        console.log('✅ Success Response:', data);
+        return data;
+      } catch (e) {
+        console.error('❌ Could not parse JSON response');
+        const text = await response.text();
+        console.log('📄 Response as text:', text);
+        return { message: text };
+      }
     } catch (error) {
       clearTimeout(timeoutId);
-      
       if (error.name === 'AbortError') {
-        throw new Error('Request timed out - server may be processing large data');
+        throw new Error('Request timeout');
       }
-      
-      console.error('API Request failed:', error);
       throw error;
-    }
-  }
-
-  async handleResponse(response) {
-    console.log(`📡 Response Status: ${response.status} ${response.statusText}`);
-    
-    if (!response.ok) {
-      let errorMessage = `API Error: ${response.status}`;
-      
-      try {
-        const errorData = await response.json();
-        console.error('❌ Error Response Body:', errorData);
-        
-        errorMessage = errorData.message || 
-                      errorData.detail || 
-                      errorData.error || 
-                      errorMessage;
-      } catch (e) {
-        try {
-          const errorText = await response.text();
-          console.error('❌ Error Response Text:', errorText);
-          errorMessage = errorText || errorMessage;
-        } catch (e2) {
-          console.error('❌ Could not read error response');
-        }
-      }
-      
-      throw new Error(errorMessage);
-    }
-
-    try {
-      const data = await response.json();
-      console.log('✅ Success Response:', data);
-      return data;
-    } catch (e) {
-      console.error('❌ Could not parse JSON response');
-      const text = await response.text();
-      console.log('📄 Response as text:', text);
-      return { message: text };
     }
   }
 
@@ -160,18 +155,45 @@ class ApiService {
       }
 
       const data = await response.json();
-      
+
       if (data.accessToken) {
         this.setTokens(data.accessToken, data.refreshToken);
         if (data.expiresAt) {
           localStorage.setItem('expiresAt', data.expiresAt);
         }
+        if (data.userEmail || credentials.username) {
+          localStorage.setItem('userEmail', data.userEmail || credentials.username);
+        }
         console.log('✅ Login successful');
       }
-      
+
       return data;
     } catch (error) {
       console.error('❌ Login failed:', error);
+      throw error;
+    }
+  }
+
+  async registerUser(userData) {
+    try {
+      const response = await fetch(`${this.baseURL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'Registration failed');
+      }
+
+      const data = await response.json();
+      console.log('✅ Registration successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
       throw error;
     }
   }
@@ -191,304 +213,722 @@ class ApiService {
         body: JSON.stringify({ refreshToken }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+
+      if (data.accessToken) {
         this.setTokens(data.accessToken, data.refreshToken);
         if (data.expiresAt) {
           localStorage.setItem('expiresAt', data.expiresAt);
         }
-        console.log('✅ Token refreshed successfully');
         return true;
       }
+
+      return false;
     } catch (error) {
       console.error('❌ Token refresh failed:', error);
+      return false;
     }
-
-    return false;
   }
 
-  async registerUser(userData) {
-    try {
-      const response = await fetch(`${this.baseURL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
+  // Add this method to your existing ApiService class
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.detail || `Registration failed: ${response.status}`);
+// ================ USER PROFILE METHODS ================
+async getUserInfo() {
+  try {
+    console.log('👤 Fetching user info');
+    
+    const response = await fetch(`${this.baseURL}/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.getAccessToken()}`,
+        'Accept': 'application/json'
       }
+    });
 
-      const data = await response.json();
-      console.log('✅ User registration successful:', data);
-      return data;
+    if (response.status === 401) {
+      console.log('🔐 Authentication failed, redirecting to login');
+      this.clearTokensAndRedirect();
+      throw new Error('Session expired. Please login again.');
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || errorData.detail || 'Failed to fetch user info');
+    }
+
+    const data = await response.json();
+    console.log('✅ User info retrieved successfully');
+    return data;
+  } catch (error) {
+    console.error('❌ Get user info failed:', error);
+    throw error;
+  }
+}
+
+// Get user profile (alias method for backward compatibility)
+async getUserProfile() {
+  return this.getUserInfo();
+}
+
+  // ================ SEARCH APIs ================
+  async performSearch(searchData) {
+    try {
+      console.log('🔍 Performing search with:', searchData);
+
+      return await this.makeRequest('/search', {
+        method: 'POST',
+        body: JSON.stringify(searchData)
+      });
     } catch (error) {
-      console.error('❌ Registration failed:', error);
+      console.error('❌ Search failed:', error);
       throw error;
     }
   }
 
-  async getUserProfile() {
-    return this.makeRequest('/me');
-  }
-
-  // ================ AI EMBEDDING API ================
-  async generateEmbedding(message) {
-    console.log('🧠 Generating embedding for:', message);
-    
+  async performAdvancedSearch(searchData) {
     try {
-      const result = await this.makeRequest('/AI/Embedding', {
+      console.log('🔍 Performing advanced search with:', searchData);
+
+      return await this.makeRequest('/advanced-search', {
         method: 'POST',
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(searchData)
       });
-      
-      console.log('✅ Embedding API Response:', result);
-      return result;
     } catch (error) {
-      console.error('❌ Embedding API Error:', error);
-      throw new Error(`Embedding generation failed: ${error.message}`);
+      console.error('❌ Advanced search failed:', error);
+      throw error;
     }
   }
 
-  // ================ AI SEARCH APIs - SIMPLIFIED FOR CHAT ================
-  
-  // 🚀 SIMPLIFIED AI CHAT SEARCH - Only query and queryVector
-  async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
-    console.log('💬 AI Chat Search - Simplified Payload');
-    console.log('Query:', userQuery);
-    console.log('Vector Length:', embeddingVector?.length);
-
-    const payload = {
-      requests: [
-        {
-          query: userQuery,
-          queryVector: embeddingVector
-        }
-      ],
-      sortBy: options.sortBy || "relevance",
-      sortOrder: options.sortOrder || "desc", 
-      page: options.page || 1,
-      pageSize: options.pageSize || 5,
-      inst: options.inst || "",
-      prompt: options.prompt || "Find relevant legal cases"
-    };
-
-    console.log('🚀 AI Chat Payload:', JSON.stringify(payload, null, 2));
-
-    // Use longer timeout for AI search (60 seconds)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-
+  async performCitationSearch(citationData) {
     try {
-      const response = await fetch(`${this.baseURL}/Judgement/SearchWithAI`, {
+      console.log('📚 Performing citation search with:', citationData);
+
+      return await this.makeRequest('/citation-search', {
         method: 'POST',
+        body: JSON.stringify(citationData)
+      });
+    } catch (error) {
+      console.error('❌ Citation search failed:', error);
+      throw error;
+    }
+  }
+
+  async performAISearch(searchQuery) {
+    try {
+      console.log('🤖 Performing AI search with:', searchQuery);
+
+      return await this.makeRequest('/ai-search', {
+        method: 'POST',
+        body: JSON.stringify({ query: searchQuery })
+      });
+    } catch (error) {
+      console.error('❌ AI search failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ JUDGMENT APIs ================
+  async getJudgment(judgmentId) {
+    try {
+      console.log('⚖️ Fetching judgment:', judgmentId);
+
+      return await this.makeRequest(`/judgment/${judgmentId}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get judgment failed:', error);
+      throw error;
+    }
+  }
+
+  async getJudgmentMetadata(judgmentId) {
+    try {
+      console.log('📋 Fetching judgment metadata:', judgmentId);
+
+      return await this.makeRequest(`/judgment/${judgmentId}/metadata`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get judgment metadata failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ AI CHAT APIs ================
+  async sendChatMessage(message, conversationId = null) {
+    try {
+      console.log('💬 Sending chat message:', message);
+
+      const payload = {
+        message: message,
+        ...(conversationId && { conversationId })
+      };
+
+      return await this.makeRequest('/chat', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    } catch (error) {
+      console.error('❌ Send chat message failed:', error);
+      throw error;
+    }
+  }
+
+  async getChatHistory(conversationId) {
+    try {
+      console.log('📜 Fetching chat history:', conversationId);
+
+      return await this.makeRequest(`/chat/${conversationId}/history`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get chat history failed:', error);
+      throw error;
+    }
+  }
+
+  async createNewConversation() {
+    try {
+      console.log('🆕 Creating new conversation');
+
+      return await this.makeRequest('/chat/new', {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
+    } catch (error) {
+      console.error('❌ Create new conversation failed:', error);
+      throw error;
+    }
+  }
+
+  async deleteConversation(conversationId) {
+    try {
+      console.log('🗑️ Deleting conversation:', conversationId);
+
+      return await this.makeRequest(`/chat/${conversationId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('❌ Delete conversation failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ USER PROFILE APIs ================
+  async updateUserProfile(profileData) {
+    try {
+      console.log('👤 Updating user profile:', profileData);
+
+      return await this.makeRequest('/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profileData)
+      });
+    } catch (error) {
+      console.error('❌ Update user profile failed:', error);
+      throw error;
+    }
+  }
+
+  async changePassword(passwordData) {
+    try {
+      console.log('🔐 Changing password');
+
+      return await this.makeRequest('/profile/password', {
+        method: 'PUT',
+        body: JSON.stringify(passwordData)
+      });
+    } catch (error) {
+      console.error('❌ Change password failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ HISTORY & BOOKMARKS APIs ================
+  async getSearchHistory(page = 1, limit = 20) {
+    try {
+      console.log('📚 Fetching search history');
+
+      return await this.makeRequest(`/history/search?page=${page}&limit=${limit}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get search history failed:', error);
+      throw error;
+    }
+  }
+
+  async deleteSearchHistory(historyId) {
+    try {
+      console.log('🗑️ Deleting search history:', historyId);
+
+      return await this.makeRequest(`/history/search/${historyId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('❌ Delete search history failed:', error);
+      throw error;
+    }
+  }
+
+  async getBookmarks(page = 1, limit = 20) {
+    try {
+      console.log('🔖 Fetching bookmarks');
+
+      return await this.makeRequest(`/bookmarks?page=${page}&limit=${limit}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get bookmarks failed:', error);
+      throw error;
+    }
+  }
+
+  async addBookmark(bookmarkData) {
+    try {
+      console.log('🔖 Adding bookmark:', bookmarkData);
+
+      return await this.makeRequest('/bookmarks', {
+        method: 'POST',
+        body: JSON.stringify(bookmarkData)
+      });
+    } catch (error) {
+      console.error('❌ Add bookmark failed:', error);
+      throw error;
+    }
+  }
+
+  async removeBookmark(bookmarkId) {
+    try {
+      console.log('🗑️ Removing bookmark:', bookmarkId);
+
+      return await this.makeRequest(`/bookmarks/${bookmarkId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('❌ Remove bookmark failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ DOWNLOADS APIs ================
+  async getDownloads(page = 1, limit = 20) {
+    try {
+      console.log('📥 Fetching downloads');
+
+      return await this.makeRequest(`/downloads?page=${page}&limit=${limit}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get downloads failed:', error);
+      throw error;
+    }
+  }
+
+  async downloadDocument(documentId, format = 'pdf') {
+    try {
+      console.log('📄 Downloading document:', documentId);
+
+      return await this.makeRequest(`/download/${documentId}?format=${format}`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAccessToken()}`,
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
+          'Accept': 'application/octet-stream'
+        }
+      });
+    } catch (error) {
+      console.error('❌ Download document failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ BILLING & SUBSCRIPTION APIs ================
+  async getSubscriptionInfo() {
+    try {
+      console.log('💳 Fetching subscription info');
+
+      return await this.makeRequest('/billing/subscription', {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get subscription info failed:', error);
+      throw error;
+    }
+  }
+
+  async getBillingHistory(page = 1, limit = 20) {
+    try {
+      console.log('💰 Fetching billing history');
+
+      return await this.makeRequest(`/billing/history?page=${page}&limit=${limit}`, {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get billing history failed:', error);
+      throw error;
+    }
+  }
+
+  async updatePaymentMethod(paymentData) {
+    try {
+      console.log('💳 Updating payment method');
+
+      return await this.makeRequest('/billing/payment-method', {
+        method: 'PUT',
+        body: JSON.stringify(paymentData)
+      });
+    } catch (error) {
+      console.error('❌ Update payment method failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ DATABASE APIs ================
+  async getDatabaseList() {
+    try {
+      console.log('🗄️ Fetching database list');
+
+      return await this.makeRequest('/database/list', {
+        method: 'GET'
+      });
+    } catch (error) {
+      console.error('❌ Get database list failed:', error);
+      throw error;
+    }
+  }
+
+  async searchDatabase(databaseId, searchQuery) {
+    try {
+      console.log('🔍 Searching database:', databaseId);
+
+      return await this.makeRequest(`/database/${databaseId}/search`, {
+        method: 'POST',
+        body: JSON.stringify({ query: searchQuery })
+      });
+    } catch (error) {
+      console.error('❌ Search database failed:', error);
+      throw error;
+    }
+  }
+
+  // ================ UTILITY METHODS ================
+  async healthCheck() {
+    try {
+      const response = await fetch(`${this.baseURL}/health`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
-      clearTimeout(timeoutId);
+      return response.ok;
+    } catch (error) {
+      console.error('❌ Health check failed:', error);
+      return false;
+    }
+  }
+
+  // Get user email from localStorage
+  getUserEmail() {
+    return localStorage.getItem('userEmail');
+  }
+
+  // Check if user has premium subscription
+  isPremiumUser() {
+    const subscriptionType = localStorage.getItem('subscriptionType');
+    return subscriptionType === 'premium' || subscriptionType === 'pro';
+  }
+
+  // Format error messages for display
+  formatErrorMessage(error) {
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    if (error?.message) {
+      return error.message;
+    }
+
+    return 'An unexpected error occurred. Please try again.';
+  }
+
+  // ================ FILE UPLOAD METHODS ================
+  async uploadFile(file, type = 'document') {
+    try {
+      console.log('📎 Uploading file:', file.name);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      const token = this.getAccessToken();
+      if (!token) {
+        throw new Error('No access token found. Please login again.');
+      }
+
+      const response = await fetch(`${this.baseURL}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        },
+        body: formData
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `AI Chat Search Error: ${response.status}`);
+        throw new Error(errorData.message || 'Upload failed');
       }
 
-      const result = await response.json();
-      console.log('✅ AI Chat Search Response:', result);
-      return result;
-
+      const data = await response.json();
+      console.log('✅ File uploaded successfully');
+      return data;
     } catch (error) {
-      clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
-        throw new Error('AI Search is taking longer than expected. Please try with a simpler question.');
-      }
-      
-      console.error('❌ AI Chat Search Error:', error);
-      throw new Error(`AI Chat Search failed: ${error.message}`);
+      console.error('❌ File upload failed:', error);
+      throw error;
     }
   }
 
-  // 🔍 ADVANCED AI SEARCH - All fields for search page
-  async searchWithAI_Advanced(userQuery, embeddingVector, filters = {}) {
-    console.log('🔍 AI Advanced Search - Full Payload');
-    
-    const payload = {
-      requests: [
-        {
-          keycode: filters.keycode || 0,
-          query: userQuery,
-          subject: filters.subject || "",
-          fulltext: filters.fulltext || "",
-          headnote: filters.headnote || "",
-          judgement: filters.judgement || "",
-          headnoteAll: filters.headnoteAll || "",
-          judges: filters.judges || "",
-          appellant: filters.appellant || "",
-          respondent: filters.respondent || "",
-          caseNo: filters.caseNo || "",
-          citation: filters.citation || "",
-          advocate: filters.advocate || "",
-          issueForConsideration: filters.issueForConsideration || "",
-          lawPoint: filters.lawPoint || "",
-          held: filters.held || "",
-          backgroundFacts: filters.backgroundFacts || "",
-          partiesContentions: filters.partiesContentions || "",
-          disposition: filters.disposition || "",
-          favour: filters.favour || "",
-          yearFrom: filters.yearFrom || 0,
-          yearTo: filters.yearTo || 0,
-          result: filters.result || "",
-          casesReferred: filters.casesReferred || "",
-          isState: filters.isState !== undefined ? filters.isState : true,
-          acts: filters.acts || [],
-          sections: filters.sections || [],
-          mainkeys: filters.mainkeys || [],
-          years: filters.years || [],
-          queryVector: embeddingVector,
-          isAi: true
-        }
-      ],
-      sortBy: filters.sortBy || "relevance",
-      sortOrder: filters.sortOrder || "desc",
-      page: filters.page || 0,
-      pageSize: filters.pageSize || 10,
-      inst: filters.inst || "",
-      prompt: filters.prompt || "Find relevant legal cases"
-    };
 
+  // Add these methods to your existing ApiService class
+
+  // ================ AI SEARCH METHODS ================
+
+  // Generate AI Embedding
+  async generateEmbedding(message) {
     try {
-      const result = await this.makeRequest('/Judgement/SearchWithAI', {
+      console.log('🤖 Generating AI embedding for:', message);
+
+      const response = await fetch(`${this.baseURL}/AI/Embedding`, {
         method: 'POST',
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`
+        },
+        body: JSON.stringify({
+          message: message
+        })
       });
-      
-      return result;
+
+      if (response.status === 401) {
+        this.clearTokensAndRedirect();
+        throw new Error('Session expired. Please login again.');
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'AI Embedding generation failed');
+      }
+
+      const data = await response.json();
+      console.log('✅ AI Embedding generated successfully');
+      return data;
     } catch (error) {
-      throw new Error(`AI Advanced Search failed: ${error.message}`);
+      console.error('❌ AI Embedding generation failed:', error);
+      throw error;
     }
   }
 
-  // 🎯 DYNAMIC AI SEARCH - Auto-detects context
-  async searchJudgementsWithAI(userQuery, embeddingVector, options = {}) {
-    const searchType = options.searchType || 'chat';
-    
-    if (searchType === 'chat') {
-      return this.searchWithAI_Chat(userQuery, embeddingVector, options);
-    } else if (searchType === 'advanced') {
-      return this.searchWithAI_Advanced(userQuery, embeddingVector, options);
-    } else {
-      return this.searchWithAI_Chat(userQuery, embeddingVector, options);
+  // AI Search using /Judgement/Search with queryVector (as per developer note)
+ // Add this method to your existing ApiService class
+
+// 🔍 SIMPLIFIED AI SEARCH - For AI Search page (minimal payload)
+async searchJudgementsWithAI_ForSearch(userQuery, embeddingVector, options = {}) {
+  console.log('🔍 AI Search - Simplified Payload (like AI Chat)');
+  console.log('Query:', userQuery);
+  console.log('Vector Length:', embeddingVector?.length);
+
+  // Use the same simplified payload structure as AI Chat
+  const payload = {
+    requests: [
+      {
+        query: userQuery,
+        queryVector: embeddingVector
+      }
+    ],
+    sortBy: options.sortBy || "relevance",
+    sortOrder: options.sortOrder || "desc", 
+    page: options.page || 1,  // AI Search uses 0-based pagination
+    pageSize: options.pageSize || 25,
+    inst: options.inst || "",
+    prompt: options.prompt || "Find relevant legal cases using AI search"
+  };
+
+  console.log('🚀 AI Search Simplified Payload:', JSON.stringify(payload, null, 2));
+
+  try {
+    // Use /Judgement/Search endpoint as per developer note
+    const response = await fetch(`${this.baseURL}/Judgement/Search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getAccessToken()}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `AI Search Error: ${response.status}`);
     }
-  }
 
-  // ================ REGULAR SEARCH APIs ================
-  
- // ✅ SIMPLIFIED REGULAR SEARCH - Fixed page numbering
-  async searchJudgements_Chat(userQuery, options = {}) {
-    const payload = {
-      requests: [
-        {
-          query: userQuery,
-          queryVector: []
-        }
-      ],
-      sortBy: options.sortBy || "relevance",
-      sortOrder: options.sortOrder || "desc",
-      page: options.page || 1,  // ✅ FIXED: Changed from 0 to 1
-      pageSize: options.pageSize || 10,
-      inst: options.inst || "",
-      prompt: options.prompt || ""
-    };
+    const result = await response.json();
+    console.log('✅ AI Search Simplified Response:', result);
+    return result;
 
-    return this.makeRequest('/Judgement/Search', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  }
-
-  // ✅ FULL REGULAR SEARCH - Fixed page numbering
-  async searchJudgements(userQuery, filters = {}) {
-    const payload = {
-      requests: [
-        {
-          keycode: filters.keycode || 0,
-          query: userQuery,
-          subject: filters.subject || "",
-          fulltext: filters.fulltext || "",
-          headnote: filters.headnote || "",
-          judgement: filters.judgement || "",
-          headnoteAll: filters.headnoteAll || "",
-          judges: filters.judges || "",
-          appellant: filters.appellant || "",
-          respondent: filters.respondent || "",
-          caseNo: filters.caseNo || "",
-          citation: filters.citation || "",
-          advocate: filters.advocate || "",
-          issueForConsideration: filters.issueForConsideration || "",
-          lawPoint: filters.lawPoint || "",
-          held: filters.held || "",
-          backgroundFacts: filters.backgroundFacts || "",
-          partiesContentions: filters.partiesContentions || "",
-          disposition: filters.disposition || "",
-          favour: filters.favour || "",
-          yearFrom: filters.yearFrom || 0,
-          yearTo: filters.yearTo || 0,
-          result: filters.result || "",
-          casesReferred: filters.casesReferred || "",
-          isState: filters.isState !== undefined ? filters.isState : true,
-          acts: filters.acts || [],
-          sections: filters.sections || [],
-          mainkeys: filters.mainkeys || [],
-          years: filters.years || [],
-          queryVector: [],
-          isAi: false
-        }
-      ],
-      sortBy: filters.sortBy || "relevance",
-      sortOrder: filters.sortOrder || "desc",
-      page: filters.page || 1,  // ✅ FIXED: Changed from 0 to 1
-      pageSize: filters.pageSize || 20,
-      inst: filters.inst || "",
-      prompt: filters.prompt || ""
-    };
-
-    return this.makeRequest('/Judgement/Search', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  }
-
-
-  // ================ JUDGEMENT DETAIL API ================
-  async getJudgement(id, searchModel) {
-    return this.makeRequest(`/Judgement/GetJudgement/${id}`, {
-      method: 'POST',
-      body: JSON.stringify(searchModel),
-    });
-  }
-
-  // ================ HELPER METHODS ================
-  
-  // For AI Search Page
-  async performAISearch(searchQuery, embeddingVector, filters = {}) {
-    return this.searchJudgementsWithAI(searchQuery, embeddingVector, {
-      searchType: 'advanced',
-      ...filters
-    });
-  }
-
-  // For Regular Search Page  
-  async performRegularSearch(searchQuery, filters = {}) {
-    return this.searchJudgements(searchQuery, filters);
+  } catch (error) {
+    console.error('❌ AI Search Simplified Error:', error);
+    throw new Error(`AI Search failed: ${error.message}`);
   }
 }
 
-export default new ApiService();
+// Add this method to your existing ApiService class
+
+// ================ JUDGMENT API ================
+async getJudgementDetails(keycode, searchPayload = {}) {
+  try {
+    console.log('⚖️ Fetching judgment details for keycode:', keycode);
+    console.log('📋 Search payload:', searchPayload);
+
+    // Use the same payload structure as search API
+    const payload = {
+      requests: [
+        {
+          keycode: searchPayload.keycode || 0,
+          query: searchPayload.query || "",
+          subject: searchPayload.subject || "",
+          fulltext: searchPayload.fulltext || "",
+          headnote: searchPayload.headnote || "",
+          judgement: searchPayload.judgement || "",
+          headnoteAll: searchPayload.headnoteAll || "",
+          judges: searchPayload.judges || "",
+          appellant: searchPayload.appellant || "",
+          respondent: searchPayload.respondent || "",
+          caseNo: searchPayload.caseNo || "",
+          citation: searchPayload.citation || "",
+          advocate: searchPayload.advocate || "",
+          issueForConsideration: searchPayload.issueForConsideration || "",
+          lawPoint: searchPayload.lawPoint || "",
+          held: searchPayload.held || "",
+          backgroundFacts: searchPayload.backgroundFacts || "",
+          partiesContentions: searchPayload.partiesContentions || "",
+          disposition: searchPayload.disposition || "",
+          favour: searchPayload.favour || "",
+          yearFrom: searchPayload.yearFrom || 0,
+          yearTo: searchPayload.yearTo || 0,
+          result: searchPayload.result || "",
+          casesReferred: searchPayload.casesReferred || "",
+          isState: searchPayload.isState !== undefined ? searchPayload.isState : true,
+          acts: searchPayload.acts || [],
+          sections: searchPayload.sections || [],
+          mainkeys: searchPayload.mainkeys || [],
+          years: searchPayload.years || [],
+          queryVector: searchPayload.queryVector || [],
+          isAi: searchPayload.isAi || false
+        }
+      ],
+      sortBy: searchPayload.sortBy || "relevance",
+      sortOrder: searchPayload.sortOrder || "desc",
+      page: searchPayload.page || 0,
+      pageSize: searchPayload.pageSize || 1,
+      inst: searchPayload.inst || "",
+      prompt: searchPayload.prompt || ""
+    };
+
+    const response = await fetch(`${this.baseURL}/Judgement/GetJudgement/${keycode}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getAccessToken()}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch judgment: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Judgment details retrieved successfully');
+    return result;
+
+  } catch (error) {
+    console.error('❌ Get judgment failed:', error);
+    throw error;
+  }
+}
+
+  // ================ DYNAMIC PAYLOAD SYSTEM ================
+  createSearchPayload(searchType, formData) {
+    const basePayload = {
+      timestamp: new Date().toISOString(),
+      searchType: searchType
+    };
+
+    switch (searchType) {
+      case 'basic':
+        return {
+          ...basePayload,
+          query: formData.query,
+          filters: {
+            dateRange: formData.dateRange,
+            jurisdiction: formData.jurisdiction,
+            courtType: formData.courtType
+          }
+        };
+
+      case 'advanced':
+        return {
+          ...basePayload,
+          allWords: formData.allWords,
+          exactPhrase: formData.exactPhrase,
+          anyWords: formData.anyWords,
+          noneWords: formData.noneWords,
+          filters: {
+            dateFrom: formData.dateFrom,
+            dateTo: formData.dateTo,
+            jurisdiction: formData.jurisdiction,
+            courtType: formData.courtType,
+            judgeNames: formData.judgeNames,
+            caseType: formData.caseType
+          }
+        };
+
+      case 'citation':
+        return {
+          ...basePayload,
+          citationType: formData.citationType,
+          year: formData.year,
+          volume: formData.volume,
+          page: formData.page,
+          partyNames: formData.partyNames,
+          neutralCitation: formData.neutralCitation
+        };
+
+      case 'ai':
+        return {
+          ...basePayload,
+          naturalQuery: formData.query,
+          context: formData.context,
+          responseType: formData.responseType || 'comprehensive'
+        };
+
+      default:
+        return {
+          ...basePayload,
+          query: formData.query || formData
+        };
+    }
+  }
+
+}
+
+// Create singleton instance
+const apiServiceInstance = new ApiService();
+
+// Export both the class and the singleton instance
+export { ApiService };
+export default apiServiceInstance;

@@ -1,8 +1,9 @@
-// src/App.jsx - Update with new routes
+// src/App.jsx - Updated with protected routes
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import Results from './pages/Results';
@@ -24,6 +25,7 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          {/* Public routes - no authentication required */}
           <Route path="/" element={
             <>
               <Header />
@@ -33,37 +35,101 @@ function App() {
               <Footer />
             </>
           } />
-          <Route path="/search" element={
-            <>
-              <Header />
-              <main className="page-wrapper">
-                <Search />
-              </main>
-              <Footer />
-            </>
-          } />
           
-          {/* Add Header and Footer to Dashboard */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/password" element={<Password />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Protected routes - authentication required */}
           <Route path="/dashboard" element={
-            <>
+            <ProtectedRoute>
               <Header />
               <main className="page-wrapper">
                 <Dashboard />
               </main>
               <Footer />
-            </>
+            </ProtectedRoute>
           } />
           
-          {/* Pages without Header/Footer (specialized layouts) */}
-          <Route path="/results" element={<Results />} />
-          <Route path="/judgement/:id" element={<Judgement />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/password" element={<Password />} />
-          <Route path="/citation" element={<Citation />} />
-          <Route path="/ai-chat" element={<AIChat />} />
-          <Route path="/ai-search" element={<AISearch />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/search" element={
+            <ProtectedRoute>
+              <Header />
+              <main className="page-wrapper">
+                <Search />
+              </main>
+              <Footer />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/results" element={
+            <ProtectedRoute>
+              <Results />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/judgement/:id" element={
+            <ProtectedRoute>
+              <Judgement />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/citation" element={
+            <ProtectedRoute>
+              <Citation />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/ai-chat" element={
+            <ProtectedRoute>
+              <AIChat />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/ai-search" element={
+            <ProtectedRoute>
+              <AISearch />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/database" element={
+            <ProtectedRoute>
+              <Header />
+              <main className="page-wrapper">
+                <div className="container mt-5 pt-5">
+                  <div className="text-center">
+                    <h2>Database</h2>
+                    <p>Database page content goes here...</p>
+                  </div>
+                </div>
+              </main>
+              <Footer />
+            </ProtectedRoute>
+          } />
 
+          {/* Future routes for commented out sidebar items */}
+          {/* 
+          <Route path="/chat" element={
+            <ProtectedRoute>
+              <div className="container mt-5 pt-5">
+                <div className="text-center">
+                  <h2>Coming Soon</h2>
+                  <p>Chat feature will be available soon...</p>
+                </div>
+              </div>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/virtual" element={
+            <ProtectedRoute>
+              <div className="container mt-5 pt-5">
+                <div className="text-center">
+                  <h2>Coming Soon</h2>
+                  <p>Virtual Assistance will be available soon...</p>
+                </div>
+              </div>
+            </ProtectedRoute>
+          } />
+          */}
         </Routes>
       </div>
     </Router>

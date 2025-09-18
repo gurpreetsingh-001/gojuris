@@ -1,5 +1,5 @@
 // src/utils/auth.js
-const API_BASE_URL = 'http://108.60.219.166:8001';
+const API_BASE_URL = 'http://216.172.100.173:8001';
 
 export const authAPI = {
   // Login function

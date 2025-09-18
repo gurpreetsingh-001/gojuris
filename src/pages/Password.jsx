@@ -37,7 +37,16 @@ const Password = () => {
       const result = await ApiService.loginUser(loginData);
       
       console.log('✅ Login successful:', result);
-      
+      if (result.userEmail || email) {
+  localStorage.setItem('userEmail', result.userEmail || email);
+}
+
+// Store any additional user data from login response
+if (result.userData) {
+  localStorage.setItem('userData', JSON.stringify(result.userData));
+} else if (result.user) {
+  localStorage.setItem('userData', JSON.stringify(result.user));
+}
       // Navigate to dashboard on successful login
       navigate('/dashboard');
 

@@ -11,7 +11,7 @@ const Sidebar = () => {
     { id: 'search', icon: 'bx-search', label: 'AI Search', path: '/ai-search' },
     { id: 'citation', icon: 'bx-book', label: 'Citation Search', path: '/citation' },
     { id: 'advance', icon: 'bx-search-alt', label: 'Advance Search', path: '/search' },
-    { id: 'chat', icon: 'bx-chat', label: 'Chat', path: '/chat' },
+    
     { id: 'database', icon: 'bx-data', label: 'Database', path: '/database' },
     { id: 'virtual', icon: 'bx-bot', label: 'Virtual Assistance', path: '/virtual' }
   ];
@@ -33,7 +33,7 @@ const Sidebar = () => {
         ))}
       </div>
       
-      <div className="sidebar-bottom">
+      {/* <div className="sidebar-bottom">
         <div className="sidebar-item">
           <div className="sidebar-icon">
             <i className="bx bx-info-circle"></i>
@@ -44,7 +44,7 @@ const Sidebar = () => {
             <i className="bx bx-bell"></i>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

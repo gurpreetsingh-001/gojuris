@@ -860,6 +860,66 @@ async getJudgementDetails(keycode, searchPayload = {}) {
     throw error;
   }
 }
+// Add this method to your ApiService class in apiService.js
+
+// ================ AI CHAT SEARCH - MAIN METHOD ================
+async searchJudgementsWithAI(userQuery, embeddingVector, options = {}) {
+  const searchType = options.searchType || 'chat';
+  
+  if (searchType === 'chat') {
+    return this.searchWithAI_Chat(userQuery, embeddingVector, options);
+  } else {
+    return this.searchWithAI_Advanced(userQuery, embeddingVector, options);
+  }
+}
+
+// Make sure you also have the searchWithAI_Chat method:
+async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
+  console.log('💬 AI Chat Search - Simplified Payload');
+  console.log('Query:', userQuery);
+  console.log('Vector Length:', embeddingVector?.length);
+
+  const payload = {
+    requests: [
+      {
+        query: userQuery,
+        queryVector: embeddingVector
+      }
+    ],
+    sortBy: options.sortBy || "relevance",
+    sortOrder: options.sortOrder || "desc", 
+    page: options.page || 1,  // Use 0-based pagination for SearchWithAI
+    pageSize: options.pageSize || 5,
+    inst: options.inst || "",
+    prompt: options.prompt || "Find relevant legal cases"
+  };
+
+  console.log('🚀 AI Chat Payload:', JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await fetch(`${this.baseURL}/Judgement/SearchWithAI`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getAccessToken()}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `AI Chat Search Error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ AI Chat Search Response:', result);
+    return result;
+
+  } catch (error) {
+    console.error('❌ AI Chat Search Error:', error);
+    throw new Error(`AI Chat Search failed: ${error.message}`);
+  }
+}
 
   // ================ DYNAMIC PAYLOAD SYSTEM ================
   createSearchPayload(searchType, formData) {

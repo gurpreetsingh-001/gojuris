@@ -1,13 +1,20 @@
-// src/components/Header.jsx
+// src/components/Header.jsx - Fix dropdown clickability
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import ApiService from '../services/apiService';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Authentication and user profile states
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,10 +25,205 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check authentication on component mount and route changes
+  useEffect(() => {
+    checkAuthStatus();
+  }, [location.pathname]);
+
+  const checkAuthStatus = () => {
+    console.log('🔍 Checking authentication status...');
+    const authenticated = ApiService.isAuthenticated();
+    console.log('Auth status:', authenticated);
+    
+    setIsAuthenticated(authenticated);
+    
+    if (authenticated) {
+      loadUserProfile();
+    } else {
+      setUserProfile(null);
+      setShowAccountDropdown(false);
+    }
+  };
+
+  const loadUserProfile = async () => {
+    setIsLoadingProfile(true);
+    try {
+      // Try to get from localStorage first
+      let profileData = {
+        email: localStorage.getItem('userEmail') || 'user@gojuris.com',
+        displayName: 'Legal User',
+        username: 'user'
+      };
+
+      // Try to get from stored userData
+      const storedUserData = localStorage.getItem('userData');
+      if (storedUserData) {
+        try {
+          const userData = JSON.parse(storedUserData);
+          profileData = {
+            ...profileData,
+            ...userData,
+            displayName: userData.displayName || 
+                        userData.name || 
+                        `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+                        userData.username ||
+                        profileData.displayName
+          };
+        } catch (e) {
+          console.warn('Failed to parse stored user data:', e);
+        }
+      }
+
+      // Try to fetch fresh profile from API
+      try {
+        const apiProfile = await ApiService.getUserProfile();
+        if (apiProfile) {
+          profileData = {
+            ...profileData,
+            ...apiProfile,
+            displayName: apiProfile.displayName || 
+                        apiProfile.name || 
+                        `${apiProfile.firstName || ''} ${apiProfile.lastName || ''}`.trim() ||
+                        apiProfile.username ||
+                        profileData.displayName
+          };
+          
+          // Store updated profile data
+          localStorage.setItem('userData', JSON.stringify(profileData));
+        }
+      } catch (apiError) {
+        console.warn('Failed to fetch user profile from API:', apiError.message);
+        // Continue with localStorage data
+      }
+
+      setUserProfile(profileData);
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+      // Set default fallback
+      setUserProfile({
+        email: 'user@gojuris.com',
+        displayName: 'Legal User',
+        username: 'user'
+      });
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    console.log('🚪 Sign out button clicked');
+    
+    try {
+      // Close dropdown immediately
+      setShowAccountDropdown(false);
+      
+      console.log('🔄 Calling ApiService.logout()...');
+      
+      // Call logout API
+      await ApiService.logout();
+      
+      console.log('✅ ApiService.logout() completed');
+      
+      // Force clear all local state immediately
+      setIsAuthenticated(false);
+      setUserProfile(null);
+      setIsLoadingProfile(false);
+      
+      console.log('🔄 State cleared, navigating to login...');
+      
+      // Navigate to login
+      navigate('/login');
+      
+      console.log('✅ Navigation completed');
+      
+    } catch (error) {
+      console.error('❌ Sign out error:', error);
+      
+      // Force logout even if API call fails
+      try {
+        // Clear storage manually
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('expiresAt');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userData');
+        
+        setIsAuthenticated(false);
+        setUserProfile(null);
+        setIsLoadingProfile(false);
+        
+        navigate('/login');
+        console.log('✅ Forced logout completed');
+      } catch (clearError) {
+        console.error('❌ Failed to clear storage:', clearError);
+        // As last resort, reload the page
+        window.location.href = '/login';
+      }
+    }
+  };
+
+  // Handle dropdown item clicks
+  const handleDropdownItemClick = (action) => {
+    setShowAccountDropdown(false);
+    
+    switch (action) {
+      case 'dashboard':
+        navigate('/dashboard');
+        break;
+      case 'profile':
+        // TODO: Navigate to profile page when implemented
+        console.log('View Profile clicked');
+        break;
+      case 'billing':
+        // TODO: Navigate to billing page when implemented
+        console.log('Billing & Plans clicked');
+        break;
+      case 'history':
+        // TODO: Navigate to search history page when implemented
+        console.log('Search History clicked');
+        break;
+      case 'signout':
+        handleSignOut();
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!userProfile) return 'U';
+    
+    const displayName = userProfile.displayName || userProfile.name || userProfile.username;
+    if (displayName && displayName.length > 0) {
+      const names = displayName.trim().split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[1][0]).toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+    
+    return userProfile.email ? userProfile.email[0].toUpperCase() : 'U';
+  };
+
+  // Format display name
+  const getDisplayName = () => {
+    if (!userProfile) return 'Loading...';
+    
+    return userProfile.displayName || 
+           userProfile.name || 
+           userProfile.username || 
+           (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
+  };
+
+  // Get email
+  const getEmail = () => {
+    return userProfile?.email || 'user@gojuris.com';
+  };
+
   const toggleOffcanvas = () => {
     setIsOffcanvasOpen(!isOffcanvasOpen);
-    // Prevent body scroll when menu is open
-    document.body.style.overflow = !isOffcanvasOpen ? 'hidden' : 'unset';
+    document.body.style.overflow = isOffcanvasOpen ? 'unset' : 'hidden';
   };
 
   const closeOffcanvas = () => {
@@ -90,6 +292,12 @@ const Header = () => {
     closeOffcanvas();
   };
 
+  const navigateToDashboard = () => {
+    navigate('/dashboard');
+    closeOffcanvas();
+    setShowAccountDropdown(false);
+  };
+
   const handleContactClick = (e) => {
     e.preventDefault();
     if (location.pathname === '/search') {
@@ -113,34 +321,47 @@ const Header = () => {
       if (e.key === 'Escape' && isOffcanvasOpen) {
         closeOffcanvas();
       }
+      if (e.key === 'Escape' && showAccountDropdown) {
+        setShowAccountDropdown(false);
+      }
     };
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOffcanvasOpen]);
+  }, [isOffcanvasOpen, showAccountDropdown]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showAccountDropdown && !e.target.closest('.account-dropdown')) {
+        setShowAccountDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showAccountDropdown]);
 
   return (
     <>
       <header className={`header navbar navbar-expand-lg fixed-top navbar-sticky w-100 ${isScrolled ? 'scrolled' : ''}`}>
         <div className="container px-3">
-          
-
-<a href="/" className="navbar-brand pe-3" onClick={handleLogoClick}>
-  <img 
-    src="/logo.png" 
-    alt="GoJuris Logo" 
-    className="d-inline-block align-text-top"
-    style={{ height: '48px', width: 'auto', maxWidth: '200px' }}
-    onError={(e) => {
-      e.target.style.display = 'none';
-      e.target.parentElement.innerHTML = `
-        <span style="color: var(--gj-primary); font-size: 1.5rem; font-weight: 700;">
-          GoJuris
-        </span>
-      `;
-    }}
-  />
-</a>
+          <a href="/" className="navbar-brand pe-3" onClick={handleLogoClick}>
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              className="d-inline-block align-text-top"
+              style={{ height: '48px', width: 'auto', maxWidth: '200px' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <span style="color: var(--gj-primary); font-size: 1.5rem; font-weight: 700;">
+                    GoJuris
+                  </span>
+                `;
+              }}
+            />
+          </a>
           
           <div className="d-flex align-items-center ms-auto order-lg-3">
             <div className="d-none d-sm-flex align-items-center me-3">
@@ -161,14 +382,126 @@ const Header = () => {
               </span>
             </div>
 
-            <button 
-              onClick={navigateToLogin}
-              className="btn btn-primary btn-sm rounded d-none d-md-inline-flex me-3"
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              <i className="bx bx-user fs-5 lh-1 me-1"></i>
-              LOGIN
-            </button>
+            {/* Login/My Account Button */}
+            {isAuthenticated ? (
+              <div className="position-relative account-dropdown">
+                <button
+                  className="btn btn-primary d-flex align-items-center gap-2 px-3 d-none d-md-inline-flex me-3"
+                  type="button"
+                  onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                  disabled={isLoadingProfile}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  {isLoadingProfile ? (
+                    <>
+                      <div className="spinner-border spinner-border-sm text-light" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className="d-flex align-items-center justify-content-center bg-light text-primary rounded-circle"
+                        style={{ width: '24px', height: '24px', fontSize: '12px', fontWeight: '600' }}
+                      >
+                        {getUserInitials()}
+                      </div>
+                      <span>My Account</span>
+                      <i className="bx bx-chevron-down"></i>
+                    </>
+                  )}
+                </button>
+                
+                {showAccountDropdown && (
+                  <div 
+                    className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
+                    style={{ 
+                      minWidth: '220px', 
+                      top: '100%', 
+                      right: '0', 
+                      zIndex: 9999,
+                      pointerEvents: 'auto'
+                    }}
+                  >
+                    <div className="dropdown-header px-3 py-2 border-bottom">
+                      <div className="d-flex align-items-center">
+                        <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                             style={{ width: '32px', height: '32px' }}>
+                          <span className="text-white fw-semibold" style={{ fontSize: '14px' }}>
+                            {getUserInitials()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="fw-semibold text-dark">
+                            {getDisplayName()}
+                          </div>
+                          <small className="text-muted">
+                            {getEmail()}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
+                      onClick={() => handleDropdownItemClick('dashboard')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <i className="bx bx-grid-alt me-2 text-primary"></i>
+                      <span>Dashboard</span>
+                    </button>
+                    
+                    <button 
+                      className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
+                      onClick={() => handleDropdownItemClick('profile')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <i className="bx bx-user-circle me-2 text-primary"></i>
+                      <span>View Profile</span>
+                    </button>
+                    
+                    <button 
+                      className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
+                      onClick={() => handleDropdownItemClick('billing')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <i className="bx bx-credit-card me-2 text-primary"></i>
+                      <span>Billing & Plans</span>
+                    </button>
+                    
+                    <button 
+                      className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
+                      onClick={() => handleDropdownItemClick('history')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <i className="bx bx-history me-2 text-primary"></i>
+                      <span>Search History</span>
+                    </button>
+                    
+                    <div className="border-top my-1"></div>
+                    
+                    <button 
+                      className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100 text-danger"
+                      onClick={() => handleDropdownItemClick('signout')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <i className="bx bx-log-out me-2"></i>
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button 
+                onClick={navigateToLogin}
+                className="btn btn-primary btn-sm rounded d-none d-md-inline-flex me-3"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                <i className="bx bx-user fs-5 lh-1 me-1"></i>
+                LOGIN
+              </button>
+            )}
 
             <button 
               type="button" 
@@ -196,7 +529,7 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className={`nav-link btn btn-link ${location.pathname === '/search' ? 'active' : ''}`}
-                  onClick={navigateToSearch}
+                  onClick={() => scrollToSection('about')}
                 >
                   WHY US
                 </button>
@@ -228,9 +561,9 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className="nav-link btn btn-link" 
-                  onClick={() => scrollToSection('contact')}
+                  onClick={handleContactClick}
                 >
-                   SUBSCRIPTIONS
+                  SUBSCRIPTIONS
                 </button>
               </li>
             </ul>
@@ -238,14 +571,13 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Mobile Offcanvas Menu */}
+      {/* Mobile Offcanvas */}
       <div className={`offcanvas offcanvas-end ${isOffcanvasOpen ? 'show' : ''}`} 
            tabIndex="-1" 
-           id="offcanvasNavbar" 
-           aria-labelledby="offcanvasNavbarLabel"
+           id="navbarNav" 
            style={{ visibility: isOffcanvasOpen ? 'visible' : 'hidden' }}>
         <div className="offcanvas-header">
-          <h5 className="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+          <h5 className="offcanvas-title">Menu</h5>
           <button 
             type="button" 
             className="btn-close" 
@@ -253,9 +585,8 @@ const Header = () => {
             aria-label="Close"
           ></button>
         </div>
-        
         <div className="offcanvas-body">
-          <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
+          <ul className="navbar-nav">
             <li className="nav-item">
               <button 
                 className={`nav-link btn btn-link w-100 text-start ${location.pathname === '/' ? 'active' : ''}`}
@@ -268,7 +599,7 @@ const Header = () => {
             <li className="nav-item">
               <button 
                 className={`nav-link btn btn-link w-100 text-start ${location.pathname === '/search' ? 'active' : ''}`}
-                onClick={navigateToSearch}
+                onClick={() => scrollToSection('about')}
               >
                 <i className="bx bx-star me-2"></i>
                 Why Us
@@ -304,20 +635,57 @@ const Header = () => {
             <li className="nav-item">
               <button 
                 className="nav-link btn btn-link w-100 text-start" 
-                onClick={() => scrollToSection('contact')}
+                onClick={handleContactClick}
               >
                 <i className="bx bx-credit-card me-2"></i>
                 Subscriptions
               </button>
             </li>
+            
+            {/* Mobile Authentication Section */}
             <li className="nav-item mt-3">
-              <button 
-                onClick={navigateToLogin}
-                className="nav-link btn btn-link w-100 text-start"
-              >
-                <i className="bx bx-user me-2"></i>
-                Login
-              </button>
+              {isAuthenticated ? (
+                <div>
+                  <div className="px-3 py-2 mb-2 bg-light rounded">
+                    <div className="d-flex align-items-center">
+                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                           style={{ width: '28px', height: '28px' }}>
+                        <span className="text-white fw-semibold" style={{ fontSize: '12px' }}>
+                          {getUserInitials()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="fw-semibold small">{getDisplayName()}</div>
+                        <small className="text-muted">{getEmail()}</small>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    className="nav-link btn btn-link w-100 text-start"
+                    onClick={navigateToDashboard}
+                  >
+                    <i className="bx bx-grid-alt me-2"></i>
+                    Dashboard
+                  </button>
+                  
+                  <button 
+                    className="nav-link btn btn-link w-100 text-start text-danger"
+                    onClick={() => handleDropdownItemClick('signout')}
+                  >
+                    <i className="bx bx-log-out me-2"></i>
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={navigateToLogin}
+                  className="nav-link btn btn-link w-100 text-start"
+                >
+                  <i className="bx bx-user me-2"></i>
+                  Login
+                </button>
+              )}
             </li>
           </ul>
 
@@ -345,9 +713,25 @@ const Header = () => {
           onClick={closeOffcanvas}
         ></div>
       )}
+
+      {/* Account dropdown backdrop for mobile */}
+     {showAccountDropdown && (
+  <div 
+    className="position-fixed top-0 start-0 w-100 h-100"
+    style={{ 
+      zIndex: 9998,
+      pointerEvents: 'none' // This allows clicks to pass through to dropdown
+    }}
+    onClick={(e) => {
+      // Only close if clicking directly on backdrop, not on dropdown
+      if (e.target === e.currentTarget) {
+        setShowAccountDropdown(false);
+      }
+    }}
+  ></div>
+)}
     </>
   );
 };
-
 
 export default Header;

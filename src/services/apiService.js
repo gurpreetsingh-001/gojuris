@@ -54,9 +54,56 @@ class ApiService {
     return true;
   }
 
-  logout() {
-    this.clearTokensAndRedirect();
+  async logout() {
+  try {
+    // Optional: Call logout API endpoint if it exists
+    // Uncomment if your backend has a logout endpoint
+    /*
+    try {
+      await fetch(`${this.baseURL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (apiError) {
+      console.warn('Logout API call failed:', apiError);
+      // Continue with local cleanup even if API fails
+    }
+    */
+
+    // Clear all authentication data
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('expiresAt');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userData');
+    
+    console.log('✅ Logout successful - all data cleared');
+    return true;
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    // Force clear even if there's an error
+    localStorage.clear();
+    throw error;
   }
+}
+
+// Update clearTokensAndRedirect to be more explicit
+clearTokensAndRedirect() {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('expiresAt');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userData');
+
+  // Only redirect if we're not already on login/signup pages
+  const currentPath = window.location.pathname;
+  if (!['/login', '/password', '/signup', '/'].includes(currentPath)) {
+    window.location.href = '/login';
+  }
+}
 
   // ================ CORE API METHODS ================
   async makeRequest(endpoint, options = {}) {

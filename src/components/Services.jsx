@@ -190,8 +190,8 @@ const Services = () => {
 
   return (
     <>
-      <section id="services" className="container pb-4 mb-md-2 mb-lg-4" ref={servicesRef}>
-        <div className="row">
+      <section id="services" className="container mb-md-2 " ref={servicesRef}>
+        <div className="row"> 
           <div className="col-lg-4 text-center text-lg-start pb-3 pb-lg-0 mb-3 mb-lg-0">
             <h1 className='text-center mb-3 text-primary p-4'>Why Us</h1>                                                 
             <h2 className="h1 mb-3">Highly Innovative Technology & Services</h2>

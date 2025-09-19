@@ -351,7 +351,7 @@ const Header = () => {
               src="/logo.png" 
               alt="GoJuris Logo" 
               className="d-inline-block align-text-top"
-              style={{ height: '48px', width: 'auto', maxWidth: '200px' }}
+              style={{ height: '60px', width: 'auto', maxWidth: '250px' }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.parentElement.innerHTML = `

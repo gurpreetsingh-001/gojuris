@@ -47,8 +47,8 @@ const Hero = () => {
         backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'scroll',
-        minHeight: '80vh',
-        padding: '60px 0'
+        minHeight: '62vh',
+        padding: '10px 0'
       }}
     >
       {/* Background Overlay */}
@@ -61,7 +61,7 @@ const Hero = () => {
       />
 
       <div className="container position-relative" style={{ zIndex: 2 }}>
-        <div className="row align-items-center" style={{ minHeight: '70vh' }}>
+        <div className="row align-items-center" style={{ minHeight: '60vh' }}>
           {/* Left Content */}
           <div className="col-lg-6">
             {/* Law Meets AI Badge */}
@@ -73,16 +73,17 @@ const Hero = () => {
                 <i className="bx bx-play text-primary" style={{ fontSize: '12px' }}></i>
               </div>
               <span className="text-white" style={{ fontSize: '16px', fontWeight: '500' }}>
-                Law Meets Artificial Intelligence
-              </span>
+Powered by Legal Eagle              </span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="mb-4" style={{ 
-              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            <h3 className="mb-4" style={{ 
+              // fontSize: 'clamp(2.5rem, 5vw, 4rem)',
               fontWeight: '700',
               lineHeight: '1.1',
-              color: '#1a1a1a'
+              color: '#1a1a1a',
+             fontSize:'48px'
+              
             }}>
               Your{' '}
               <span style={{
@@ -97,7 +98,7 @@ const Hero = () => {
               Assistant for Legal              
               <br />
               Excellence
-            </h1>
+            </h3>
 
             {/* Button and Description Layout - FIXED VERSION */}
            {/* Button and Description Layout - ADJUSTED WIDTHS */}
@@ -151,14 +152,14 @@ const Hero = () => {
     margin: 0,
     flex: '1'  // Allow text to take remaining space
   }}>
-    GoJuris AI is your intelligent legal research assistant, built to simplify complex case law, statutes, and legal principles. With advanced AI Search, AI Chat, and powerful keyword tools, it delivers precise, court-ready results in seconds. Covering decades of judgments, statutes, amendments, and legal insights, GoJuris AI ensures faster, smarter, and reliable research — anytime, anywhere.
+    GoJuris AI is your intelligent legal research assistant, built to simplify complex case law, statutes, and legal principles. 
   </p>
 </div>
 
             {/* Discover More */}
             <div className="mt-4">
               <div 
-                className="d-flex align-items-center"
+                className="d-flex justify-content-end"
                 style={{ 
                   fontSize: '14px', 
                   color: '#6b7280',
@@ -180,6 +181,10 @@ const Hero = () => {
                 className="img-fluid"
                 style={{
                   maxWidth: '100%',
+                  paddingTop:'0px',
+                  paddingBottom:'0px',
+                  marginBottom:'0px',
+                  marginTop:'0px',
                   height: 'auto',
                   maxHeight: '500px',
                   objectFit: 'contain',

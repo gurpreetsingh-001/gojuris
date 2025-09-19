@@ -269,10 +269,7 @@ const processSearchResults = (searchResults, userMessage) => {
         
         <div className="sidebar-content">
           <div className="sidebar-section">
-            <div className="sidebar-item active">
-              <i className="bx bx-chat"></i>
-              <span>AI Chat</span>
-            </div>
+            
             <button className="new-chat-btn" onClick={() => setChatHistory([])}>
               <i className="bx bx-plus"></i>
               New Chat
@@ -369,17 +366,115 @@ const processSearchResults = (searchResults, userMessage) => {
         </div>
         
         <div className="chat-content">
-          <div className="chat-messages">
-            {chatHistory.length === 0 ? (
-              <div className="welcome-message">
-                <div className="ai-avatar">
-                  <i className="bx bx-bot"></i>
-                </div>
-                <div className="welcome-text">
-                  <h3>Hello! I'm your AI Legal Assistant</h3>
-                  <p>I'm here to help you with legal research, case analysis, and document drafting. Ask me anything about Indian law!</p>
-                </div>
-              </div>
+  <div className="chat-messages">
+    {chatHistory.length === 0 ? (
+     <div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "12px",
+    padding: "16px",
+  }}
+>
+  <button 
+    style={{ 
+      flex: "1 1 auto", 
+      minWidth: "150px", 
+      padding: "10px 15px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)",
+      color: "white",
+      border: "none",
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    }}
+    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+  >
+    <i className="bx bx-chat" style={{ fontSize: "18px" }}></i>
+    Ask a question
+  </button>
+  
+  <button 
+    style={{ 
+      flex: "1 1 auto", 
+      minWidth: "150px", 
+      padding: "10px 15px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #7C3AED 0%, #C084FC 100%)",
+      color: "white",
+      border: "none",
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    }}
+    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+  >
+    <i className="bx bx-envelope" style={{ fontSize: "18px" }}></i>
+    Generate a draft
+  </button>
+  
+  <button 
+    style={{ 
+      flex: "1 1 auto", 
+      minWidth: "150px", 
+      padding: "10px 15px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+      color: "white",
+      border: "none",
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    }}
+    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+  >
+    <i className="bx bx-receipt" style={{ fontSize: "18px" }}></i>
+    Summarize a case
+  </button>
+  
+  <button 
+    style={{ 
+      flex: "1 1 auto", 
+      minWidth: "150px", 
+      padding: "10px 15px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #EC4899 0%, #F97316 100%)",
+      color: "white",
+      border: "none",
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    }}
+    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+  >
+    <i className="bx bx-upload" style={{ fontSize: "18px" }}></i>
+    Upload to summarize or ask questions
+  </button>
+</div>
+   
+
+
             ) : (
               <div className="message-list">
                 {chatHistory.map((msg, index) => (
@@ -484,6 +579,7 @@ const processSearchResults = (searchResults, userMessage) => {
               <input
                 type="text"
                 className="chat-input"
+                width={"100vw"}
                 placeholder="Ask your legal question here..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}

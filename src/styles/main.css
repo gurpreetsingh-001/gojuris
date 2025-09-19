@@ -851,7 +851,7 @@ footer hr {
 /* Updated Compact Search Interface with Mobile-First Design */
 .search-interface-compact {
   padding: 1rem 0;
-  background: var(--gj-gradient-secondary);
+  background: var(--gj-gradient-primary);
   position: relative;
 }
 
@@ -2058,7 +2058,7 @@ footer hr {
   font-size: 2rem;
   font-weight: 600;
   color: var(--gj-dark);
-  text-align: center;
+  text-align: left;
   margin-bottom: 2rem;
 }
 
@@ -3637,7 +3637,7 @@ footer hr {
 }
 
 .dashboard-container-compact {
-  max-width: 1400px;
+  max-width: 1150px;
   width: 100%;
   margin: 0 auto;
 }
@@ -4766,9 +4766,9 @@ footer hr {
 
 /* Responsive Logo */
 .navbar-brand img {
-  height: clamp(40px, 6vw, 48px) !important;
+  height: clamp(40px, 6vw, 65px) !important;
   width: auto !important;
-  max-width: 180px !important;
+  max-width: 210px !important;
 }
 
 /* Mobile Hero Fixes */
@@ -4870,6 +4870,7 @@ footer hr {
     margin-bottom: 2rem;
   }
 }
+
 
 
 /* End of CSS file */

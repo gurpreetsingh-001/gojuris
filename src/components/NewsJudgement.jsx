@@ -33,7 +33,7 @@ const  NewsJudgement = () => {
   ];
 
   return (
-    <section className="container py-5 mb-md-3 mb-lg-5">
+    <section className="container mb-md-3 pt-4">
       <div className="d-md-flex align-items-center justify-content-between text-center text-md-start mb-5">
         <div>
           <h2 className="h1 mb-md-0">Latest Law Points </h2>
@@ -48,16 +48,7 @@ const  NewsJudgement = () => {
       <div className="row g-4">
         {blogPosts.map((post, index) => (
           <div key={index} className="col-lg-4 col-md-6">
-            <article className="card card-hover border-0 shadow-sm h-100">
-              <div className={`${post.image} rounded-top d-flex align-items-center justify-content-center text-white`}
-                   style={{ height: '200px' }}>
-                <div className="text-center">
-                  <i className="bx bx-news display-4 mb-2"></i>
-                  <div className="badge bg-white text-dark rounded-pill px-3 py-1">
-                    {post.category}
-                  </div>
-                </div>
-              </div>
+            <article className="card card-hover border-0 shadow-lg h-100">
               
               <div className="card-body p-4">
                 <h3 className="h5 mb-3">

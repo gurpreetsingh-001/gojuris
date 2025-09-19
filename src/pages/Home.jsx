@@ -3,6 +3,7 @@ import React from 'react';
 import Hero from '../components/Hero';
 import SearchInterface from '../components/SearchInterface';
 import Features from '../components/Features';
+import NewSection from '../components/NewSection'; // Add this import
 import VideoSection from '../components/VideoSection';
 import Services from '../components/Services';
 import CallToAction from '../components/CallToAction';
@@ -19,16 +20,14 @@ const Home = () => {
       <Hero />
       <SearchInterface />
       <Features />
+      <NewSection /> {/* New component placed above VideoSection */}
       <VideoSection />
       <Services />
       <CallToAction />
       <NewsJudgement/>
       <Blog />
-      
       <Team />
-      
       <Testimonials />
-      
       <ContactMap />
       {/* <Contact /> */}
     </>

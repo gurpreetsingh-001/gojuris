@@ -335,15 +335,15 @@ const Signup = () => {
                     
                     <div className="social-login">
                       <button className="social-btn" disabled={isLoading}>
-                        <i className="bx bx-phone"></i>
+                        <i className="bx bx-phone fs-4"></i>
                         Continue with phone
                       </button>
                       <button className="social-btn" disabled={isLoading}>
-                        <i className="bx bxl-apple"></i>
+                        <i className="bx bxl-apple fs-4"></i>
                         Continue with Apple
                       </button>
                       <button className="social-btn" disabled={isLoading}>
-                        <i className="bx bxl-google"></i>
+                        <i className="bx bxl-google fs-4"></i>
                         Continue with Google
                       </button>
                     </div>

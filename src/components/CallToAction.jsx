@@ -157,7 +157,7 @@ const CallToAction = () => {
   // Success state component
   if (isSuccess) {
     return (
-      <section className="container py-5 mb-md-3 mb-lg-5">
+      <section className="container  mb-md-3 ">
         <div className="row justify-content-center">
           <div className="col-lg-6">
             <div className="text-center">
@@ -191,7 +191,7 @@ const CallToAction = () => {
   }
 
   return (
-    <section className="container py-5 mb-md-3 mb-lg-5">
+    <section className="container mb-md-3 pt-5">
       <div className="row align-items-center">
         {/* Left Column - Illustration */}
         <div className="col-lg-6 mb-4 mb-lg-0">
@@ -426,14 +426,14 @@ const CallToAction = () => {
           </form>
 
           {/* API Status Indicator (for development) */}
-          {process.env.NODE_ENV === 'development' && (
+          {/* {process.env.NODE_ENV === 'development' && (
             <div className="mt-3">
               <small className="text-muted">
                 <i className="bx bx-info-circle me-1"></i>
                 API Integration: Registration + Auto-Login + Dashboard Redirect
               </small>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 

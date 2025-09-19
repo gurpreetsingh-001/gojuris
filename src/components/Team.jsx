@@ -80,7 +80,7 @@ const Team = () => {
   }, []);
 
   return (
-    <section id="doctors" className="container pt-xl-2 pb-5 mb-md-3 mb-lg-5" ref={teamRef}>
+    <section id="doctors" className="container   pb-5 mb-md-3 pt-4" ref={teamRef}>
       <div className="d-md-flex align-items-center justify-content-between text-center text-md-start pb-1 pb-lg-0 mb-4 mb-lg-5">
         <h2 className="h1 mb-md-0">Team Gojuris- Meet the Minds behind Gojuris</h2>
         <a href="#" className="btn btn-outline-primary">

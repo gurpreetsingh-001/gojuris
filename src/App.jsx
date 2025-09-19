@@ -9,7 +9,7 @@ import Search from './pages/Search';
 import Results from './pages/Results';
 import Judgement from './pages/Judgement';
 import Login from './pages/Login';
-import Password from './pages/Password';
+// import Password from './pages/Password';
 import Citation from './pages/Citation';
 import AIChat from './pages/AIChat';
 import AISearch from './pages/AISearch';
@@ -37,7 +37,7 @@ function App() {
           } />
           
           <Route path="/login" element={<Login />} />
-          <Route path="/password" element={<Password />} />
+          {/* <Route path="/password" element={<Password />} /> */}
           <Route path="/signup" element={<Signup />} />
 
           {/* Protected routes - authentication required */}
@@ -53,11 +53,11 @@ function App() {
           
           <Route path="/search" element={
             <ProtectedRoute>
-              <Header />
+             
               <main className="page-wrapper">
                 <Search />
               </main>
-              <Footer />
+              
             </ProtectedRoute>
           } />
           

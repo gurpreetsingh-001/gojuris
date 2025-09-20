@@ -1,4 +1,4 @@
-// src/pages/Dashboard.jsx - Same height boxes
+// src/pages/Dashboard.jsx - Fixed version with image icons
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -7,37 +7,37 @@ const Dashboard = () => {
     {
       title: 'AI Chat',
       description: 'Instantly search and analyze case law with AI-powered precision. Save hours of manual research.',
-      icon: 'bx-chat',
+      icon: '/i-ai-chat-02.png', // Make sure this file exists in public folder
       link: '/ai-chat'
     },
     {
       title: 'AI Search', 
       description: 'Effortlessly find and understand statutes, rules, and legal provisions using intelligent AI search.',
-      icon: 'bx-search-alt',
+      icon: '/i-ai-search-03.png', // Make sure this file exists in public folder
       link: '/ai-search'
     },
     {
       title: 'Case Law Research',
       description: 'Quickly locate and interpret statutes, rules, and regulations with AI-driven search capabilities.',
-      icon: 'bx-search',
+      icon: '/i-case-law-research-04.png', // Make sure this file exists in public folder
       link: '#case-law-research'
     },
     {
       title: 'Citation Search',
       description: 'Quickly find Indian case laws using journal name, year, volume, and page. Supports all courts.',
-      icon: 'bx-book',
+      icon: '/i-Citation Search-05.png', // Make sure this file exists in public folder
       link: '/citation'
     },
     {
       title: 'Advance Case Law Search',
       description: 'Find case laws by keywords, party names, judges, or case numbers across all courts.',
-      icon: 'bx-search-alt-2',
+      icon: '/i-Advance Case Law Search-06.png', // Make sure this file exists in public folder
       link: '/search'
     },
     {
       title: 'Virtual Legal Assistant',
       description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
-      icon: 'bx-bot',
+      icon: '/i-Virtual Legal Assistant-07.png', // Make sure this file exists in public folder
       link: '#virtual-legal-assistant'
     }
   ];
@@ -47,7 +47,7 @@ const Dashboard = () => {
       <div className="dashboard-container-compact">
         <div className="dashboard-header-compact">
           <div className="dashboard-subtitle-compact">
-            <p>Offering a cutting-edge legal research AI tool. Accessible via web and app. Click for details. Empowering legal professionals with AI-driven insights.</p>
+            <p>Offering a cutting-edge legal research AI tool. Accessible via web and app. Click for <br/> details. Empowering legal professionals with AI-driven insights.</p>
           </div>
         </div>
         
@@ -66,8 +66,23 @@ const Dashboard = () => {
                     console.log(`${service.title} - Coming Soon`);
                   }}
                 >
-                  <div className="service-icon-compact">
-                    <i className={`bx ${service.icon}`}></i>
+                  <div>
+                    <img 
+                      src={service.icon} 
+                      alt={service.title}
+                      style={{
+                        width: '54px', 
+                        height: '54px',
+                        objectFit: 'contain',
+                        filter: 'brightness(0) invert(1)' // Makes image white to match the design
+                      }}
+                      onError={(e) => {
+                        console.error(`Failed to load icon: ${service.icon}`);
+                        // Show a fallback icon or text instead of hiding
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<span style="color: white; font-size: 24px;">📄</span>';
+                      }}
+                    />
                   </div>
                   <div className="service-content-compact">
                     <h3 className="service-title-compact">{service.title}</h3>
@@ -83,8 +98,23 @@ const Dashboard = () => {
                 to={service.link}
                 className="service-card-compact service-card-link"
               >
-                <div className="service-icon-compact">
-                  <i className={`bx ${service.icon}`}></i>
+                <div>
+                  <img 
+                    src={service.icon} 
+                    alt={service.title}
+                    style={{
+                      width: '54px', 
+                      height: '54px',
+                      objectFit: 'contain',
+                      filter: 'brightness(0) invert(1)' // Makes image white to match the design
+                    }}
+                    onError={(e) => {
+                      console.error(`Failed to load icon: ${service.icon}`);
+                      // Show a fallback icon or text instead of hiding
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = '<span style="color: white; font-size: 24px;">📄</span>';
+                    }}
+                  />
                 </div>
                 <div className="service-content-compact">
                   <h3 className="service-title-compact">{service.title}</h3>
@@ -133,7 +163,7 @@ const Dashboard = () => {
 
         /* Updated Service Cards with Same Height */
         .service-card-compact {
-          background: var(--gj-gradient-primary) !important;
+          background: var(--gj-gradient-bhh) !important;
           border: 1px solid rgba(139, 92, 246, 0.3);
           border-radius: 12px;
           padding: 1.5rem;
@@ -187,9 +217,9 @@ const Dashboard = () => {
         }
 
         .service-title-compact {
-          font-size: 1.1rem;
+          font-size: 1.3rem;
           font-weight: 600;
-          color: white;
+          color: black;
           margin-bottom: 0.5rem;
           line-height: 1.3;
           overflow: hidden;
@@ -197,7 +227,7 @@ const Dashboard = () => {
         }
 
         .service-description-compact {
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(6, 6, 6, 0.9);
           line-height: 1.4;
           margin: 0;
           font-size: 0.875rem;

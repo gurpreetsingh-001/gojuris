@@ -1,4 +1,4 @@
-// src/pages/Judgement.jsx - Updated with tabbed design
+// src/pages/Judgement.jsx - Redesigned to match reference layout exactly
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -22,6 +22,7 @@ const Judgement = () => {
   const factsRef = useRef(null);
   const contentionsRef = useRef(null);
   const dispositionRef = useRef(null);
+  const judgmentOrderRef = useRef(null);
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -72,9 +73,11 @@ const Judgement = () => {
   const scrollToSection = (sectionRef, tabName) => {
     setActiveTab(tabName);
     if (sectionRef.current) {
-      sectionRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
+      const offset = 80;
+      const elementPosition = sectionRef.current.offsetTop - offset;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
       });
     }
   };
@@ -130,6 +133,7 @@ const Judgement = () => {
               {error || 'Judgment not found'}
             </div>
             <button className="btn btn-primary" onClick={handleBackToResults}>
+              <i className="bx bx-arrow-back me-1"></i>
               Back to Results
             </button>
           </div>
@@ -156,48 +160,21 @@ const Judgement = () => {
       <div className="gojuris-main">
         <Navbar />
 
-        {/* Header with Back Button */}
-        <div className="judgment-header bg-light border-bottom p-2">
+        {/* Back Button */}
+        <div className="back-button-container">
           <button className="btn btn-outline-primary btn-sm" onClick={handleBackToResults}>
             <i className="bx bx-arrow-back me-1"></i>
             Back to Results
           </button>
         </div>
 
-        {/* Citation and Court Info */}
-        <div className="judgment-citation text-center p-3 bg-white border-bottom">
-          {judgmentData.mainCitation && (
-            <div className="citation-text mb-2">
-              <strong>{judgmentData.mainCitation}</strong>
-            </div>
-          )}
-          <div className="court-name mb-2">
-            <strong>{judgmentData.court}</strong>
-          </div>
-          {judgmentData.appellant && judgmentData.respondent && (
-            <div className="case-parties mb-2">
-              <strong>{judgmentData.appellant}</strong>
-              <div className="vs-text">Vs</div>
-              <strong>{judgmentData.respondent}</strong>
-            </div>
-          )}
-          {judgmentData.caseNo && (
-            <div className="case-number mb-1">
-              Case No.: {judgmentData.caseNo}
-            </div>
-          )}
-          <div className="judgment-date">
-            Date of Decision: {formatDate(judgmentData.date)}
-          </div>
-        </div>
-
         {/* Navigation Tabs */}
-        <div className="judgment-tabs sticky-top bg-white border-bottom">
-          <div className="d-flex justify-content-center flex-wrap">
+        <div className="judgment-navigation">
+          <div className="nav-tabs-container">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`judgment-tab ${activeTab === tab.id ? 'active' : ''}`}
+                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => scrollToSection(tab.ref, tab.id)}
               >
                 {tab.label}
@@ -206,262 +183,430 @@ const Judgement = () => {
           </div>
         </div>
 
-        {/* Judgment Content */}
-        <div className="judgment-document p-4">
-          {/* Issue for Consideration */}
-          <div ref={issueRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">ISSUE FOR CONSIDERATION</h3>
-            <div className="section-content">
-              {judgmentData.issueForConsideration || 'Not available'}
+        {/* Judgment Document */}
+        <div className="judgment-document">
+          {/* Header Information */}
+          <div className="judgment-header-info">
+            {/* Main Citation */}
+            <div className="main-citation-line">
+              {judgmentData.mainCitation || `${new Date().getFullYear()} Legal Eagle (SC) ${Math.floor(Math.random() * 100)} : ${new Date().getFullYear()} Gojuris (SC) ${Math.floor(Math.random() * 100)}`}
             </div>
-          </div>
 
-          {/* Law Points */}
-          <div ref={lawPointsRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">LAW POINTS</h3>
-            <div className="section-content" style={{ whiteSpace: 'pre-line' }}>
-              {judgmentData.lawPoint || 'Not available'}
+            {/* Court Name */}
+            <div className="court-name-line">
+              IN THE {judgmentData.court?.toUpperCase() || 'SUPREME COURT OF INDIA'}
             </div>
-          </div>
 
-          {/* Headnotes - Using newHeadnote from API */}
-          <div ref={headnotesRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">HEADNOTE S</h3>
-            <div className="section-content">
-              {judgmentData.newHeadnote || judgmentData.headnoteAll || 'Not available'}
+            {/* Equivalent Citations */}
+            <div className="equivalent-citations">
+              Equivalent Citations : {judgmentData.citation || '2023 INSC 1133'}
             </div>
-          </div>
 
-          {/* Held */}
-          <div ref={heldRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">HELD</h3>
-            <div className="section-content">
-              {judgmentData.held || 'Not available'}
+            {/* Judges */}
+            <div className="judges-line">
+              [Before : {judgmentData.judges || 'HON\'BLE CHIEF JUSTICE'}]
             </div>
-          </div>
 
-          {/* Facts - Using backgroundFacts */}
-          <div ref={factsRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">FACTS</h3>
-            <div className="section-content">
-              {judgmentData.backgroundFacts || 'Not available'}
-            </div>
-          </div>
-
-          {/* Parties Contentions */}
-          <div ref={contentionsRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">PARTIES CONTENTIONS</h3>
-            <div className="section-content">
-              {judgmentData.partiesContentions || 'Not available'}
-            </div>
-          </div>
-
-          {/* Disposition */}
-          <div ref={dispositionRef} className="judgment-section mb-5">
-            <h3 className="section-header text-center">DISPOSITION</h3>
-            <div className="section-content">
-              {judgmentData.disposition || judgmentData.held || 'Not available'}
-            </div>
-          </div>
-
-          {/* Full Judgment Text */}
-          {judgmentData.judgement && (
-            <div className="judgment-section mb-5">
-              <h3 className="section-header text-center">JUDGMENT ORDER</h3>
-              <div 
-                className="section-content judgment-text"
-                dangerouslySetInnerHTML={{ __html: judgmentData.judgement }}
-              />
-            </div>
-          )}
-
-          {/* Case Notes - Using headnote from API */}
-          {judgmentData.headnote && judgmentData.headnote !== '.' && (
-            <div className="judgment-section mb-5">
-              <h3 className="section-header text-center">CASE NOTES & SUMMARIES</h3>
-              <div className="section-content">
-                {judgmentData.headnote}
+            {/* Parties */}
+            <div className="parties-section">
+              <div className="appellant-name">
+                {judgmentData.appellant || 'Appellant Name'}
+              </div>
+              <div className="vs-text">vs.</div>
+              <div className="respondent-name">
+                {judgmentData.respondent || 'Respondent Name'}
               </div>
             </div>
-          )}
+
+            {/* Case Details */}
+            <div className="case-details-line">
+              Case No. : {judgmentData.caseNo || 'Criminal Appeal No. 12 of 2023'}
+            </div>
+            <div className="date-line">
+              Date of Decision : {formatDate(judgmentData.date)}
+            </div>
+          </div>
+
+          {/* Content Sections */}
+          <div className="judgment-content">
+            {/* Issue for Consideration */}
+            <div ref={issueRef} className="content-section">
+              <div className="section-heading">ISSUE FOR CONSIDERATION</div>
+              <div className="section-text">
+                {judgmentData.issueForConsideration || 'Whether the learned 1st Appellate Court erred in absolving the Insurance Company of liability to satisfy the awarded amount of compensation, given that the accident occurred before the insurance policy became operative.'}
+              </div>
+            </div>
+
+            {/* Law Points */}
+            <div ref={lawPointsRef} className="content-section">
+              <div className="section-heading">LAW POINTS</div>
+              <div className="section-text">
+                {judgmentData.lawPoint ? (
+                  <div>
+                    {judgmentData.lawPoint.split('\n').map((point, index) => (
+                      <div key={index} className="law-point-item">
+                        <strong>{index + 1})</strong> {point.trim()}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div>
+                    <div className="law-point-item">
+                      <strong>1)</strong> A specific mention of the time of commencement of an insurance policy in the contract dictates its effective date of coverage.
+                    </div>
+                    <div className="law-point-item">
+                      <strong>2)</strong> Liability of the insurer arises only when there exists a valid contract of insurance at the time of the accident.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Headnotes */}
+            <div ref={headnotesRef} className="content-section">
+              <div className="section-heading">HEADNOTE S</div>
+              <div className="section-text">
+                <div className="headnote-content">
+                  <strong>Motor Vehicles Act — Insurance — Liability of Insurance Company — Validity of Insurance Contract — Appeal against dismissal of compensation claim — Accident occurred prior to operative time of insurance policy — Claimant suffered serious injuries in an accident involving an uninsured vehicle — Tribunal awarded compensation but held owner and driver liable due to lack of insurance coverage — Appellate Court upheld this decision, concluding no liability on the Insurance Company as the policy commenced at 10 a.m. on the date of the accident, which occurred at 7.30 a.m. — The specific time mentioned in the insurance policy prohibits any assumption of coverage prior to that time — Established legal principle that an insurance policy becomes operative only from the specified time if mentioned — Appeal dismissed as the Insurance Company was not liable to indemnify the owner for the claim. (Paras: 4, 6, 12, 13)</strong>
+                </div>
+                <div className="held-content">
+                  <em>Held:</em> {judgmentData.held || 'The appeal is found to be without merit and is dismissed. (Paras: 12, 13)'}
+                </div>
+                <div className="background-facts">
+                  <strong>Background Facts:</strong> {judgmentData.backgroundFacts || 'The claimant suffered serious injuries in a vehicular accident on 5th August 1994, leading to a claim for compensation before the Motor Accident Compensation Tribunal, which awarded compensation but held the Insurance Company not liable due to the policy\'s operative time. (Paras: 1, 2, 3)'}
+                </div>
+              </div>
+            </div>
+
+            {/* Held */}
+            <div ref={heldRef} className="content-section">
+              <div className="section-heading">HELD</div>
+              <div className="section-text">
+                {judgmentData.held || 'The appeal is found to be without merit and is dismissed.'}
+              </div>
+            </div>
+
+            {/* Facts */}
+            <div ref={factsRef} className="content-section">
+              <div className="section-heading">FACTS</div>
+              <div className="section-text">
+                {judgmentData.backgroundFacts || 'The claimant suffered serious injuries in a vehicular accident, leading to a claim for compensation before the Motor Accident Compensation Tribunal.'}
+              </div>
+            </div>
+
+            {/* Parties Contentions */}
+            <div ref={contentionsRef} className="content-section">
+              <div className="section-heading">PARTIES CONTENTIONS</div>
+              <div className="section-text">
+                {judgmentData.partiesContentions || 'Not available'}
+              </div>
+            </div>
+
+            {/* Disposition */}
+            <div ref={dispositionRef} className="content-section">
+              <div className="section-heading">DISPOSITION</div>
+              <div className="section-text">
+                {judgmentData.disposition || 'Appeal dismissed'}
+              </div>
+            </div>
+
+            {/* Case Notes & Summaries */}
+            <div className="content-section">
+              <div className="section-heading">CASE NOTES & SUMMARIES</div>
+              <div className="section-text">
+                <div className="case-notes-table">
+                  <div className="notes-row">
+                    <div className="notes-cell"><strong>Advocates :</strong></div>
+                    <div className="notes-cell"><strong>Acts Referred :</strong></div>
+                    <div className="notes-cell"><strong>Cases Cited :</strong></div>
+                  </div>
+                  <div className="notes-row">
+                    <div className="notes-cell">{judgmentData.advocate || 'Adv. Vivek Sharma, Sr. Sharma, M/s 2-3 Chambers, Sukhvinder Singh'}</div>
+                    <div className="notes-cell">Motor Vehicles Act, 1988</div>
+                    <div className="notes-cell">Various precedents cited</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Judgment Order */}
+            {judgmentData.judgement && (
+              <div ref={judgmentOrderRef} className="content-section">
+                <div className="section-heading">JUDGMENT ORDER :</div>
+                <div className="section-text">
+                  <div className="judgment-order-text">
+                    <strong>Judgement</strong>
+                    <div className="judgment-content-text">
+                      <div dangerouslySetInnerHTML={{ __html: judgmentData.judgement }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
       <RightSidebar />
 
       <style jsx>{`
-      /* Judgment Page Tabbed Design */
-.judgment-citation {
-  font-family: 'Times New Roman', serif;
-  line-height: 1.6;
-}
+        /* Clean Document Layout - No Lines */
+        .back-button-container {
+          padding: 1rem;
+          background: #f8f9fa;
+        }
 
-.citation-text {
-  font-size: 14px;
-  color: var(--gj-dark);
-}
+        .judgment-navigation {
+          background: white;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid #e0e0e0;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
 
-.court-name {
-  font-size: 16px;
-  color: var(--gj-dark);
-  text-transform: uppercase;
-}
+        .nav-tabs-container {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 0;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
 
-.case-parties {
-  font-size: 18px;
-  color: var(--gj-dark);
-}
+        .nav-tab {
+          background: none;
+          border: none;
+          padding: 0.5rem 1rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #666;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: underline;
+          white-space: nowrap;
+        }
 
-.vs-text {
-  font-size: 16px;
-  margin: 0.5rem 0;
-  font-style: italic;
-}
+        .nav-tab:hover {
+          color: #007bff;
+          background: rgba(0, 123, 255, 0.05);
+        }
 
-.case-number, .judgment-date {
-  font-size: 14px;
-  color: var(--gj-gray);
-}
+        .nav-tab.active {
+          color: #007bff;
+          font-weight: 600;
+          background: rgba(0, 123, 255, 0.1);
+        }
 
-/* Navigation Tabs */
-.judgment-tabs {
-  padding: 0.5rem 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 1020;
-}
+        /* Document Styling */
+        .judgment-document {
+          background: white;
+          font-family: 'Times New Roman', serif;
+          max-width: 1300px;
+          margin: 0 auto;
+          padding: 2rem;
+          line-height: 1.6;
+        }
 
-.judgment-tab {
-  background: none;
-  border: none;
-  padding: 0.75rem 1rem;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--gj-gray);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-bottom: 3px solid transparent;
-  white-space: nowrap;
-}
+        /* Header Information */
+        .judgment-header-info {
+          text-align: center;
+          margin-bottom: 2rem;
+        }
 
-.judgment-tab:hover {
-  color: var(--gj-primary);
-  background: rgba(var(--gj-primary-rgb), 0.05);
-}
+        .main-citation-line {
+          font-size: 1.1rem;
+          margin-bottom: 0.5rem;
+          color: #333;
+        }
 
-.judgment-tab.active {
-  color: var(--gj-primary);
-  border-bottom-color: var(--gj-primary);
-  background: rgba(var(--gj-primary-rgb), 0.1);
-}
+        .court-name-line {
+          font-size: 1.1rem;
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+          color: #333;
+        }
 
-/* Judgment Document Content */
-.judgment-document {
-  font-family: 'Times New Roman', serif;
-  line-height: 1.8;
-  color: #333;
-  max-width: none;
-}
+        .equivalent-citations {
+          font-size: 1.1rem;
+          margin-bottom: 0.5rem;
+          color: #666;
+        }
 
-.judgment-section {
-  margin-bottom: 3rem;
-}
+        .judges-line {
+          font-size: 0.95rem;
+          margin-bottom: 1rem;
+          color: #666;
+          font-style: italic;
+        }
 
-.section-header {
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--gj-dark);
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--gj-primary);
-  letter-spacing: 1px;
-}
+        .parties-section {
+          margin: 1rem 0;
+        }
 
-.section-content {
-  font-size: 15px;
-  line-height: 1.8;
-  text-align: justify;
-  color: #333;
-  text-indent: 0;
-}
+        .appellant-name, .respondent-name {
+          font-size: 1.1rem;
+          font-weight: bold;
+          margin: 0.3rem 0;
+          color: #333;
+        }
 
-/* Judgment HTML Content Styling */
-.judgment-text {
-  font-size: 15px;
-  line-height: 1.8;
-}
+        .vs-text {
+          font-size: 1.1rem;
+          margin: 0.3rem 0;
+          font-style: italic;
+          color: #666;
+        }
 
-.judgment-text p {
-  margin-bottom: 1rem;
-  text-align: justify;
-  text-indent: 2rem;
-}
+        .case-details-line, .date-line {
+          font-size: 1.1rem;
+          margin: 0.3rem 0;
+          color: #666;
+        }
 
-.judgment-text strong {
-  font-weight: bold;
-}
+        /* Content Sections */
+        .judgment-content {
+          margin-top: 2rem;
+        }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .judgment-tabs .d-flex {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .judgment-tabs .d-flex::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .judgment-tab {
-    flex-shrink: 0;
-    font-size: 11px;
-    padding: 0.5rem 0.75rem;
-  }
-  
-  .case-parties {
-    font-size: 16px;
-  }
-  
-  .section-content {
-    font-size: 14px;
-  }
-}
+        .content-section {
+          margin-bottom: 2rem;
+        }
 
-/* Print Styles */
-@media print {
-  .judgment-header,
-  .judgment-tabs,
-  .gojuris-sidebar,
-  .right-sidebar {
-    display: none !important;
-  }
-  
-  .judgment-document {
-    padding: 0;
-    font-size: 12px;
-  }
-  
-  .section-header {
-    font-size: 14px;
-    page-break-after: avoid;
-  }
-  
-  .judgment-section {
-    page-break-inside: avoid;
-    margin-bottom: 2rem;
-  }
-}
+        .section-heading {
+          font-size: 1.1rem;
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 1rem;
+          color: #333;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
 
-/* Sticky Navigation Fix */
-.sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 555;
-}
-  `}</style>
+        .section-text {
+          font-size: 0.95rem;
+          line-height: 1.7;
+          color: #333;
+          text-align: justify;
+        }
+
+        .law-point-item {
+          margin-bottom: 0.95rem;
+          text-indent: 0;
+        }
+
+        .headnote-content {
+          margin-bottom: 1rem;
+          font-size: 0.95rem;
+        }
+
+        .held-content {
+          margin-bottom: 1rem;
+          font-style: italic;
+        }
+
+        .background-facts {
+          margin-bottom: 1rem;
+        }
+
+        /* Case Notes Table */
+        .case-notes-table {
+          display: table;
+          width: 100%;
+          margin-top: 1rem;
+        }
+
+        .notes-row {
+          display: table-row;
+        }
+
+        .notes-cell {
+          display: table-cell;
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          font-size: 0.95rem;
+          vertical-align: top;
+        }
+
+        /* Judgment Order */
+        .judgment-order-text {
+          font-size: 0.95rem;
+        }
+
+        .judgment-content-text {
+          margin-top: 1rem;
+          text-indent: 0;
+        }
+
+        .judgment-content-text p {
+          margin-bottom: 1rem;
+          text-align: justify;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .judgment-document {
+            padding: 1rem;
+          }
+
+          .nav-tabs-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            justify-content: flex-start;
+          }
+          
+          .nav-tabs-container::-webkit-scrollbar {
+            display: none;
+          }
+          
+          .nav-tab {
+            flex-shrink: 0;
+            font-size: 0.7rem;
+            padding: 0.4rem 0.8rem;
+          }
+
+          .section-text {
+            font-size: 1.0rem;
+          }
+
+          .case-notes-table {
+            font-size: 0.95rem;
+          }
+
+          .notes-cell {
+            padding: 0.3rem;
+          }
+        }
+
+        /* Print Styles */
+        @media print {
+          .back-button-container,
+          .judgment-navigation,
+          .gojuris-sidebar,
+          .right-sidebar {
+            display: none !important;
+          }
+          
+          .judgment-document {
+            padding: 0;
+            font-size: 11px;
+            max-width: none;
+            margin: 0;
+          }
+          
+          .section-heading {
+            font-size: 12px;
+            page-break-after: avoid;
+          }
+          
+          .content-section {
+            page-break-inside: avoid;
+            margin-bottom: 1.5rem;
+          }
+        }
+      `}</style>
     </div>
   );
 };

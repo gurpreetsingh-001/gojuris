@@ -729,7 +729,7 @@ const processSearchResults = (searchResults, userMessage) => {
         .chat-input {
           flex: 1;
           padding-right: 80px;
-          border: 1px solid #E5E7EB;
+          border: 1px solid #8b5cf6;
           border-radius: 25px;
           padding: 12px 20px;
           font-size: 14px;
@@ -743,6 +743,7 @@ const processSearchResults = (searchResults, userMessage) => {
         .input-buttons {
           position: absolute;
           right: 8px;
+          bottom:4px;
           display: flex;
           gap: 4px;
           align-items: center;

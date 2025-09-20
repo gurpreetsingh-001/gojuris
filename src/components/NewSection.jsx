@@ -76,9 +76,9 @@ const NewSection = () => {
           <div className="col-lg-6">
             <div className="text-center">
               <img 
-                src="/mobile.jpg" 
+                src="/mobile-mockup.png" 
                 alt="Mobile Application" 
-                className="img-fluid rounded-3 shadow-lg"
+                className="img-fluid rounded-3 "
                 style={{ maxHeight: '500px', width: 'auto' }}
               />
             </div>

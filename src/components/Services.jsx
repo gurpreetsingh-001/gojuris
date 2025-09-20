@@ -7,7 +7,7 @@ const Services = () => {
 
   const services = [
     {
-      icon: 'bx-book-content',
+      icon: '/Articles-01.png', // Using single image for all services
       title: 'Case Law Repository',
       subtitle: 'Comprehensive collection of judgments from Supreme Court, High Courts, and Tribunals across India',
       description: 'Access to extensive case law database covering all major courts and judicial decisions.',
@@ -88,49 +88,49 @@ const Services = () => {
       }
     },
     {
-      icon: 'bx-link-external',
+      icon: '/Case Law Repository-02.png', // Using single image for all services
       title: 'Cross-Citation of More than 300 Journals',
       subtitle: 'Extensive cross-referencing across major legal publications and journals for comprehensive research',
       description: 'Comprehensive citation network connecting legal precedents across multiple journals.',
       hasDetailedContent: false
     },
     {
-      icon: 'bx-news',
+      icon: '/Central Laws-03.png', // Using single image for all services
       title: 'Central & State Statutes',
       subtitle: 'Complete collection of central and state legislation with historical and current versions',
       description: 'Access to all current and historical statutes from central and state governments.',
       hasDetailedContent: false
     },
     {
-      icon: 'bx-edit-alt',
+      icon: '/Cross Citations-04.png', // Using single image for all services
       title: 'Scholarly Articles & Blogs',
       subtitle: 'Expert analysis and commentary from legal scholars and practitioners across various domains',
       description: 'Curated collection of academic articles and professional insights.',
       hasDetailedContent: false
     },
     {
-      icon: 'bx-refresh',
+      icon: '/Drafting-05.png', // Using single image for all services
       title: 'Latest Amendments & Updates',
       subtitle: 'Real-time updates on legal changes and amendments to keep you informed and compliant',
       description: 'Stay current with the latest changes in law and legal procedures.',
       hasDetailedContent: false
     },
     {
-      icon: 'bx-news',
+      icon: '/Latest Amendments-06.png', // Using single image for all services
       title: 'Legal News & Insights',
       subtitle: 'Current legal developments and market insights from trusted sources and expert analysis',
       description: 'Breaking legal news and expert analysis of current legal trends.',
       hasDetailedContent: false
     },
     {
-      icon: 'bx-clipboard',
+      icon: '/News-07.png', // Using single image for all services
       title: 'Drafting Templates & Materials',
       subtitle: 'Ready-to-use legal document templates and drafting resources for efficient legal practice',
       description: 'Professional templates and materials for efficient legal document preparation.',
       hasDetailedContent: false
     },
     {
-      icon: 'bx-book-content',
+      icon: '/Reports-08.png', // Using single image for all services
       title: 'Commission & Committee Reports',
       subtitle: 'Official reports from legal commissions and committees with detailed analysis and recommendations',
       description: 'Access to important reports and recommendations from legal bodies.',
@@ -212,7 +212,19 @@ const Services = () => {
                   <div className="card card-hover bg-secondary border-0 h-100">
                     <div className="card-body d-flex align-items-start p-3">
                       <div className="flex-shrink-0 bg-light rounded-3 p-2 d-flex align-items-center justify-content-center me-3" style={{width: '50px', height: '50px'}}>
-                        <i className={`bx ${service.icon} text-primary`} style={{fontSize: '24px'}}></i>
+                        <img 
+                          src={service.icon} 
+                          alt={service.title}
+                          style={{
+                            width: '44px', 
+                            height: '44px',
+                            objectFit: 'contain'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            console.error(`Failed to load icon: ${service.icon}`);
+                          }}
+                        />
                       </div>
                       <div className="d-flex flex-column h-100 flex-grow-1">
                         <h3 className="h6 mb-2 fw-semibold">{service.title}</h3>
@@ -243,7 +255,19 @@ const Services = () => {
               <div className="modal-header border-0 pb-0">
                 <div className="d-flex align-items-center">
                   <div className="flex-shrink-0 bg-light rounded-3 p-3 d-flex align-items-center justify-content-center me-3" style={{width: '50px', height: '50px'}}>
-                    <i className={`bx ${services[activeModal].icon} text-primary`} style={{fontSize: '24px'}}></i>
+                    <img 
+                      src={services[activeModal].icon} 
+                      alt={services[activeModal].title}
+                      style={{
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        console.error(`Failed to load icon: ${services[activeModal].icon}`);
+                      }}
+                    />
                   </div>
                   <h4 className="modal-title mb-0">{services[activeModal].title}</h4>
                 </div>

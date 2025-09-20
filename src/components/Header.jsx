@@ -364,7 +364,7 @@ const Header = () => {
           </a>
           
           <div className="d-flex align-items-center ms-auto order-lg-3">
-            <div className="d-none d-sm-flex align-items-center me-3">
+            {/* <div className="d-none d-sm-flex align-items-center me-3">
               <span className="text-muted me-2 d-none d-md-inline" style={{ fontSize: '0.875rem' }}>
                 LIGHT
               </span>
@@ -380,7 +380,7 @@ const Header = () => {
               <span className="text-muted ms-2 d-none d-md-inline" style={{ fontSize: '0.875rem' }}>
                 DARK
               </span>
-            </div>
+            </div> */}
 
             {/* Login/My Account Button */}
             {isAuthenticated ? (

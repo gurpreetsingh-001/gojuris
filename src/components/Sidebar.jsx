@@ -7,13 +7,13 @@ const Sidebar = () => {
   const location = useLocation();
 
   const sidebarItems = [
-    { id: 'ai-chat', icon: 'bx-chat', label: 'AI Chat', path: '/ai-chat' },
-    { id: 'search', icon: 'bx-search', label: 'AI Search', path: '/ai-search' },
-    { id: 'citation', icon: 'bx-book', label: 'Citation Search', path: '/citation' },
-    { id: 'advance', icon: 'bx-search-alt', label: 'Advance Search', path: '/search' },
+    { id: 'ai-chat', icon: '/i-ai-chat-02.png', label: 'AI Chat', path: '/ai-chat' },
+    { id: 'search', icon: '/i-ai-search-03.png', label: 'AI Search', path: '/ai-search' },
+    { id: 'citation', icon: '/i-Citation Search-05.png', label: 'Citation Search', path: '/citation' },
+    { id: 'advance', icon: '/i-Advance Case Law Search-06.png', label: 'Advance Search', path: '/search' },
     
-    { id: 'database', icon: 'bx-data', label: 'Database', path: '/database' },
-    { id: 'virtual', icon: 'bx-bot', label: 'Virtual Assistance', path: '/virtual' }
+    { id: 'database', icon: '/i-case-law-research-04.png', label: 'Database', path: '/database' },
+    { id: 'virtual', icon: '/i-Virtual Legal Assistant-07.png', label: 'Virtual Assistance', path: '/virtual' }
   ];
 
   return (
@@ -26,7 +26,19 @@ const Sidebar = () => {
             onClick={() => navigate(item.path)}
           >
             <div className="sidebar-icon">
-              <i className={`bx ${item.icon}`}></i>
+
+
+
+              <img 
+                    src={item.icon} 
+                   
+                    style={{
+                      width: '54px', 
+                      height: '54px',
+                      objectFit: 'contain',
+                      filter: 'brightness(0) invert(1)' // Makes image white to match the design
+                    }}
+              />
             </div>
             <div className="sidebar-text">{item.label}</div>
           </div>

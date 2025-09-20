@@ -1,4 +1,4 @@
-// src/pages/AISearch.jsx - Updated to handle exact API response structure
+// src/pages/AISearch.jsx - Complete code with correct design and full functionality
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -66,12 +66,13 @@ const AISearch = () => {
         return;
       }
 
-      // Store results in sessionStorage with the exact structure needed
+      // Store results in sessionStorage with embedding vector for pagination
       const resultsData = {
         query: searchQuery,
-        results: searchResults,  // Using 'results' key for consistency with Results component
+        results: searchResults,
         totalCount: totalCount,
         searchType: 'AI Search',
+        embeddingVector: embeddingVector, // Store embedding for pagination API calls
         timestamp: new Date().toISOString(),
         originalApiResponse: {
           total: apiResponse.total,
@@ -104,6 +105,11 @@ const AISearch = () => {
     setError('');
   };
 
+  const handleExampleSearch = (exampleQuery) => {
+    setSearchQuery(exampleQuery);
+    setError('');
+  };
+
   return (
     <div className="gojuris-layout">
       <Sidebar />
@@ -128,7 +134,7 @@ const AISearch = () => {
           
           <div className="search-hero">
             <h1 className="search-main-title">
-              Discover patterns, context, and legal logic—faster than ever.
+              Decode patterns, context, and legal logic—instantly.
             </h1>
             
             <div className="search-box">
@@ -172,7 +178,16 @@ const AISearch = () => {
                       {isLoading ? (
                         <i className="bx bx-loader bx-spin"></i>
                       ) : (
-                        <i className="bx bx-search"></i>
+                          <img 
+                    src='/i-ai-search-03.png' 
+                   
+                    style={{
+                      width: '54px', 
+                      height: '54px',
+                      objectFit: 'contain',
+                      filter: 'brightness(0) invert(1)' // Makes image white to match the design
+                    }}
+              />
                       )}
                     </button>
                   </div>
@@ -182,7 +197,7 @@ const AISearch = () => {
             
             <div className="search-info">
               <p className="searches-text">
-                {isLoading ? 'Searching legal database...' : 'AI-powered semantic search ready'}
+                {isLoading ? 'Searching legal database...' : ''}
               </p>
               {!isLoading && (
                 <p className="searches-text" style={{ color: 'var(--gj-primary)', marginTop: '0.5rem' }}>
@@ -193,13 +208,13 @@ const AISearch = () => {
           </div>
           
           <div className="dashboard-footer">
-            <p className="footer-text">Making legal search easy for you</p>
+            <p className="footer-text">Making legal search easy for you or Simplyfying legal search for you</p>
             <p className="footer-includes">
-              Tailored for legal professionals, our advanced AI search simplifies legal research. 
-              Effortlessly access judgments, statutes, and citations using natural language queries.
+              Tailored for legal professionals, our advanced search options simplifies legal research. 
+              Effortlessly access judgments, statutes, and citations saving time and enhancing your workflow efficiency.
             </p>
             <p className="footer-includes">
-              <strong>Includes:</strong> Case Law Codes | Rules & Constitutions | Practical Guidance | Treatises
+              <strong>Includes:</strong> Case Law | Codes, Rules & Constitutions | Practical Guidance | Treatises
             </p>
           </div>
         </div>
@@ -272,6 +287,26 @@ const AISearch = () => {
         .voice-search-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        .clear-search-btn {
+          background: none;
+          border: none;
+          padding: 8px;
+          border-radius: 50%;
+          cursor: pointer;
+          color: #6B7280;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+        }
+
+        .clear-search-btn:hover:not(:disabled) {
+          background-color: #F3F4F6;
+          color: #EF4444;
         }
 
         @keyframes pulse {

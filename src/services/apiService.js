@@ -1036,21 +1036,60 @@ async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
 // Add this method to your ApiService class in apiService.js
 
 // ================ CITATION SEARCH API (NO EMBEDDINGS) ================
+// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
 async searchCitations(citationData) {
-  console.log('📖 Citation Search - No Embeddings');
+  console.log('📖 Citation Search - Passing Individual Fields');
   console.log('Citation Data:', citationData);
 
-  // Create payload with only the specified fields - NO EMBEDDINGS
+  // Create payload with individual citation fields as separate parameters
   const payload = {
     requests: [
       {
-        query: `${citationData.journal} ${citationData.year || ''} ${citationData.volume || ''} ${citationData.page || ''}`.trim(),
-        // NO queryVector - this is the key difference from AI search
-        journal: citationData.journal,
-        year: citationData.year,
-        volume: citationData.volume,
-        page: citationData.page,
-        court: citationData.court
+        // Basic search query (can be empty for citation search)
+        query: "",
+        
+        // CITATION-SPECIFIC FIELDS - Pass as individual parameters
+        journal: citationData.journal || "",           // [Journal name]
+        year: citationData.year || "",                 // [Year] 
+        volume: citationData.volume || "",             // [Volume]
+        page: citationData.page || "",                 // [Page number]
+        court: citationData.court || "",               // [Court]
+        
+        // Citation field (can also include formatted citation)
+        citation: citationData.citation || `${citationData.journal || ''} ${citationData.year || ''} ${citationData.volume || ''} ${citationData.page || ''}`.trim(),
+        
+        // Standard fields (empty for citation search)
+        keycode: 0,
+        subject: "",
+        fulltext: "",
+        headnote: "",
+        judgement: "",
+        headnoteAll: "",
+        judges: "",
+        appellant: "",
+        respondent: "",
+        caseNo: "",
+        advocate: "",
+        issueForConsideration: "",
+        lawPoint: "",
+        held: "",
+        backgroundFacts: "",
+        partiesContentions: "",
+        disposition: "",
+        favour: "",
+        yearFrom: citationData.year ? parseInt(citationData.year) : 0,
+        yearTo: citationData.year ? parseInt(citationData.year) : 0,
+        result: "",
+        casesReferred: "",
+        isState: false,
+        acts: [],
+        sections: [],
+        mainkeys: [],
+        years: citationData.year ? [citationData.year] : [],
+        
+        // NO queryVector for citation search (no embeddings)
+        queryVector: [],
+        isAi: false
       }
     ],
     sortBy: "relevance",
@@ -1061,10 +1100,16 @@ async searchCitations(citationData) {
     prompt: "Citation search by journal, year, volume, and page"
   };
 
-  console.log('🚀 Citation Search Payload:', JSON.stringify(payload, null, 2));
+  console.log('🚀 Citation Search Payload with Individual Fields:');
+  console.log('📋 Journal:', citationData.journal);
+  console.log('📋 Year:', citationData.year);
+  console.log('📋 Volume:', citationData.volume);
+  console.log('📋 Page:', citationData.page);
+  console.log('📋 Court:', citationData.court);
+  console.log('📋 Full Payload:', JSON.stringify(payload, null, 2));
 
   try {
-    // Use /Judgement/Search endpoint without AI/embeddings
+    // Use /Judgement/Search endpoint for citation search
     const response = await fetch(`${this.baseURL}/Judgement/Search`, {
       method: 'POST',
       headers: {

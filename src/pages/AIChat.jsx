@@ -87,7 +87,7 @@ const handleSendMessage = async (e) => {
       
       const searchResults = await ApiService.searchJudgementsWithAI(userMessage, embeddingVector, {
         searchType: 'chat',  // ✅ This triggers simplified payload
-        pageSize: 5,
+        pageSize: 20,
         page: 0,
         sortBy: "relevance",
         sortOrder: "desc",
@@ -121,7 +121,7 @@ const handleSendMessage = async (e) => {
         console.log('🔄 Falling back to regular search...');
         
         const regularSearchResults = await ApiService.searchJudgements_Chat(userMessage, {
-          pageSize: 5,
+          pageSize: 20,
           page: 1,
           sortBy: "relevance"
         });

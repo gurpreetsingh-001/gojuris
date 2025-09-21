@@ -1030,7 +1030,64 @@ async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
         };
     }
   }
+// Add this method to apiService.js
 
+// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
+// Add this method to your ApiService class in apiService.js
+
+// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
+async searchCitations(citationData) {
+  console.log('📖 Citation Search - No Embeddings');
+  console.log('Citation Data:', citationData);
+
+  // Create payload with only the specified fields - NO EMBEDDINGS
+  const payload = {
+    requests: [
+      {
+        query: `${citationData.journal} ${citationData.year || ''} ${citationData.volume || ''} ${citationData.page || ''}`.trim(),
+        // NO queryVector - this is the key difference from AI search
+        journal: citationData.journal,
+        year: citationData.year,
+        volume: citationData.volume,
+        page: citationData.page,
+        court: citationData.court
+      }
+    ],
+    sortBy: "relevance",
+    sortOrder: "desc", 
+    page: 1,
+    pageSize: 25,
+    inst: "",
+    prompt: "Citation search by journal, year, volume, and page"
+  };
+
+  console.log('🚀 Citation Search Payload:', JSON.stringify(payload, null, 2));
+
+  try {
+    // Use /Judgement/Search endpoint without AI/embeddings
+    const response = await fetch(`${this.baseURL}/Judgement/Search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getAccessToken()}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Citation Search Error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Citation Search Response:', result);
+    return result;
+
+  } catch (error) {
+    console.error('❌ Citation Search Error:', error);
+    throw new Error(`Citation search failed: ${error.message}`);
+  }
+}
 }
 
 // Create singleton instance

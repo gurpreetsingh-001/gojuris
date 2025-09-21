@@ -1,10 +1,13 @@
 // src/pages/Citation.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ApiService from '../services/apiService';
 
 const Citation = () => {
+  const navigate = useNavigate();
+  
   // State for selected values
   const [selectedJournal, setSelectedJournal] = useState('Select a option');
   const [selectedYear, setSelectedYear] = useState('Select a option');
@@ -37,6 +40,7 @@ const Citation = () => {
   const [isLoadingYears, setIsLoadingYears] = useState(false);
   const [isLoadingVolumes, setIsLoadingVolumes] = useState(false);
   const [isLoadingPages, setIsLoadingPages] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Error states
   const [journalsError, setJournalsError] = useState('');
@@ -228,7 +232,7 @@ const Citation = () => {
     setIsCourtOpen(false);
   };
 
-  const handleSearch = (type) => {
+  const handleSearch = async (type) => {
     console.log('Search type:', type);
     
     // Validate required fields
@@ -249,8 +253,36 @@ const Citation = () => {
     
     console.log('🔍 Citation search data:', searchData);
     
-    // Show temporary alert for API integration pending
-    alert(`Citation search initiated!\n\nSearch Data:\n${JSON.stringify(searchData, null, 2)}\n\n⚠️ API Integration Pending\nThe citation search API endpoint is not yet finalized. This is a placeholder response.`);
+    try {
+      setIsLoading(true);
+      
+      // Use the new citation search API (NO EMBEDDINGS)
+      const results = await ApiService.searchCitations(searchData);
+      
+      console.log('✅ Citation Search Results:', results);
+      
+      // Store results in sessionStorage (same format as other searches)
+      const resultsData = {
+        results: results.hits || [],
+        totalCount: results.total || 0,
+        query: `${searchData.journal} ${searchData.year || ''} ${searchData.volume || ''} ${searchData.page || ''}`.trim(),
+        searchType: 'Citation Search',
+        timestamp: new Date().toISOString(),
+        searchData: searchData
+      };
+      
+      console.log('💾 Storing citation results in sessionStorage:', resultsData);
+      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+      
+      // Navigate to results page
+      navigate('/results');
+      
+    } catch (error) {
+      console.error('Citation search failed:', error);
+      alert(`Citation search failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderDropdown = (isOpen, items, onSelect, isLoading, error, loadingText) => {
@@ -442,9 +474,9 @@ const Citation = () => {
                   <button 
                     className="citation-search-btn primary"
                     onClick={() => handleSearch('citations')}
-                    disabled={selectedJournal === 'Select a option'}
+                    disabled={selectedJournal === 'Select a option' || isLoading}
                   >
-                    Search Citations
+                    {isLoading ? 'Searching...' : 'Search Citations'}
                   </button>
                 </div>
               </div>

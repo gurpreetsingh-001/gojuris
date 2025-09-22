@@ -378,7 +378,7 @@ const Judgement = () => {
           background: none;
           border: none;
           padding: 0.5rem 1rem;
-          font-size: 0.75rem;
+          font-size: 0.95rem;
           font-weight: 500;
           color: #666;
           cursor: pointer;

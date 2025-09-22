@@ -935,7 +935,7 @@ async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
     ],
     sortBy: options.sortBy || "relevance",
     sortOrder: options.sortOrder || "desc", 
-    page: options.page || 1,  // Use 0-based pagination for SearchWithAI
+    page: options.page || 1,
     pageSize: options.pageSize || 5,
     inst: options.inst || "",
     prompt: options.prompt || "Find relevant legal cases"
@@ -944,7 +944,8 @@ async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
   console.log('🚀 AI Chat Payload:', JSON.stringify(payload, null, 2));
 
   try {
-    const response = await fetch(`${this.baseURL}/Judgement/SearchWithAI`, {
+    // ✅ CORRECTED: Use /AIChat instead of /aichat or /Judgement/SearchWithAI
+    const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -967,7 +968,122 @@ async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
     throw new Error(`AI Chat Search failed: ${error.message}`);
   }
 }
+// ================ STREAMING AI CHAT METHOD ================
+// ================ STREAMING AI CHAT METHOD ================
+async streamAIChat(userQuery, embeddingVector, options = {}, onMessage, onError, onComplete) {
+  console.log('🌊 Starting AI Chat Stream...');
+  console.log('Query:', userQuery);
+  console.log('Vector Length:', embeddingVector?.length);
 
+  const payload = {
+    requests: [
+      {
+        query: userQuery,
+        queryVector: embeddingVector
+      }
+    ],
+    sortBy: options.sortBy || "relevance",
+    sortOrder: options.sortOrder || "desc", 
+    page: options.page || 1,
+    pageSize: options.pageSize || 5,
+    inst: options.inst || "",
+    prompt: options.prompt || "Find relevant legal cases"
+  };
+
+  console.log('🚀 AI Chat Stream Payload:', JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getAccessToken()}`,
+        'Accept': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Stream Error: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log('✅ Stream completed');
+          if (onComplete) onComplete();
+          break;
+        }
+
+        // Decode the chunk
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+
+        // Process complete lines
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; 
+
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          
+          // Handle Server-Sent Events format
+          if (line.startsWith('data: ')) {
+            const data = line.substring(6).trim();
+            
+            if (data === '[DONE]') {
+              console.log('✅ Stream finished with [DONE] marker');
+              if (onComplete) onComplete();
+              return;
+            }
+            
+            if (data && data !== '') {
+              // ✅ FIXED: Send the raw chunk without processing here
+              if (onMessage) onMessage(data);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+  } catch (error) {
+    console.error('❌ AI Chat Stream Error:', error);
+    if (onError) onError(error);
+    throw new Error(`AI Chat Stream failed: ${error.message}`);
+  }
+}
+
+// ✅ NEW: Add text formatting helper method
+formatTextChunk(text) {
+  if (!text) return '';
+  
+  try {
+    // Try to parse as JSON first
+    const jsonData = JSON.parse(text);
+    if (jsonData.content) return jsonData.content;
+    if (jsonData.text) return jsonData.text;
+    if (jsonData.message) return jsonData.message;
+    return text;
+  } catch (e) {
+    // Not JSON, process as plain text
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic text
+      .replace(/\n\n/g, '</p><p>') // Double line breaks = paragraphs
+      .replace(/\n/g, '<br>') // Single line breaks
+      .replace(/^\s*[-*+]\s+/gm, '<br>• ') // Bullet points
+      .replace(/^\s*\d+\.\s+/gm, '<br>$&'); // Numbered lists
+  }
+}
   // ================ DYNAMIC PAYLOAD SYSTEM ================
   createSearchPayload(searchType, formData) {
     const basePayload = {
@@ -1037,6 +1153,7 @@ async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
 
 // ================ CITATION SEARCH API (NO EMBEDDINGS) ================
 // ================ CITATION SEARCH API (NO EMBEDDINGS) ================
+// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
 async searchCitations(citationData) {
   console.log('📖 Citation Search - Passing Individual Fields');
   console.log('Citation Data:', citationData);
@@ -1055,8 +1172,8 @@ async searchCitations(citationData) {
         page: citationData.page || "",                 // [Page number]
         court: citationData.court || "",               // [Court]
         
-        // Citation field (can also include formatted citation)
-        citation: citationData.citation || `${citationData.journal || ''} ${citationData.year || ''} ${citationData.volume || ''} ${citationData.page || ''}`.trim(),
+        // Citation field in correct format: Year → Volume → Journal → Page
+        citation: citationData.citation || `${citationData.year || ''} ${citationData.volume || ''} ${citationData.journal || ''} ${citationData.page || ''}`.trim(),
         
         // Standard fields (empty for citation search)
         keycode: 0,
@@ -1101,11 +1218,12 @@ async searchCitations(citationData) {
   };
 
   console.log('🚀 Citation Search Payload with Individual Fields:');
-  console.log('📋 Journal:', citationData.journal);
   console.log('📋 Year:', citationData.year);
   console.log('📋 Volume:', citationData.volume);
+  console.log('📋 Journal:', citationData.journal);
   console.log('📋 Page:', citationData.page);
   console.log('📋 Court:', citationData.court);
+  console.log('📋 Citation Format (Year→Volume→Journal→Page):', `${citationData.year || ''} ${citationData.volume || ''} ${citationData.journal || ''} ${citationData.page || ''}`.trim());
   console.log('📋 Full Payload:', JSON.stringify(payload, null, 2));
 
   try {

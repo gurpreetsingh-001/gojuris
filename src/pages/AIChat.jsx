@@ -17,7 +17,7 @@ const AIChat = () => {
   useEffect(() => {
     document.body.style.paddingTop = '0';
     loadUserProfile();
-    
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -38,15 +38,12 @@ const AIChat = () => {
 
   const quickQuestions = [
     "Whether the parliament has the right to change fundamental rights?",
-    "Maneka Gandhi Case", 
+    "Maneka Gandhi Case",
     "Give me a sample Lease Agreement in Hindi",
     "I want details on section 156(3) CPC"
   ];
 
   // Handle message sending - ONLY API responses
-  // src/pages/AIChat.jsx - Updated handleSendMessage function
-// src/pages/AIChat.jsx - DEBUGGING VERSION
-// src/pages/AIChat.jsx - USING SIMPLIFIED AI CHAT SEARCH
 const handleSendMessage = async (e) => {
   e.preventDefault();
   
@@ -61,6 +58,16 @@ const handleSendMessage = async (e) => {
   setChatHistory(prev => [...prev, { 
     type: 'user', 
     text: userMessage,
+    timestamp: new Date().toLocaleTimeString()
+  }]);
+
+  // Create placeholder for AI response
+  const aiMessageIndex = Date.now();
+  setChatHistory(prev => [...prev, { 
+    type: 'ai', 
+    text: '',
+    isStreaming: true,
+    id: aiMessageIndex,
     timestamp: new Date().toLocaleTimeString()
   }]);
 
@@ -81,124 +88,174 @@ const handleSendMessage = async (e) => {
 
     console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
 
-    // Step 2: AI Chat Search with SIMPLIFIED payload
-    try {
-      console.log('💬 Starting AI Chat Search...');
-      
-      const searchResults = await ApiService.searchJudgementsWithAI(userMessage, embeddingVector, {
-        searchType: 'chat',  // ✅ This triggers simplified payload
-        pageSize: 20,
+    let streamedText = '';
+    let hasError = false;
+
+    // Step 2: Start AI Chat Stream
+    await ApiService.streamAIChat(
+      userMessage, 
+      embeddingVector,
+      {
+        searchType: 'chat',
+        pageSize: 10,
         page: 0,
         sortBy: "relevance",
         sortOrder: "desc",
         prompt: "Find relevant legal cases"
-      });
-
-      console.log('📋 AI Chat Search Results:', searchResults);
-      
-      // Process results
-      let aiResponse = processSearchResults(searchResults, userMessage);
-      
-      setChatHistory(prev => [...prev, { 
-        type: 'ai', 
-        text: aiResponse,
-        metadata: {
-          embeddingGenerated: true,
-          vectorLength: embeddingVector.length,
-          resultsFound: searchResults?.results?.length || 0,
-          isApiResponse: true,
-          searchType: 'AI Chat (Simplified)',
-          searchQuery: userMessage
-        },
-        timestamp: new Date().toLocaleTimeString()
-      }]);
-
-    } catch (aiSearchError) {
-      console.warn('⚠️ AI Chat Search failed, trying regular search:', aiSearchError);
-      
-      // Fallback to regular search (also simplified)
-      try {
-        console.log('🔄 Falling back to regular search...');
+      },
+      // ✅ FIXED onMessage callback with proper spacing
+      (chunkText) => {
+        console.log('📥 Stream chunk received:', chunkText);
         
-        const regularSearchResults = await ApiService.searchJudgements_Chat(userMessage, {
-          pageSize: 20,
-          page: 1,
-          sortBy: "relevance"
-        });
+        if (chunkText) {
+          // ✅ CRITICAL FIX: Handle spacing between chunks properly
+          if (streamedText.length > 0) {
+            // Add space if the previous text doesn't end with whitespace 
+            // and the new chunk doesn't start with whitespace or punctuation
+            const lastChar = streamedText.slice(-1);
+            const firstChar = chunkText.charAt(0);
+            
+            if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;:!?\n\r]/)) {
+              streamedText += ' ';
+            }
+          }
+          
+          streamedText += chunkText;
 
-        let fallbackResponse = processSearchResults(regularSearchResults, userMessage);
-        fallbackResponse = `Based on keyword search:\n\n${fallbackResponse}`;
-        
-        setChatHistory(prev => [...prev, { 
-          type: 'ai', 
-          text: fallbackResponse,
-          metadata: {
-            resultsFound: regularSearchResults?.results?.length || 0,
-            isApiResponse: true,
-            searchType: 'Regular Search (Fallback)',
-            searchQuery: userMessage
-          },
-          timestamp: new Date().toLocaleTimeString()
-        }]);
-
-      } catch (regularSearchError) {
-        console.error('❌ Both searches failed:', regularSearchError);
-        
-        setChatHistory(prev => [...prev, { 
-          type: 'ai', 
-          text: `I'm experiencing technical difficulties right now. Please try with a simpler question or try again in a few minutes.`,
-          isError: true,
-          timestamp: new Date().toLocaleTimeString()
-        }]);
+          // Update the AI message in real-time with formatted text
+          setChatHistory(prev => prev.map(msg => 
+            msg.id === aiMessageIndex 
+              ? { 
+                  ...msg, 
+                  text: formatStreamedText(streamedText), 
+                  isStreaming: true 
+                }
+              : msg
+          ));
+        }
+      },
+      // onError callback
+      (error) => {
+        console.error('❌ Stream error:', error);
+        hasError = true;
+        setChatHistory(prev => prev.map(msg => 
+          msg.id === aiMessageIndex 
+            ? { 
+                ...msg, 
+                text: streamedText || 'Sorry, I encountered an error while processing your request.',
+                isStreaming: false,
+                isError: true
+              }
+            : msg
+        ));
+      },
+      // onComplete callback
+      () => {
+        console.log('✅ Stream completed');
+        console.log('📝 Final text:', streamedText);
+        if (!hasError) {
+          setChatHistory(prev => prev.map(msg => 
+            msg.id === aiMessageIndex 
+              ? { 
+                  ...msg, 
+                  text: formatStreamedText(streamedText) || 'No response received.',
+                  isStreaming: false,
+                  metadata: {
+                    embeddingGenerated: true,
+                    vectorLength: embeddingVector.length,
+                    isApiResponse: true,
+                    searchType: 'AI Chat (Streaming)',
+                    searchQuery: userMessage
+                  }
+                }
+              : msg
+          ));
+        }
       }
-    }
+    );
 
   } catch (generalError) {
     console.error('❌ General Error:', generalError);
     
-    setChatHistory(prev => [...prev, { 
-      type: 'ai', 
-      text: `I encountered an error: ${generalError.message}. Please try again.`,
-      isError: true,
-      timestamp: new Date().toLocaleTimeString()
-    }]);
+    setChatHistory(prev => prev.map(msg => 
+      msg.id === aiMessageIndex 
+        ? { 
+            ...msg, 
+            text: `I encountered an error: ${generalError.message}. Please try again.`,
+            isStreaming: false,
+            isError: true
+          }
+        : msg
+    ));
   } finally {
     setIsLoading(false);
   }
 };
 
-// Helper function to process search results
-const processSearchResults = (searchResults, userMessage) => {
-  if (!searchResults) {
-    return 'No response received from the legal database.';
-  }
-
-  // Check for direct response
-  if (searchResults.response && typeof searchResults.response === 'string') {
-    return searchResults.response;
-  }
+// ✅ IMPROVED: Better text formatting function
+const formatStreamedText = (text) => {
+  if (!text) return '';
   
-  if (searchResults.message && typeof searchResults.message === 'string') {
-    return searchResults.message;
-  }
-
-  if (searchResults.summary && typeof searchResults.summary === 'string') {
-    return searchResults.summary;
-  }
-
-  // Check for results array
-  if (searchResults.results && Array.isArray(searchResults.results)) {
-    const results = searchResults.results;
-    if (results.length > 0) {
-      return formatSearchResults(results, userMessage);
-    } else {
-      return `I searched for "${userMessage}" but couldn't find specific matching legal cases. Could you try with more specific legal terms or case names?`;
-    }
-  }
-
-  // Fallback - show raw response for debugging
-  return `I received a response but couldn't parse it properly. Please try rephrasing your question.\n\nDebug info: ${JSON.stringify(searchResults, null, 2).substring(0, 500)}...`;
+  return text
+    // Convert markdown to HTML
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>') // Bold text
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>') // Italic text
+    
+    // Handle sections and headers
+    .replace(/^(.*?:)\s*$/gm, '<h4 style="margin: 1em 0 0.5em 0; color: #333; font-weight: 600;">$1</h4>') // Headers ending with colon
+    
+    // Handle line breaks and paragraphs
+    .replace(/\n\s*\n/g, '</p><p style="margin: 0.8em 0;">') // Double line breaks = paragraphs
+    .replace(/\n/g, '<br>') // Single line breaks
+    
+    // Handle lists
+    .replace(/^\s*[-*+]\s+(.+)$/gm, '<li style="margin: 0.3em 0;">$1</li>') // Bullet points
+    .replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li style="margin: 0.3em 0;">$1. $2</li>') // Numbered lists
+    
+    // Handle citations and links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #3498db; text-decoration: none;">$1</a>') // Markdown links
+    
+    // Wrap in paragraph if not already wrapped
+    .replace(/^(?!<[h4|p|li])(.)/s, '<p style="margin: 0.8em 0;">$1')
+    .replace(/(.)(?![h4|p|li]>)$/s, '$1</p>')
+    
+    // Clean up
+    .replace(/<\/p><p[^>]*><br>/g, '</p><p style="margin: 0.8em 0;">')
+    .replace(/<br><\/p>/g, '</p>');
 };
+
+  // Helper function to process search results
+  const processSearchResults = (searchResults, userMessage) => {
+    if (!searchResults) {
+      return 'No response received from the legal database.';
+    }
+
+    // Check for direct response
+    if (searchResults.response && typeof searchResults.response === 'string') {
+      return searchResults.response;
+    }
+
+    if (searchResults.message && typeof searchResults.message === 'string') {
+      return searchResults.message;
+    }
+
+    if (searchResults.summary && typeof searchResults.summary === 'string') {
+      return searchResults.summary;
+    }
+
+    // Check for results array
+    if (searchResults.results && Array.isArray(searchResults.results)) {
+      const results = searchResults.results;
+      if (results.length > 0) {
+        return formatSearchResults(results, userMessage);
+      } else {
+        return `I searched for "${userMessage}" but couldn't find specific matching legal cases. Could you try with more specific legal terms or case names?`;
+      }
+    }
+
+    // Fallback - show raw response for debugging
+    return `I received a response but couldn't parse it properly. Please try rephrasing your question.\n\nDebug info: ${JSON.stringify(searchResults, null, 2).substring(0, 500)}...`;
+  };
 
   // Format search results if API returns raw data
   const formatSearchResults = (results, query) => {
@@ -207,27 +264,27 @@ const processSearchResults = (searchResults, userMessage) => {
     }
 
     let formatted = `Found ${results.length} legal cases for "${query}":\n\n`;
-    
+
     results.slice(0, 5).forEach((result, index) => {
       formatted += `${index + 1}. `;
-      
+
       if (result.title || result.caseName || result.judgementTitle) {
         formatted += `${result.title || result.caseName || result.judgementTitle}\n`;
       }
-      
+
       if (result.court) {
         formatted += `   Court: ${result.court}\n`;
       }
-      
+
       if (result.date || result.year) {
         formatted += `   Date: ${result.date || result.year}\n`;
       }
-      
+
       if (result.summary || result.content || result.headnote) {
         const summary = result.summary || result.content || result.headnote;
         formatted += `   Summary: ${summary.substring(0, 200)}...\n`;
       }
-      
+
       formatted += '\n';
     });
 
@@ -254,28 +311,28 @@ const processSearchResults = (searchResults, userMessage) => {
   return (
     <div className="ai-chat-layout-with-nav">
       <Sidebar />
-      
+
       {/* Chat Sidebar */}
       <div className="ai-chat-sidebar">
         <div className="sidebar-header">
           <div className="gojuris-logo">
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
+            <img
+              src="/logo.png"
+              alt="GoJuris Logo"
               style={{ height: '64px', width: 'auto' }}
             />
           </div>
         </div>
-        
+
         <div className="sidebar-content">
           <div className="sidebar-section">
-            
+
             <button className="new-chat-btn" onClick={() => setChatHistory([])}>
               <i className="bx bx-plus"></i>
               New Chat
             </button>
           </div>
-          
+
           <div className="sidebar-section">
             <div className="section-title">History</div>
             <div className="history-placeholder">
@@ -284,7 +341,7 @@ const processSearchResults = (searchResults, userMessage) => {
             </div>
           </div>
         </div>
-        
+
         <div className="sidebar-footer">
           <div className="sidebar-item">
             <i className="bx bx-cog"></i>
@@ -324,13 +381,13 @@ const processSearchResults = (searchResults, userMessage) => {
                 <span>My Account</span>
                 <i className="bx bx-chevron-down"></i>
               </button>
-              
+
               {showAccountDropdown && (
                 <div className="dropdown-menu dropdown-menu-end show" style={{ minWidth: '220px' }}>
                   <div className="dropdown-header">
                     <div className="d-flex align-items-center">
-                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
-                           style={{ width: '32px', height: '32px' }}>
+                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+                        style={{ width: '32px', height: '32px' }}>
                         <i className="bx bx-user text-white"></i>
                       </div>
                       <div>
@@ -344,7 +401,7 @@ const processSearchResults = (searchResults, userMessage) => {
                     </div>
                   </div>
                   <div className="dropdown-divider"></div>
-                  
+
                   <a className="dropdown-item" href="#">
                     <i className="bx bx-user-circle me-2"></i>View Profile
                   </a>
@@ -355,7 +412,7 @@ const processSearchResults = (searchResults, userMessage) => {
                     <i className="bx bx-history me-2"></i>Search History
                   </a>
                   <div className="dropdown-divider"></div>
-                  
+
                   <button className="dropdown-item text-danger" onClick={handleSignOut}>
                     <i className="bx bx-log-out me-2"></i>Sign Out
                   </button>
@@ -364,115 +421,115 @@ const processSearchResults = (searchResults, userMessage) => {
             </div>
           </div>
         </div>
-        
+
         <div className="chat-content">
-  <div className="chat-messages">
-    {chatHistory.length === 0 ? (
-     <div
-  style={{
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "12px",
-    padding: "16px",
-  }}
->
-  <button 
-    style={{ 
-      flex: "1 1 auto", 
-      minWidth: "150px", 
-      padding: "10px 15px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)",
-      color: "white",
-      border: "none",
-      fontWeight: "500",
-      cursor: "pointer",
-      transition: "all 0.2s ease"
-    }}
-    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-  >
-    <i className="bx bx-chat" style={{ fontSize: "18px" }}></i>
-    Ask a question
-  </button>
-  
-  <button 
-    style={{ 
-      flex: "1 1 auto", 
-      minWidth: "150px", 
-      padding: "10px 15px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #7C3AED 0%, #C084FC 100%)",
-      color: "white",
-      border: "none",
-      fontWeight: "500",
-      cursor: "pointer",
-      transition: "all 0.2s ease"
-    }}
-    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-  >
-    <i className="bx bx-envelope" style={{ fontSize: "18px" }}></i>
-    Generate a draft
-  </button>
-  
-  <button 
-    style={{ 
-      flex: "1 1 auto", 
-      minWidth: "150px", 
-      padding: "10px 15px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
-      color: "white",
-      border: "none",
-      fontWeight: "500",
-      cursor: "pointer",
-      transition: "all 0.2s ease"
-    }}
-    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-  >
-    <i className="bx bx-receipt" style={{ fontSize: "18px" }}></i>
-    Summarize a case
-  </button>
-  
-  <button 
-    style={{ 
-      flex: "1 1 auto", 
-      minWidth: "150px", 
-      padding: "10px 15px",
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #EC4899 0%, #F97316 100%)",
-      color: "white",
-      border: "none",
-      fontWeight: "500",
-      cursor: "pointer",
-      transition: "all 0.2s ease"
-    }}
-    onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-    onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-  >
-    <i className="bx bx-upload" style={{ fontSize: "18px" }}></i>
-    Upload to summarize or ask questions
-  </button>
-</div>
-   
+          <div className="chat-messages">
+            {chatHistory.length === 0 ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  padding: "16px",
+                }}
+              >
+                <button
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "150px",
+                    padding: "10px 15px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    justifyContent: "center",
+                    background: "linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)",
+                    color: "white",
+                    border: "none",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+                >
+                  <i className="bx bx-chat" style={{ fontSize: "18px" }}></i>
+                  Ask a question to find cases
+                </button>
+
+                <button
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "150px",
+                    padding: "10px 15px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    justifyContent: "center",
+                    background: "linear-gradient(135deg, #7C3AED 0%, #C084FC 100%)",
+                    color: "white",
+                    border: "none",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+                >
+                  <i className="bx bx-envelope" style={{ fontSize: "18px" }}></i>
+                  Generate a Draft
+                </button>
+
+                <button
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "150px",
+                    padding: "10px 15px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    justifyContent: "center",
+                    background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+                    color: "white",
+                    border: "none",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+                >
+                  <i className="bx bx-receipt" style={{ fontSize: "18px" }}></i>
+                  Summarize a Case
+                </button>
+
+                <button
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "150px",
+                    padding: "10px 15px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    justifyContent: "center",
+                    background: "linear-gradient(135deg, #EC4899 0%, #F97316 100%)",
+                    color: "white",
+                    border: "none",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
+                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
+                >
+                  <i className="bx bx-upload" style={{ fontSize: "18px" }}></i>
+                  Upload to summarize
+                </button>
+              </div>
+
 
 
             ) : (
@@ -483,42 +540,47 @@ const processSearchResults = (searchResults, userMessage) => {
                       <i className={`bx ${msg.type === 'user' ? 'bx-user' : 'bx-bot'}`}></i>
                     </div>
                     <div className="message-content">
-                     {msg.type === 'ai' && msg.metadata?.isApiResponse ? (
-  <div 
-    className="api-response-content"
-    dangerouslySetInnerHTML={{ 
-      __html: msg.text
-        .replace(/<p>/g, '<p style="margin: 0.8em 0; line-height: 1.6;">')
-        .replace(/<strong>/g, '<strong style="color: #2c3e50; font-weight: 600;">')
-        .replace(/<ul>/g, '<ul style="margin: 0.5em 0; padding-left: 1.5em;">')
-        .replace(/<li>/g, '<li style="margin: 0.4em 0; line-height: 1.5;">')
-        .replace(/<a/g, '<a style="color: #3498db; text-decoration: none; font-weight: 500;"')
-        .replace(/<\/a>/g, '</a>')
-        .replace(/<em>/g, '<em style="font-style: italic; color: #666;">')
-        .replace(/<\/ul><p>/g, '</ul><p style="margin-top: 1.2em;">')
-    }} 
-  />
-) : (
-  <pre style={{ 
-    whiteSpace: 'pre-wrap', 
-    wordWrap: 'break-word',
-    fontFamily: 'inherit',
-    margin: 0
-  }}>
-    {msg.text}
-  </pre>
-)}
-                      {msg.metadata && msg.metadata.isApiResponse && (
-                        <small className="text-muted d-block mt-2">
-                          ✅ API Response 
-                          {msg.metadata.embeddingGenerated && ` • Embedding: ${msg.metadata.vectorLength} dimensions`}
-                          {msg.metadata.resultsFound > 0 && ` • Results: ${msg.metadata.resultsFound}`}
-                        </small>
-                      )}
-                    </div>
+  {msg.type === 'ai' && (msg.metadata?.isApiResponse || msg.isStreaming) ? (
+    <div 
+      className="api-response-content"
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSize: '14px',
+        lineHeight: '1.6',
+        color: '#333'
+      }}
+      dangerouslySetInnerHTML={{ __html: msg.text }} 
+    />
+  ) : (
+    <pre style={{ 
+      whiteSpace: 'pre-wrap', 
+      wordWrap: 'break-word',
+      fontFamily: 'inherit',
+      margin: 0,
+      lineHeight: '1.6'
+    }}>
+      {msg.text}
+    </pre>
+  )}
+  
+  {/* Show typing indicator for streaming messages */}
+  {msg.isStreaming && (
+    <div className="typing-indicator" style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      marginTop: '8px',
+      color: '#8B5CF6'
+    }}>
+      <div className="typing-dot"></div>
+      <div className="typing-dot"></div>
+      <div className="typing-dot"></div>
+    </div>
+  )}
+</div>
                   </div>
                 ))}
-                
+
                 {/* API Loading Indicator */}
                 {isLoading && (
                   <div className="message ai">
@@ -535,18 +597,18 @@ const processSearchResults = (searchResults, userMessage) => {
                     </div>
                   </div>
                 )}
-                
+
                 <div ref={messagesEndRef} />
               </div>
             )}
           </div>
-          
+
           {/* Quick Questions */}
           {chatHistory.length === 0 && (
             <div className="quick-questions-single-line">
               <div className="quick-questions-scroll">
                 {quickQuestions.map((question, index) => (
-                  <button 
+                  <button
                     key={index}
                     className="quick-question-btn-inline"
                     onClick={() => handleQuickQuestion(question)}
@@ -558,21 +620,21 @@ const processSearchResults = (searchResults, userMessage) => {
               </div>
             </div>
           )}
-          
+
           {/* API Error Display */}
           {error && (
             <div className="alert alert-danger mx-3" role="alert">
               <i className="bx bx-error-circle me-2"></i>
               <strong>API Error:</strong> {error}
-              <button 
-                type="button" 
-                className="btn-close" 
+              <button
+                type="button"
+                className="btn-close"
                 onClick={() => setError('')}
               ></button>
             </div>
           )}
         </div>
-        
+
         <div className="chat-input-section">
           <form onSubmit={handleSendMessage} className="chat-form">
             <div className="chat-input-wrapper">
@@ -586,8 +648,8 @@ const processSearchResults = (searchResults, userMessage) => {
                 disabled={isLoading}
               />
               <div className="input-buttons">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={`voice-btn ${isListening ? 'listening' : ''}`}
                   onClick={handleVoiceSearch}
                   disabled={isLoading}
@@ -595,8 +657,8 @@ const processSearchResults = (searchResults, userMessage) => {
                 >
                   <i className="bx bx-microphone"></i>
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="send-btn"
                   disabled={isLoading || !message.trim()}
                 >
@@ -615,9 +677,9 @@ const processSearchResults = (searchResults, userMessage) => {
             <div className="modal-content">
               <div className="modal-header border-0">
                 <h4 className="modal-title mb-0">Settings</h4>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={() => setShowSettingsModal(false)}
                 ></button>
               </div>
@@ -633,7 +695,7 @@ const processSearchResults = (searchResults, userMessage) => {
 
       {/* Click outside handlers */}
       {showAccountDropdown && (
-        <div 
+        <div
           className="position-fixed top-0 start-0 w-100 h-100"
           style={{ zIndex: 1 }}
           onClick={() => setShowAccountDropdown(false)}
@@ -831,6 +893,34 @@ const processSearchResults = (searchResults, userMessage) => {
   margin: 0.3em 0;
   padding-left: 1.2em;
 }
+  .typing-indicator {
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .typing-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #8B5CF6;
+    animation: typing 1.4s infinite ease-in-out;
+    animation-fill-mode: both;
+  }
+  
+  .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+  .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+  .typing-dot:nth-child(3) { animation-delay: 0s; }
+  
+  @keyframes typing {
+    0%, 80%, 100% {
+      transform: scale(0.8);
+      opacity: 0.6;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
       `}</style>
     </div>
   );

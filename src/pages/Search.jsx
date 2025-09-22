@@ -1,4 +1,4 @@
-// src/pages/Search.jsx - Updated without Header, only Navbar
+// src/pages/Search.jsx - Exact design match from screenshots
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -9,33 +9,48 @@ const Search = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCourt, setSelectedCourt] = useState('All Courts Selected');
-  const [activeSearchType, setActiveSearchType] = useState('all-words');
-  const [isCourtDropdownOpen, setIsCourtDropdownOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('Most Relevant');
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [activeSearchType, setActiveSearchType] = useState('exact-phrase');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Form data for all search fields
   const [formData, setFormData] = useState({
-    appellant: '',
-    respondent: '',
-    judge: '',
-    advocate: '',
-    caseNo: ''
+    // Cases by Citations
+    caseNoCitation1: '',
+    appellantCitation1: '',
+    caseNoCitation2: '',
+    appellantCitation2: '',
+    
+    // Cases by Party Name
+    appellantName: '',
+    respondentName: '',
+    caseNoName: '',
+    
+    // Cases by Judge Name
+    judgeName: '',
+    
+    // Cases by Advocate Name
+    advocateName: '',
+    
+    // Cases by Acts and Sections
+    actsFields: [''],
+    sectionsFields: [''],
+    
+    // Date range
+    dateFrom: '01-01-1950',
+    dateTo: '01-01-1950'
   });
 
   useEffect(() => {
-    // No padding needed for navbar
     document.body.style.paddingTop = '0';
-    
     return () => {
       document.body.style.paddingTop = '';
     };
   }, []);
 
   const searchTypes = [
-    { id: 'all-words', label: 'All Words' },
     { id: 'exact-phrase', label: 'Exact Phrase' },
+    { id: 'free', label: 'Free' },
     { id: 'near', label: 'Near' },
     { id: 'magic-search', label: 'Magic Search' }
   ];
@@ -49,17 +64,42 @@ const Search = () => {
     'Consumer Court'
   ];
 
-  const sortOptions = [
-    'Most Relevant',
-    'Most Recent',
-    'Oldest First',
-    'Alphabetical'
-  ];
-
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleAddActsRow = () => {
+    setFormData(prev => ({
+      ...prev,
+      actsFields: [...prev.actsFields, ''],
+      sectionsFields: [...prev.sectionsFields, '']
+    }));
+  };
+
+  const handleDeleteActsRow = (index) => {
+    if (formData.actsFields.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        actsFields: prev.actsFields.filter((_, i) => i !== index),
+        sectionsFields: prev.sectionsFields.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const handleActsChange = (index, value) => {
+    setFormData(prev => ({
+      ...prev,
+      actsFields: prev.actsFields.map((field, i) => i === index ? value : field)
+    }));
+  };
+
+  const handleSectionsChange = (index, value) => {
+    setFormData(prev => ({
+      ...prev,
+      sectionsFields: prev.sectionsFields.map((field, i) => i === index ? value : field)
     }));
   };
 
@@ -69,28 +109,19 @@ const Search = () => {
 
     try {
       console.log('🔍 Starting Advanced Search...');
-      console.log('Search type:', searchType);
-      console.log('Form data:', formData);
-      console.log('Selected court:', selectedCourt);
-
-      // Build search payload
+      
       const searchPayload = {
         query: searchQuery,
         pageSize: 25,
         page: 0,
-        sortBy: sortBy === 'Most Recent' ? 'date' : 'relevance',
-        sortOrder: sortBy === 'Oldest First' ? 'asc' : 'desc',
+        sortBy: 'relevance',
+        sortOrder: 'desc',
         filters: {
           court: selectedCourt !== 'All Courts Selected' ? selectedCourt : null,
-          appellant: formData.appellant || null,
-          respondent: formData.respondent || null,
-          judge: formData.judge || null,
-          advocate: formData.advocate || null,
-          caseNo: formData.caseNo || null
+          ...formData
         }
       };
 
-      // Use your API service for search
       const apiResponse = await ApiService.searchJudgements(searchPayload);
       const searchResults = apiResponse.results || apiResponse.hits || [];
       const totalCount = apiResponse.total || searchResults.length;
@@ -101,7 +132,6 @@ const Search = () => {
         return;
       }
 
-      // Store results
       const resultsData = {
         query: searchQuery || 'Advanced Search',
         results: searchResults,
@@ -123,14 +153,30 @@ const Search = () => {
 
   const handleClearFields = () => {
     setFormData({
-      appellant: '',
-      respondent: '',
-      judge: '',
-      advocate: '',
-      caseNo: ''
+      caseNoCitation1: '',
+      appellantCitation1: '',
+      caseNoCitation2: '',
+      appellantCitation2: '',
+      appellantName: '',
+      respondentName: '',
+      caseNoName: '',
+      judgeName: '',
+      advocateName: '',
+      actsFields: [''],
+      sectionsFields: [''],
+      dateFrom: '01-01-1950',
+      dateTo: '01-01-1950'
     });
     setSearchQuery('');
     setError('');
+  };
+
+  const handleReset = () => {
+    setFormData(prev => ({
+      ...prev,
+      dateFrom: '01-01-1950',
+      dateTo: '01-01-1950'
+    }));
   };
 
   return (
@@ -140,657 +186,771 @@ const Search = () => {
       <div className="gojuris-main">
         <Navbar />
 
-        <div className="search-content">
+        <div className="advance-search-page">
           {error && (
-            <div className="alert alert-danger mx-3" role="alert">
+            <div className="alert alert-danger" role="alert">
               <i className="bx bx-error-circle me-2"></i>
               {error}
             </div>
           )}
           
-          <div className="search-header">
-            <div className="search-badge">
-              <i className="bx bx-search-alt-2"></i>
-              <span>Advanced Search</span>
-            </div>
-          </div>
-          
-          <div className="search-hero">
-            <h1 className="search-main-title">
-              Precise legal research with detailed filters
-            </h1>
+          <div className="advance-search-container">
+            <h1 className="page-title">Advance Search</h1>
             
-            <div className="search-form-card">
-              {/* Main Search Input */}
-              <div className="main-search-section">
-                <div className="search-input-row">
-                  <input
-                    type="text"
-                    className="main-search-input"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Enter your legal query..."
-                    disabled={isLoading}
-                  />
-                  
-                  <div className="sort-dropdown-wrapper">
-                    <button
-                      className="sort-dropdown-btn"
-                      onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                      disabled={isLoading}
-                    >
-                      {sortBy}
-                      <i className="bx bx-chevron-down"></i>
-                    </button>
-                    
-                    {isSortDropdownOpen && (
-                      <>
-                        <div 
-                          className="dropdown-backdrop"
-                          onClick={() => setIsSortDropdownOpen(false)}
+            <div className="search-grid">
+              {/* Left Column */}
+              <div className="left-column">
+                {/* Cases by Citations */}
+                <div className="search-category">
+                  <h3 className="category-title">Cases by Citations</h3>
+                  <div className="citation-grid">
+                    <div className="citation-row">
+                      <div className="field-group">
+                        <label className="field-label">Case No</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={formData.caseNoCitation1}
+                          onChange={(e) => handleInputChange('caseNoCitation1', e.target.value)}
+                          disabled={isLoading}
                         />
-                        <div className="sort-dropdown">
-                          {sortOptions.map((option) => (
-                            <button
-                              key={option}
-                              className="sort-option"
-                              onClick={() => {
-                                setSortBy(option);
-                                setIsSortDropdownOpen(false);
-                              }}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                      </div>
+                      <div className="field-group">
+                        <label className="field-label">Appellant</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={formData.appellantCitation1}
+                          onChange={(e) => handleInputChange('appellantCitation1', e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                    <div className="citation-row">
+                      <div className="field-group">
+                        <label className="field-label">Case No</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={formData.caseNoCitation2}
+                          onChange={(e) => handleInputChange('caseNoCitation2', e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="field-group">
+                        <label className="field-label">Appellant</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={formData.appellantCitation2}
+                          onChange={(e) => handleInputChange('appellantCitation2', e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Search Type Buttons */}
-                <div className="search-type-buttons">
-                  {searchTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      className={`search-type-btn ${activeSearchType === type.id ? 'active' : ''}`}
-                      onClick={() => setActiveSearchType(type.id)}
-                      disabled={isLoading}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Form Fields */}
-              <div className="form-fields-section">
-                <div className="form-fields-grid">
-                  <div className="form-field-group">
-                    <input
-                      type="text"
-                      className="form-field-input"
-                      placeholder="Appellant"
-                      value={formData.appellant}
-                      onChange={(e) => handleInputChange('appellant', e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <input
-                      type="text"
-                      className="form-field-input"
-                      placeholder="Respondent"
-                      value={formData.respondent}
-                      onChange={(e) => handleInputChange('respondent', e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <input
-                      type="text"
-                      className="form-field-input"
-                      placeholder="Judge"
-                      value={formData.judge}
-                      onChange={(e) => handleInputChange('judge', e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <input
-                      type="text"
-                      className="form-field-input"
-                      placeholder="Advocate"
-                      value={formData.advocate}
-                      onChange={(e) => handleInputChange('advocate', e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <input
-                      type="text"
-                      className="form-field-input"
-                      placeholder="Case No."
-                      value={formData.caseNo}
-                      onChange={(e) => handleInputChange('caseNo', e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="form-field-group">
-                    <div className="court-dropdown-wrapper">
-                      <button
-                        className="court-dropdown-btn"
-                        onClick={() => setIsCourtDropdownOpen(!isCourtDropdownOpen)}
+                {/* Cases by Party Name */}
+                <div className="search-category">
+                  <h3 className="category-title">Cases by Party Name</h3>
+                  <div className="category-content">
+                    <div className="checkbox-options">
+                      <label className="checkbox-item">
+                        <input type="checkbox" />
+                        <span>Enable Autocomplete</span>
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" />
+                        <span>Enable Spelling Variations</span>
+                      </label>
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Appellant</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Example - Murder"
+                        value={formData.appellantName}
+                        onChange={(e) => handleInputChange('appellantName', e.target.value)}
                         disabled={isLoading}
-                      >
-                        {selectedCourt}
-                        <i className="bx bx-chevron-down"></i>
-                      </button>
-                      
-                      {isCourtDropdownOpen && (
-                        <>
-                          <div 
-                            className="dropdown-backdrop"
-                            onClick={() => setIsCourtDropdownOpen(false)}
-                          />
-                          <div className="court-dropdown">
-                            {courts.map((court) => (
-                              <button
-                                key={court}
-                                className="court-option"
-                                onClick={() => {
-                                  setSelectedCourt(court);
-                                  setIsCourtDropdownOpen(false);
-                                }}
-                              >
-                                {court}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                      />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Respondent</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Example - Murder"
+                        value={formData.respondentName}
+                        onChange={(e) => handleInputChange('respondentName', e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Case No</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Example - Murder"
+                        value={formData.caseNoName}
+                        onChange={(e) => handleInputChange('caseNoName', e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cases by Judge Name */}
+                <div className="search-category">
+                  <h3 className="category-title">Cases by Judge Name</h3>
+                  <div className="category-content">
+                    <div className="radio-options">
+                      <label className="radio-item">
+                        <input type="radio" name="judgeSearch" value="exact" defaultChecked />
+                        <span>Exact</span>
+                      </label>
+                      <label className="radio-item">
+                        <input type="radio" name="judgeSearch" value="free" />
+                        <span>Free</span>
+                      </label>
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Judges</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Type your Query Here"
+                        value={formData.judgeName}
+                        onChange={(e) => handleInputChange('judgeName', e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cases by Advocate Name */}
+                <div className="search-category">
+                  <h3 className="category-title">Cases by Advocate Name</h3>
+                  <div className="category-content">
+                    <div className="field-group">
+                      <label className="field-label">Advocates</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Type your Query Here"
+                        value={formData.advocateName}
+                        onChange={(e) => handleInputChange('advocateName', e.target.value)}
+                        disabled={isLoading}
+                      />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Search Info */}
-              <div className="search-info-section">
-                <p className="search-remaining">You have advanced searches remaining.</p>
-                <a href="#" className="upgrade-link">Upgrade Plan</a>
-              </div>
+              {/* Right Column */}
+              <div className="right-column">
+                {/* Cases by Subject and Topic */}
+                <div className="search-category">
+                  <h3 className="category-title">Cases by Subject and Topic</h3>
+                  <div className="category-content">
+                    <div className="radio-options">
+                      {searchTypes.map((type) => (
+                        <label key={type.id} className="radio-item">
+                          <input 
+                            type="radio" 
+                            name="searchType" 
+                            value={type.id}
+                            checked={activeSearchType === type.id}
+                            onChange={() => setActiveSearchType(type.id)}
+                          />
+                          <span>{type.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    <div className="field-group">
+                      <label className="field-label">Type your Query Here :</label>
+                      <div className="query-wrapper">
+                        <input
+                          type="text"
+                          className="form-input query-input"
+                          placeholder="Example - Murder"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          disabled={isLoading}
+                        />
+                        <button className="delete-sub-btn">Delete Sub.</button>
+                      </div>
+                    </div>
 
-              {/* Action Buttons */}
-              <div className="action-buttons-section">
-                <button 
-                  className="search-action-btn primary"
-                  onClick={() => handleSearch('supreme-court')}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <i className="bx bx-loader bx-spin"></i>
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bx bx-search"></i>
-                      Search in Supreme Court
-                    </>
-                  )}
-                </button>
-                <button 
-                  className="search-action-btn primary"
-                  onClick={() => handleSearch('all')}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <i className="bx bx-loader bx-spin"></i>
-                      Searching All...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bx bx-search"></i>
-                      Search All
-                    </>
-                  )}
-                </button>
-                <button 
-                  className="search-action-btn secondary"
-                  onClick={handleClearFields}
-                  disabled={isLoading}
-                >
-                  <i className="bx bx-refresh"></i>
-                  Clear Fields
-                </button>
+                    <div className="options-row">
+                      <label className="checkbox-item">
+                        <input type="checkbox" defaultChecked />
+                        <span>Most Recent</span>
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" />
+                        <span>Least Recent</span>
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" />
+                        <span>Most Relevant</span>
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" />
+                        <span>Most Referred</span>
+                      </label>
+                    </div>
+
+                    <div className="content-row">
+                      <label className="checkbox-item">
+                        <input type="checkbox" defaultChecked />
+                        <span>Headnote</span>
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" />
+                        <span>Fulltext</span>
+                      </label>
+                    </div>
+
+                    <div className="field-group">
+                      <label className="field-label">Select all Courts</label>
+                      <div className="court-selector">
+                        <select 
+                          className="form-select"
+                          value={selectedCourt}
+                          onChange={(e) => setSelectedCourt(e.target.value)}
+                        >
+                          <option>All Courts Selected</option>
+                          {courts.map((court) => (
+                            <option key={court} value={court}>{court}</option>
+                          ))}
+                        </select>
+                        <button className="court-btn all-btn">All</button>
+                        <button className="court-btn clear-btn">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cases by Acts and Sections */}
+                <div className="search-category">
+                  <h3 className="category-title">Cases by Acts and Sections</h3>
+                  <div className="category-content">
+                    <div className="acts-sections-layout">
+                      <div className="acts-column">
+                        {formData.actsFields.map((act, index) => (
+                          <div key={index} className="input-with-action">
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="Example - Murder"
+                              value={act}
+                              onChange={(e) => handleActsChange(index, e.target.value)}
+                              disabled={isLoading}
+                            />
+                            {formData.actsFields.length > 1 && (
+                              <button 
+                                className="delete-btn"
+                                onClick={() => handleDeleteActsRow(index)}
+                                type="button"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button 
+                          className="add-row-button"
+                          onClick={handleAddActsRow}
+                          type="button"
+                        >
+                          <i className="bx bx-plus"></i> Add Row
+                        </button>
+                      </div>
+                      
+                      <div className="sections-column">
+                        {/* <h4 className="section-header">Section</h4> */}
+                        {formData.sectionsFields.map((section, index) => (
+                          <div key={index} className="input-with-action">
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="Enter Section Here"
+                              value={section}
+                              onChange={(e) => handleSectionsChange(index, e.target.value)}
+                              disabled={isLoading}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date Wise Search */}
+                <div className="search-category">
+                  <h3 className="category-title">
+                    <i className="bx bx-calendar"></i> Date Wise Search
+                  </h3>
+                  <div className="category-content">
+                    <div className="date-row">
+                      <div className="date-field">
+                        <label className="field-label">From</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="01-01-1950"
+                          value={formData.dateFrom}
+                          onChange={(e) => handleInputChange('dateFrom', e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="date-field">
+                        <label className="field-label">To</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="01-01-1950"
+                          value={formData.dateTo}
+                          onChange={(e) => handleInputChange('dateTo', e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <button 
+                        className="reset-button"
+                        onClick={handleReset}
+                        type="button"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="action-buttons">
+                  <button 
+                    className="action-button search-sc"
+                    onClick={() => handleSearch('sc')}
+                    disabled={isLoading}
+                  >
+                    Search In SC
+                  </button>
+                  <button 
+                    className="action-button search-all"
+                    onClick={() => handleSearch('all')}
+                    disabled={isLoading}
+                  >
+                    Search All
+                  </button>
+                  <button 
+                    className="action-button clear"
+                    onClick={handleClearFields}
+                    disabled={isLoading}
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-       <style jsx>{`
 
-       /* Search Page Layout - Only Sidebar + Navbar */
-.gojuris-layout {
-  display: flex;
-  min-height: 100vh;
-}
+      <style jsx>{`
+        .gojuris-layout {
+          display: flex;
+          min-height: 100vh;
+          background: #f8f9fa;
+        }
 
-.gojuris-main {
-  flex: 1;
-  margin-left: 70px;
-  width: calc(100% - 70px);
-  background: #ffffff;
-  min-height: 100vh;
-}
+        .gojuris-main {
+          flex: 1;
+          margin-left: 70px;
+          width: calc(100% - 70px);
+          min-height: 100vh;
+        }
 
-/* Search Content */
-.search-content {
-  padding: 2rem;
-  background: var(--gj-background);
-  min-height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
+        .advance-search-page {
+          padding: 20px;
+          background: #f8f9fa;
+          min-height: calc(100vh - 80px);
+        }
 
-.search-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
+        .advance-search-container {
+          max-width: 1400px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
 
-.search-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: white;
-  border: 1px solid var(--gj-border);
-  border-radius: 20px;
-  color: var(--gj-primary);
-  font-weight: 500;
-  font-size: 14px;
-}
+        .page-title {
+          background: #f8f9fa;
+          padding: 15px 20px;
+          margin: 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: #333;
+          border-bottom: 1px solid #e9ecef;
+          border-radius: 8px 8px 0 0;
+        }
 
-.search-hero {
-  margin-bottom: 3rem;
-  text-align: center;
-  width: 100%;
-  max-width: 1000px;
-}
+        .search-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          padding: 20px;
+        }
 
-.search-main-title {
-  font-size: clamp(1.8rem, 6vw, 2.5rem);
-  font-weight: 700;
-  color: var(--gj-dark);
-  line-height: 1.2;
-  margin-bottom: 2rem;
-}
+        .left-column,
+        .right-column {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
 
-.search-form-card {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  width: 100%;
-}
+        .search-category {
+          border: 1px solid #e9ecef;
+          border-radius: 6px;
+          background: white;
+        }
 
-/* Main Search Section */
-.main-search-section {
-  margin-bottom: 2rem;
-}
+        .category-title {
+          background: #f8f9fa;
+          padding: 12px 15px;
+          margin: 0;
+          font-size: 14px;
+          font-weight: 600;
+          color: #495057;
+          border-bottom: 1px solid #e9ecef;
+        }
 
-.search-input-row {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 1.5rem;
-}
+        .category-content {
+          padding: 15px;
+        }
 
-.main-search-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  font-size: 16px;
-  background-color: #f8f9fa;
-  outline: none;
-  transition: all 0.2s ease;
-}
+        .citation-grid {
+          padding: 15px;
+        }
 
-.main-search-input:focus {
-  border-color: var(--gj-primary);
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(var(--gj-primary-rgb), 0.1);
-}
+        .citation-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          margin-bottom: 15px;
+        }
 
-/* Sort Dropdown */
-.sort-dropdown-wrapper {
-  position: relative;
-  width: 100%;
-}
+        .citation-row:last-child {
+          margin-bottom: 0;
+        }
 
-.sort-dropdown-btn {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  background: white;
-  color: #6c757d;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+        .field-group {
+          margin-bottom: 15px;
+        }
 
-.sort-dropdown-btn:hover {
-  border-color: #b0b7c3;
-}
+        .field-group:last-child {
+          margin-bottom: 0;
+        }
 
-.sort-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  margin-top: 4px;
-}
+        .field-label {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 12px;
+          font-weight: 500;
+          color: #6c757d;
+        }
 
-.sort-option {
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  background: white;
-  text-align: left;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
+        .form-input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #ced4da;
+          border-radius: 4px;
+          font-size: 13px;
+          background: white;
+          transition: border-color 0.15s ease;
+        }
 
-.sort-option:hover {
-  background: #f8f9fa;
-}
+        .form-input:focus {
+          outline: none;
+          border-color: #007bff;
+          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
 
-/* Search Type Buttons */
-.search-type-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
+        .form-select {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #ced4da;
+          border-radius: 4px;
+          font-size: 13px;
+          background: white;
+        }
 
-.search-type-btn {
-  padding: 8px 16px;
-  border: 1px solid #e1e5e9;
-  border-radius: 6px;
-  background: white;
-  color: #6c757d;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
+        .checkbox-options,
+        .radio-options {
+          display: flex;
+          gap: 20px;
+          margin-bottom: 15px;
+          flex-wrap: wrap;
+        }
 
-.search-type-btn:hover {
-  border-color: var(--gj-primary);
-  color: var(--gj-primary);
-}
+        .checkbox-item,
+        .radio-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          color: #495057;
+          cursor: pointer;
+        }
 
-.search-type-btn.active {
-  background: var(--gj-primary);
-  border-color: var(--gj-primary);
-  color: white;
-}
+        .checkbox-item input,
+        .radio-item input {
+          margin: 0;
+        }
 
-/* Form Fields */
-.form-fields-section {
-  margin-bottom: 1.5rem;
-}
+        .query-wrapper {
+          display: flex;
+          gap: 8px;
+          align-items: stretch;
+        }
 
-.form-fields-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-}
+        .query-input {
+          flex: 1;
+        }
 
-.form-field-group {
-  display: flex;
-  flex-direction: column;
-}
+        .delete-sub-btn {
+          background: #dc3545;
+          color: white;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 4px;
+          font-size: 12px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
 
-.form-field-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  font-size: 16px;
-  background-color: #f8f9fa;
-  outline: none;
-  transition: all 0.2s ease;
-}
+        .options-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 15px;
+        }
 
-.form-field-input:focus {
-  border-color: var(--gj-primary);
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(var(--gj-primary-rgb), 0.1);
-}
+        .content-row {
+          display: flex;
+          gap: 20px;
+          margin-bottom: 15px;
+        }
 
-/* Court Dropdown */
-.court-dropdown-wrapper {
-  position: relative;
-  width: 100%;
-}
+        .court-selector {
+          display: flex;
+          gap: 8px;
+          align-items: stretch;
+        }
 
-.court-dropdown-btn {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  background: #f8f9fa;
-  color: var(--gj-dark);
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  outline: none;
-}
+        .form-select {
+          flex: 1;
+        }
 
-.court-dropdown-btn:focus,
-.court-dropdown-btn:hover {
-  border-color: var(--gj-primary);
-  background: white;
-}
+        .court-btn {
+          padding: 8px 12px;
+          border: 1px solid;
+          border-radius: 4px;
+          font-size: 12px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
 
-.court-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  margin-top: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-}
+        .all-btn {
+          background: #17a2b8;
+          color: white;
+          border-color: #17a2b8;
+        }
 
-.court-option {
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  background: white;
-  text-align: left;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
+        .clear-btn {
+          background: #dc3545;
+          color: white;
+          border-color: #dc3545;
+        }
 
-.court-option:hover {
-  background: #f8f9fa;
-}
+        .acts-sections-layout {
+          display: grid;
+          grid-template-columns: 1fr 200px;
+          gap: 15px;
+        }
 
-/* Search Info */
-.search-info-section {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
+        .acts-column,
+        .sections-column {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
 
-.search-remaining {
-  color: var(--gj-gray);
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
+        .input-with-action {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
 
-.upgrade-link {
-  color: var(--gj-primary);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
+        .input-with-action .form-input {
+          flex: 1;
+        }
 
-.upgrade-link:hover {
-  text-decoration: underline;
-}
+        .delete-btn {
+          width: 24px;
+          height: 24px;
+          border: none;
+          background: #dc3545;
+          color: white;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          line-height: 1;
+          flex-shrink: 0;
+        }
 
-/* Action Buttons */
-.action-buttons-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-}
+        .section-header {
+          margin: 0 0 10px 0;
+          font-size: 13px;
+          font-weight: 600;
+          color: #495057;
+        }
 
-.search-action-btn {
-  padding: 0.875rem 2rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: center;
-  min-width: 200px;
-  font-size: 0.95rem;
-}
+        .add-row-button {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 10px;
+          border: 1px solid #6c757d;
+          border-radius: 4px;
+          background: white;
+          color: #6c757d;
+          font-size: 12px;
+          cursor: pointer;
+          margin-top: 5px;
+          width: fit-content;
+        }
 
-.search-action-btn.primary {
-  background: var(--gj-primary);
-  color: white;
-}
+        .date-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr auto;
+          gap: 15px;
+          align-items: end;
+        }
 
-.search-action-btn.primary:hover {
-  background: #7c3aed;
-  transform: translateY(-1px);
-}
+        .date-field {
+          display: flex;
+          flex-direction: column;
+        }
 
-.search-action-btn.secondary {
-  background: #f8f9fa;
-  color: var(--gj-dark);
-  border: 1px solid var(--gj-border);
-}
+        .reset-button {
+          background: #dc3545;
+          color: white;
+          border: none;
+          padding: 8px 15px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 13px;
+          height: fit-content;
+        }
 
-.search-action-btn.secondary:hover {
-  background: #e9ecef;
-  border-color: var(--gj-primary);
-}
+        .action-buttons {
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          margin-top: 20px;
+          padding-bottom: 20px;
+        }
 
-.search-action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
+        .action-button {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 4px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
 
-/* Dropdown backdrop */
-.dropdown-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 999;
-}
+        .search-sc {
+          background: #007bff;
+          color: white;
+        }
 
-/* Responsive */
-@media (min-width: 576px) {
-  .search-input-row {
-    flex-direction: row;
-    align-items: center;
-  }
-  
-  .sort-dropdown-wrapper {
-    width: auto;
-    min-width: 200px;
-  }
-  
-  .action-buttons-section {
-    flex-direction: row;
-    justify-content: center;
-  }
-  
-  .search-action-btn {
-    width: auto;
-    min-width: 180px;
-  }
-}
+        .search-all {
+          background: #17a2b8;
+          color: white;
+        }
 
-@media (min-width: 768px) {
-  .search-form-card {
-    padding: 2rem;
-  }
-}
+        .clear {
+          background: #6c757d;
+          color: white;
+        }
 
-@media (min-width: 1024px) {
-  .form-fields-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+        .action-button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
 
-@media (max-width: 991.98px) {
-  .gojuris-main {
-    margin-left: 60px;
-    width: calc(100% - 60px);
-  }
-  
-  .search-content {
-    padding: 1rem;
-  }
-  
-  .search-form-card {
-    padding: 1.5rem;
-  }
-  
-  .form-fields-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .action-buttons-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-action-btn {
-    min-width: auto;
-    width: 100%;
-  }
-}
-       `}</style>
+        .action-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+          .search-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .advance-search-page {
+            padding: 10px;
+          }
+
+          .citation-row {
+            grid-template-columns: 1fr;
+          }
+
+          .options-row {
+            grid-template-columns: 1fr;
+          }
+
+          .checkbox-options,
+          .content-row {
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .acts-sections-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .date-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .action-buttons {
+            flex-direction: column;
+          }
+        }
+
+        @media (max-width: 575.98px) {
+          .gojuris-main {
+            margin-left: 60px;
+            width: calc(100% - 60px);
+          }
+        }
+      `}</style>
     </div>
   );
 };

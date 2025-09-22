@@ -1,4 +1,4 @@
-// src/App.jsx - Updated with protected routes
+// src/App.jsx - Fixed with Database import
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
@@ -9,12 +9,15 @@ import Search from './pages/Search';
 import Results from './pages/Results';
 import Judgement from './pages/Judgement';
 import Login from './pages/Login';
-// import Password from './pages/Password';
 import Citation from './pages/Citation';
 import AIChat from './pages/AIChat';
 import AISearch from './pages/AISearch';
 import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
+import Keyword from './pages/keyword';
+import Database from './pages/Database'; // ADD THIS LINE
+import PricingPlans from './pages/PricingPlans';
+
 
 function App() {
   useEffect(() => {
@@ -37,7 +40,6 @@ function App() {
           } />
           
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/password" element={<Password />} /> */}
           <Route path="/signup" element={<Signup />} />
 
           {/* Protected routes - authentication required */}
@@ -53,11 +55,9 @@ function App() {
           
           <Route path="/search" element={
             <ProtectedRoute>
-             
               <main className="page-wrapper">
                 <Search />
               </main>
-              
             </ProtectedRoute>
           } />
           
@@ -84,6 +84,12 @@ function App() {
               <AIChat />
             </ProtectedRoute>
           } />
+           
+          <Route path="/keyword" element={
+            <ProtectedRoute>
+              <Keyword />
+            </ProtectedRoute>
+          } />
           
           <Route path="/ai-search" element={
             <ProtectedRoute>
@@ -91,45 +97,14 @@ function App() {
             </ProtectedRoute>
           } />
           
+          {/* FIXED DATABASE ROUTE */}
           <Route path="/database" element={
             <ProtectedRoute>
-              <Header />
-              <main className="page-wrapper">
-                <div className="container mt-5 pt-5">
-                  <div className="text-center">
-                    <h2>Database</h2>
-                    <p>Database page content goes here...</p>
-                  </div>
-                </div>
-              </main>
-              <Footer />
+              <Database />
             </ProtectedRoute>
           } />
+  <Route path="/pricing" element={<PricingPlans />} />
 
-          {/* Future routes for commented out sidebar items */}
-          {/* 
-          <Route path="/chat" element={
-            <ProtectedRoute>
-              <div className="container mt-5 pt-5">
-                <div className="text-center">
-                  <h2>Coming Soon</h2>
-                  <p>Chat feature will be available soon...</p>
-                </div>
-              </div>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/virtual" element={
-            <ProtectedRoute>
-              <div className="container mt-5 pt-5">
-                <div className="text-center">
-                  <h2>Coming Soon</h2>
-                  <p>Virtual Assistance will be available soon...</p>
-                </div>
-              </div>
-            </ProtectedRoute>
-          } />
-          */}
         </Routes>
       </div>
     </Router>

@@ -71,10 +71,10 @@ const Dashboard = () => {
                       src={service.icon} 
                       alt={service.title}
                       style={{
-                        width: '54px', 
-                        height: '54px',
-                        objectFit: 'contain',
-                        filter: 'brightness(0) invert(1)' // Makes image white to match the design
+                        width: '94px', 
+                        height: '94px',
+                        objectFit: 'contain'
+                         // Makes image white to match the design
                       }}
                       onError={(e) => {
                         console.error(`Failed to load icon: ${service.icon}`);
@@ -103,10 +103,10 @@ const Dashboard = () => {
                     src={service.icon} 
                     alt={service.title}
                     style={{
-                      width: '54px', 
-                      height: '54px',
-                      objectFit: 'contain',
-                      filter: 'brightness(0) invert(1)' // Makes image white to match the design
+                      width: '94px', 
+                      height: '94px',
+                      objectFit: 'contain'
+                      // Makes image white to match the design
                     }}
                     onError={(e) => {
                       console.error(`Failed to load icon: ${service.icon}`);
@@ -218,8 +218,8 @@ const Dashboard = () => {
 
         .service-title-compact {
           font-size: 1.3rem;
-          font-weight: 600;
-          color: black;
+          font-weight: 700;
+          color: #8b5cf6;
           margin-bottom: 0.5rem;
           line-height: 1.3;
           overflow: hidden;

@@ -656,7 +656,7 @@ useEffect(() => {
         }
 
         .results-main-info h1 {
-          font-size: 2.5rem;
+          font-size: 1.5rem;
           font-weight: 600;
           color: #2c3e50;
           margin-bottom: 0.5rem;
@@ -922,7 +922,7 @@ useEffect(() => {
           }
 
           .results-main-info h1 {
-            font-size: 1.8rem;
+            font-size: 1.2rem;
           }
 
           .controls-section {

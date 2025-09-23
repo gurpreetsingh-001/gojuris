@@ -1,51 +1,324 @@
 // src/pages/Citation.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import ApiService from '../services/apiService';
 
 const Citation = () => {
+  const navigate = useNavigate();
+  
+  // State for selected values
   const [selectedJournal, setSelectedJournal] = useState('Select a option');
   const [selectedYear, setSelectedYear] = useState('Select a option');
   const [selectedVolume, setSelectedVolume] = useState('Select a option');
   const [selectedPage, setSelectedPage] = useState('Select a option');
   const [selectedCourt, setSelectedCourt] = useState('All Courts Selected');
 
+  // State for dropdown visibility
   const [isJournalOpen, setIsJournalOpen] = useState(false);
   const [isYearOpen, setIsYearOpen] = useState(false);
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
   const [isPageOpen, setIsPageOpen] = useState(false);
   const [isCourtOpen, setIsCourtOpen] = useState(false);
 
+  // State for API data
+  const [journals, setJournals] = useState([]);
+  const [years, setYears] = useState([]);
+  const [volumes, setVolumes] = useState([]);
+  const [pages, setPages] = useState([]);
+  const [courts] = useState([
+    'All Courts Selected',
+    'Supreme Court',
+    'High Courts',
+    'District Courts',
+    'Tribunals'
+  ]);
+
+  // Loading states
+  const [isLoadingJournals, setIsLoadingJournals] = useState(true);
+  const [isLoadingYears, setIsLoadingYears] = useState(false);
+  const [isLoadingVolumes, setIsLoadingVolumes] = useState(false);
+  const [isLoadingPages, setIsLoadingPages] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Error states
+  const [journalsError, setJournalsError] = useState('');
+  const [yearsError, setYearsError] = useState('');
+  const [volumesError, setVolumesError] = useState('');
+  const [pagesError, setPagesError] = useState('');
+
+  // API base URL
+  const API_BASE_URL = 'http://216.172.100.173:8001';
+
   useEffect(() => {
     document.body.style.paddingTop = '0';
+    loadJournals();
     
     return () => {
       document.body.style.paddingTop = '';
     };
   }, []);
 
-  const journals = [
-    'All India Reporter (AIR)',
-    'Supreme Court Cases (SCC)',
-    'Bombay High Court Reports (BHC)',
-    'Delhi Law Times (DLT)',
-    'Indian Law Reports (ILR)',
-    'Madras Law Journal (MLJ)'
-  ];
+  // Authenticated API request helper
+  const makeAuthenticatedRequest = async (url) => {
+    const token = ApiService.getAccessToken();
+    
+    if (!token) {
+      throw new Error('No access token found. Please login again.');
+    }
 
-  const years = ['2024', '2023', '2022', '2021', '2020', '2019', '2018'];
-  const volumes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-  const pages = ['1-50', '51-100', '101-150', '151-200', '201-250', '251-300'];
-  const courts = [
-    'All Courts Selected',
-    'Supreme Court',
-    'High Courts',
-    'District Courts',
-    'Tribunals'
-  ];
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
 
-  const handleSearch = (type) => {
+    if (response.status === 401) {
+      ApiService.clearTokensAndRedirect();
+      throw new Error('Session expired. Please login again.');
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  };
+
+  // API Methods
+  const loadJournals = async () => {
+    try {
+      setIsLoadingJournals(true);
+      setJournalsError('');
+      console.log('🔍 Loading journals...');
+      
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals`);
+      setJournals(data);
+      console.log('✅ Journals loaded:', data);
+    } catch (error) {
+      console.error('❌ Error loading journals:', error);
+      setJournalsError(error.message);
+    } finally {
+      setIsLoadingJournals(false);
+    }
+  };
+
+  const loadYears = async (journalName) => {
+    try {
+      setIsLoadingYears(true);
+      setYearsError('');
+      console.log('🔍 Loading years for:', journalName);
+      
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years`);
+      setYears(data);
+      console.log('✅ Years loaded for', journalName, ':', data);
+    } catch (error) {
+      console.error('❌ Error loading years:', error);
+      setYearsError(error.message);
+      setYears([]);
+    } finally {
+      setIsLoadingYears(false);
+    }
+  };
+
+  const loadVolumes = async (journalName, year) => {
+    try {
+      setIsLoadingVolumes(true);
+      setVolumesError('');
+      console.log('🔍 Loading volumes for:', journalName, year);
+      
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes`);
+      setVolumes(data);
+      console.log('✅ Volumes loaded for', journalName, year, ':', data);
+    } catch (error) {
+      console.error('❌ Error loading volumes:', error);
+      setVolumesError(error.message);
+      setVolumes([]);
+    } finally {
+      setIsLoadingVolumes(false);
+    }
+  };
+
+  const loadPages = async (journalName, year, volume) => {
+    try {
+      setIsLoadingPages(true);
+      setPagesError('');
+      console.log('🔍 Loading pages for:', journalName, year, volume);
+      
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes/${encodeURIComponent(volume)}/pages`);
+      setPages(data);
+      console.log('✅ Pages loaded for', journalName, year, volume, ':', data);
+    } catch (error) {
+      console.error('❌ Error loading pages:', error);
+      setPagesError(error.message);
+      setPages([]);
+    } finally {
+      setIsLoadingPages(false);
+    }
+  };
+
+  // Event Handlers
+  const handleJournalSelect = (journal) => {
+    setSelectedJournal(journal);
+    setIsJournalOpen(false);
+    
+    // Reset dependent dropdowns
+    setSelectedYear('Select a option');
+    setSelectedVolume('Select a option');
+    setSelectedPage('Select a option');
+    setYears([]);
+    setVolumes([]);
+    setPages([]);
+    
+    // Clear errors
+    setYearsError('');
+    setVolumesError('');
+    setPagesError('');
+    
+    // Load years for selected journal
+    if (journal !== 'Select a option') {
+      loadYears(journal);
+    }
+  };
+
+  const handleYearSelect = (year) => {
+    setSelectedYear(year);
+    setIsYearOpen(false);
+    
+    // Reset dependent dropdowns
+    setSelectedVolume('Select a option');
+    setSelectedPage('Select a option');
+    setVolumes([]);
+    setPages([]);
+    
+    // Clear errors
+    setVolumesError('');
+    setPagesError('');
+    
+    // Load volumes for selected journal and year
+    if (year !== 'Select a option' && selectedJournal !== 'Select a option') {
+      loadVolumes(selectedJournal, year);
+    }
+  };
+
+  const handleVolumeSelect = (volume) => {
+    setSelectedVolume(volume);
+    setIsVolumeOpen(false);
+    
+    // Reset dependent dropdown
+    setSelectedPage('Select a option');
+    setPages([]);
+    
+    // Clear errors
+    setPagesError('');
+    
+    // Load pages for selected journal, year, and volume
+    if (volume !== 'Select a option' && selectedJournal !== 'Select a option' && selectedYear !== 'Select a option') {
+      loadPages(selectedJournal, selectedYear, volume);
+    }
+  };
+
+  const handlePageSelect = (page) => {
+    setSelectedPage(page);
+    setIsPageOpen(false);
+  };
+
+  const handleCourtSelect = (court) => {
+    setSelectedCourt(court);
+    setIsCourtOpen(false);
+  };
+
+  const handleSearch = async (type) => {
     console.log('Search type:', type);
+    
+    // Validate required fields
+    if (selectedJournal === 'Select a option') {
+      alert('Please select a journal');
+      return;
+    }
+    
+    // Collect search data
+    const searchData = {
+      journal: selectedJournal,
+      year: selectedYear !== 'Select a option' ? selectedYear : null,
+      volume: selectedVolume !== 'Select a option' ? selectedVolume : null,
+      page: selectedPage !== 'Select a option' ? selectedPage : null,
+      court: selectedCourt !== 'All Courts Selected' ? selectedCourt : null,
+      searchType: type
+    };
+    
+    console.log('🔍 Citation search data:', searchData);
+    
+    try {
+      setIsLoading(true);
+      
+      // Use the new citation search API (NO EMBEDDINGS)
+      const results = await ApiService.searchCitations(searchData);
+      
+      console.log('✅ Citation Search Results:', results);
+      
+      // Store results in sessionStorage (same format as other searches)
+      const resultsData = {
+        results: results.hits || [],
+        totalCount: results.total || 0,
+        query: `${searchData.journal} ${searchData.year || ''} ${searchData.volume || ''} ${searchData.page || ''}`.trim(),
+        searchType: 'Citation Search',
+        timestamp: new Date().toISOString(),
+        searchData: searchData
+      };
+      
+      console.log('💾 Storing citation results in sessionStorage:', resultsData);
+      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+      
+      // Navigate to results page
+      navigate('/results');
+      
+    } catch (error) {
+      console.error('Citation search failed:', error);
+      alert(`Citation search failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderDropdown = (isOpen, items, onSelect, isLoading, error, loadingText) => {
+    if (isLoading) {
+      return (
+        <div className="citation-dropdown">
+          <div className="citation-loading">{loadingText}</div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="citation-dropdown">
+          <div className="citation-error">Error: {error}</div>
+        </div>
+      );
+    }
+
+    if (!isOpen || items.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="citation-dropdown">
+        {items.map((item) => (
+          <button
+            key={item}
+            className="citation-option"
+            onClick={() => onSelect(item)}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -53,7 +326,6 @@ const Citation = () => {
       <Sidebar />
       
       <div className="gojuris-main">
-        {/* Replace the old header with Navbar component */}
         <Navbar />
 
         <div className="citation-container" style={{ padding: '2rem' }}>
@@ -68,34 +340,23 @@ const Citation = () => {
                     <button
                       className="citation-dropdown-btn"
                       onClick={() => setIsJournalOpen(!isJournalOpen)}
+                      disabled={isLoadingJournals}
                     >
-                      {selectedJournal}
+                      {isLoadingJournals ? 'Loading journals...' : selectedJournal}
                       <i className="bx bx-chevron-down"></i>
                     </button>
                     
-                    {isJournalOpen && (
+                    {(isJournalOpen || isLoadingJournals || journalsError) && (
                       <>
                         <div 
                           className="dropdown-backdrop"
                           onClick={() => setIsJournalOpen(false)}
                         />
-                        <div className="citation-dropdown">
-                          {journals.map((journal) => (
-                            <button
-                              key={journal}
-                              className="citation-option"
-                              onClick={() => {
-                                setSelectedJournal(journal);
-                                setIsJournalOpen(false);
-                              }}
-                            >
-                              {journal}
-                            </button>
-                          ))}
-                        </div>
+                        {renderDropdown(isJournalOpen, journals, handleJournalSelect, isLoadingJournals, journalsError, 'Loading journals...')}
                       </>
                     )}
                   </div>
+                  {journalsError && <div className="citation-error">{journalsError}</div>}
                 </div>
 
                 <div className="citation-field">
@@ -104,34 +365,23 @@ const Citation = () => {
                     <button
                       className="citation-dropdown-btn"
                       onClick={() => setIsYearOpen(!isYearOpen)}
+                      disabled={isLoadingYears || selectedJournal === 'Select a option'}
                     >
-                      {selectedYear}
+                      {isLoadingYears ? 'Loading years...' : selectedYear}
                       <i className="bx bx-chevron-down"></i>
                     </button>
                     
-                    {isYearOpen && (
+                    {(isYearOpen || isLoadingYears || yearsError) && selectedJournal !== 'Select a option' && (
                       <>
                         <div 
                           className="dropdown-backdrop"
                           onClick={() => setIsYearOpen(false)}
                         />
-                        <div className="citation-dropdown">
-                          {years.map((year) => (
-                            <button
-                              key={year}
-                              className="citation-option"
-                              onClick={() => {
-                                setSelectedYear(year);
-                                setIsYearOpen(false);
-                              }}
-                            >
-                              {year}
-                            </button>
-                          ))}
-                        </div>
+                        {renderDropdown(isYearOpen, years, handleYearSelect, isLoadingYears, yearsError, 'Loading years...')}
                       </>
                     )}
                   </div>
+                  {yearsError && <div className="citation-error">{yearsError}</div>}
                 </div>
               </div>
 
@@ -142,34 +392,23 @@ const Citation = () => {
                     <button
                       className="citation-dropdown-btn"
                       onClick={() => setIsVolumeOpen(!isVolumeOpen)}
+                      disabled={isLoadingVolumes || selectedYear === 'Select a option'}
                     >
-                      {selectedVolume}
+                      {isLoadingVolumes ? 'Loading volumes...' : selectedVolume}
                       <i className="bx bx-chevron-down"></i>
                     </button>
                     
-                    {isVolumeOpen && (
+                    {(isVolumeOpen || isLoadingVolumes || volumesError) && selectedYear !== 'Select a option' && (
                       <>
                         <div 
                           className="dropdown-backdrop"
                           onClick={() => setIsVolumeOpen(false)}
                         />
-                        <div className="citation-dropdown">
-                          {volumes.map((volume) => (
-                            <button
-                              key={volume}
-                              className="citation-option"
-                              onClick={() => {
-                                setSelectedVolume(volume);
-                                setIsVolumeOpen(false);
-                              }}
-                            >
-                              {volume}
-                            </button>
-                          ))}
-                        </div>
+                        {renderDropdown(isVolumeOpen, volumes, handleVolumeSelect, isLoadingVolumes, volumesError, 'Loading volumes...')}
                       </>
                     )}
                   </div>
+                  {volumesError && <div className="citation-error">{volumesError}</div>}
                 </div>
 
                 <div className="citation-field">
@@ -178,82 +417,68 @@ const Citation = () => {
                     <button
                       className="citation-dropdown-btn"
                       onClick={() => setIsPageOpen(!isPageOpen)}
+                      disabled={isLoadingPages || selectedVolume === 'Select a option'}
                     >
-                      {selectedPage}
+                      {isLoadingPages ? 'Loading pages...' : selectedPage}
                       <i className="bx bx-chevron-down"></i>
                     </button>
                     
-                    {isPageOpen && (
+                    {(isPageOpen || isLoadingPages || pagesError) && selectedVolume !== 'Select a option' && (
                       <>
                         <div 
                           className="dropdown-backdrop"
                           onClick={() => setIsPageOpen(false)}
                         />
-                        <div className="citation-dropdown">
-                          {pages.map((page) => (
-                            <button
-                              key={page}
-                              className="citation-option"
-                              onClick={() => {
-                                setSelectedPage(page);
-                                setIsPageOpen(false);
-                              }}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </div>
+                        {renderDropdown(isPageOpen, pages, handlePageSelect, isLoadingPages, pagesError, 'Loading pages...')}
                       </>
                     )}
                   </div>
+                  {pagesError && <div className="citation-error">{pagesError}</div>}
                 </div>
               </div>
    
-                <div className="citation-court-field">
-                  <div className="citation-dropdown-wrapper full-width">
-                    <button
-                      className="citation-dropdown-btn"
-                      onClick={() => setIsCourtOpen(!isCourtOpen)}
-                    >
-                      {selectedCourt}
-                      <i className="bx bx-chevron-down"></i>
-                    </button>
-                    
-                    {isCourtOpen && (
-                      <>
-                        <div 
-                          className="dropdown-backdrop"
-                          onClick={() => setIsCourtOpen(false)}
-                        />
-                        <div className="citation-dropdown">
-                          {courts.map((court) => (
-                            <button
-                              key={court}
-                              className="citation-option"
-                              onClick={() => {
-                                setSelectedCourt(court);
-                                setIsCourtOpen(false);
-                              }}
-                            >
-                              {court}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
+              <div className="citation-court-field">
+                <div className="citation-dropdown-wrapper full-width">
+                  <button
+                    className="citation-dropdown-btn"
+                    onClick={() => setIsCourtOpen(!isCourtOpen)}
+                  >
+                    {selectedCourt}
+                    <i className="bx bx-chevron-down"></i>
+                  </button>
+                  
+                  {isCourtOpen && (
+                    <>
+                      <div 
+                        className="dropdown-backdrop"
+                        onClick={() => setIsCourtOpen(false)}
+                      />
+                      <div className="citation-dropdown">
+                        {courts.map((court) => (
+                          <button
+                            key={court}
+                            className="citation-option"
+                            onClick={() => handleCourtSelect(court)}
+                          >
+                            {court}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
+              </div>
+
               <div className="citation-actions">
                 <div className="citation-buttons">
                   <button 
                     className="citation-search-btn primary"
                     onClick={() => handleSearch('citations')}
+                    disabled={selectedJournal === 'Select a option' || isLoading}
                   >
-                    Search Citations
+                    {isLoading ? 'Searching...' : 'Search Citations'}
                   </button>
-                  
                 </div>
-             
               </div>
             </div>
           </div>

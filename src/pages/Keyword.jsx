@@ -5,7 +5,7 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ApiService from '../services/apiService';
 
-const AISearch = () => {
+const Keyword = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -125,7 +125,7 @@ const AISearch = () => {
             <div className="search-header">
               <div className="search-badge">
                 <i className="bx bx-search-alt"></i>
-                <span>AI Searches</span>
+                <span>Keyword Search</span>
               </div>
             </div>
             
@@ -144,7 +144,7 @@ const AISearch = () => {
                       className="search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Ask AI"
+                      placeholder="Keyword Search"
                       disabled={isLoading}
                     />
                     <div className="input-actions">
@@ -498,4 +498,4 @@ const AISearch = () => {
   );
 };
 
-export default AISearch;
+export default Keyword;

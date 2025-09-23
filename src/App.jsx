@@ -1,19 +1,23 @@
-// src/App.jsx - Update with new routes
+// src/App.jsx - Fixed with Database import
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import Results from './pages/Results';
 import Judgement from './pages/Judgement';
 import Login from './pages/Login';
-import Password from './pages/Password';
 import Citation from './pages/Citation';
 import AIChat from './pages/AIChat';
 import AISearch from './pages/AISearch';
 import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
+import Keyword from './pages/keyword';
+import Database from './pages/Database'; // ADD THIS LINE
+import PricingPlans from './pages/PricingPlans';
+
 
 function App() {
   useEffect(() => {
@@ -24,6 +28,7 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          {/* Public routes - no authentication required */}
           <Route path="/" element={
             <>
               <Header />
@@ -33,36 +38,72 @@ function App() {
               <Footer />
             </>
           } />
-          <Route path="/search" element={
-            <>
-              <Header />
-              <main className="page-wrapper">
-                <Search />
-              </main>
-              <Footer />
-            </>
-          } />
           
-          {/* Add Header and Footer to Dashboard */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Protected routes - authentication required */}
           <Route path="/dashboard" element={
-            <>
+            <ProtectedRoute>
               <Header />
               <main className="page-wrapper">
                 <Dashboard />
               </main>
               <Footer />
-            </>
+            </ProtectedRoute>
           } />
           
-          {/* Pages without Header/Footer (specialized layouts) */}
-          <Route path="/results" element={<Results />} />
-          <Route path="/judgement/:id" element={<Judgement />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/password" element={<Password />} />
-          <Route path="/citation" element={<Citation />} />
-          <Route path="/ai-chat" element={<AIChat />} />
-          <Route path="/ai-search" element={<AISearch />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/search" element={
+            <ProtectedRoute>
+              <main className="page-wrapper">
+                <Search />
+              </main>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/results" element={
+            <ProtectedRoute>
+              <Results />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/judgement/:id" element={
+            <ProtectedRoute>
+              <Judgement />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/citation" element={
+            <ProtectedRoute>
+              <Citation />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/ai-chat" element={
+            <ProtectedRoute>
+              <AIChat />
+            </ProtectedRoute>
+          } />
+           
+          <Route path="/keyword" element={
+            <ProtectedRoute>
+              <Keyword />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/ai-search" element={
+            <ProtectedRoute>
+              <AISearch />
+            </ProtectedRoute>
+          } />
+          
+          {/* FIXED DATABASE ROUTE */}
+          <Route path="/database" element={
+            <ProtectedRoute>
+              <Database />
+            </ProtectedRoute>
+          } />
+  <Route path="/pricing" element={<PricingPlans />} />
 
         </Routes>
       </div>

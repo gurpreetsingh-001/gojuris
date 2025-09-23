@@ -1,7 +1,10 @@
 // src/components/CallToAction.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ApiService from '../services/apiService';
 
 const CallToAction = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -52,8 +55,8 @@ const CallToAction = () => {
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters long';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
     }
 
     if (!formData.confirmPassword) {
@@ -69,50 +72,6 @@ const CallToAction = () => {
     return newErrors;
   };
 
-  const createAccount = async (userData) => {
-    // Simulate API call for account creation
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulate successful account creation
-        console.log('Account created successfully:', userData);
-        resolve({
-          success: true,
-          message: 'Account created successfully',
-          user: {
-            id: Date.now(),
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName
-          }
-        });
-      }, 2000);
-    });
-  };
-
-  const performSignup = async (userData) => {
-    // This function handles the actual signup process
-    try {
-      const response = await createAccount({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        password: userData.password
-      });
-
-      if (response.success) {
-        // Store user data in localStorage (or your preferred storage)
-        localStorage.setItem('user', JSON.stringify(response.user));
-        localStorage.setItem('isLoggedIn', 'true');
-        
-        return response;
-      } else {
-        throw new Error('Account creation failed');
-      }
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -126,41 +85,79 @@ const CallToAction = () => {
     setErrors({});
 
     try {
-      // Create account and automatically signup
-      const signupResponse = await performSignup(formData);
-      
-      if (signupResponse.success) {
-        setIsSuccess(true);
-        
-        // Reset form
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          agreeToTerms: false
-        });
+      console.log('🚀 Home page signup attempt...');
 
-        // Show success message and redirect after delay
-        setTimeout(() => {
-          // Redirect to dashboard or desired page
-          window.location.href = '/dashboard'; // or use your router
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Signup failed:', error);
-      setErrors({
-        general: 'Account creation failed. Please try again.'
+      // Prepare registration data
+      const registrationData = {
+        username: formData.email, // API expects username, using email
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email
+      };
+
+      // Step 1: Register user
+      const registrationResult = await ApiService.registerUser(registrationData);
+      console.log('✅ Registration successful:', registrationResult);
+
+      // Step 2: Auto-login after successful registration
+      console.log('🔐 Auto-login attempt...');
+      const loginResult = await ApiService.loginUser({
+        username: formData.email,
+        password: formData.password
       });
+      console.log('✅ Auto-login successful:', loginResult);
+
+      // Step 3: Show success state
+      setIsSuccess(true);
+      
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        agreeToTerms: false
+      });
+
+      // Step 4: Redirect to dashboard after delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+
+    } catch (error) {
+      console.error('❌ Signup/Login failed:', error);
+      
+      // Handle specific errors
+      if (error.message.includes('already exists') || 
+          error.message.includes('duplicate') || 
+          error.message.includes('already registered')) {
+        setErrors({ 
+          email: 'An account with this email already exists. Try logging in instead.' 
+        });
+      } else if (error.message.includes('password')) {
+        setErrors({ 
+          password: error.message 
+        });
+      } else if (error.message.includes('email') || error.message.includes('invalid')) {
+        setErrors({ 
+          email: 'Please enter a valid email address' 
+        });
+      } else {
+        setErrors({
+          general: error.message || 'Account creation failed. Please try again.'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Success state component
   if (isSuccess) {
     return (
-      <section className="container py-5 mb-md-3 mb-lg-5">
+      <section className="container  mb-md-3 ">
         <div className="row justify-content-center">
           <div className="col-lg-6">
             <div className="text-center">
@@ -176,6 +173,16 @@ const CallToAction = () => {
               <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
+              <div className="mt-3">
+                <small className="text-muted">
+                  Taking too long? <button 
+                    className="btn btn-link p-0" 
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    Click here to continue
+                  </button>
+                </small>
+              </div>
             </div>
           </div>
         </div>
@@ -184,47 +191,51 @@ const CallToAction = () => {
   }
 
   return (
-    <section className="container py-5 mb-md-3 mb-lg-5">
-      
+    <section className="container mb-md-3 pt-5">
       <div className="row align-items-center">
+        {/* Left Column - Illustration */}
         <div className="col-lg-6 mb-4 mb-lg-0">
-          {/* Illustration */}
           <div 
             className="rounded-3 bg-light d-flex align-items-center justify-content-center position-relative overflow-hidden"
             style={{ height: '400px' }}
           >
             <div className="text-center text-muted">
               <i className="bx bx-laptop display-1 mb-3"></i>
+              <h4 className="mb-0">Start Your Legal Research Journey</h4>
               <div className="position-absolute top-0 start-0 m-4">
                 <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
                      style={{ width: '60px', height: '60px' }}>
-                  <i className="bx bx-user-voice text-white fs-4"></i>
+                  <i className="bx bx-search text-white fs-4"></i>
                 </div>
               </div>
               <div className="position-absolute bottom-0 end-0 m-4">
                 <div className="bg-success rounded-circle d-flex align-items-center justify-content-center" 
                      style={{ width: '50px', height: '50px' }}>
-                  <i className="bx bx-phone text-white fs-5"></i>
+                  <i className="bx bx-bot text-white fs-5"></i>
                 </div>
               </div>
             </div>
           </div>
         </div>
         
+        {/* Right Column - Signup Form */}
         <div className="col-lg-6 ps-lg-5">
           <div className="text-center mb-4">
             <h2 className="h1 mb-0 text-dark">Start Your Free Trial</h2>
+            <p className="text-muted mt-2">Join thousands of legal professionals using GoJuris AI</p>
           </div>
           
-          {/* Error message */}
+          {/* General Error Message */}
           {errors.general && (
             <div className="alert alert-danger mb-3" role="alert">
+              <i className="bx bx-error-circle me-2"></i>
               {errors.general}
             </div>
           )}
           
           {/* Signup Form */}
           <form onSubmit={handleSubmit} className="needs-validation" noValidate>
+            {/* Name Fields Row */}
             <div className="row g-3 mb-3">
               <div className="col-md-6">
                 <input
@@ -238,7 +249,12 @@ const CallToAction = () => {
                   disabled={isLoading}
                   style={{ borderRadius: '10px', padding: '15px' }}
                 />
-                {errors.firstName && <div className="invalid-feedback">{errors.firstName}</div>}
+                {errors.firstName && (
+                  <div className="invalid-feedback">
+                    <i className="bx bx-error-circle me-1"></i>
+                    {errors.firstName}
+                  </div>
+                )}
               </div>
               <div className="col-md-6">
                 <input
@@ -252,10 +268,16 @@ const CallToAction = () => {
                   disabled={isLoading}
                   style={{ borderRadius: '10px', padding: '15px' }}
                 />
-                {errors.lastName && <div className="invalid-feedback">{errors.lastName}</div>}
+                {errors.lastName && (
+                  <div className="invalid-feedback">
+                    <i className="bx bx-error-circle me-1"></i>
+                    {errors.lastName}
+                  </div>
+                )}
               </div>
             </div>
             
+            {/* Email Field */}
             <div className="mb-3">
               <input
                 type="email"
@@ -268,9 +290,15 @@ const CallToAction = () => {
                 disabled={isLoading}
                 style={{ borderRadius: '10px', padding: '15px' }}
               />
-              {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+              {errors.email && (
+                <div className="invalid-feedback">
+                  <i className="bx bx-error-circle me-1"></i>
+                  {errors.email}
+                </div>
+              )}
             </div>
             
+            {/* Password Field */}
             <div className="mb-3 position-relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -288,13 +316,19 @@ const CallToAction = () => {
                 className="btn btn-link position-absolute top-50 end-0 translate-middle-y pe-3 text-muted"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
-                style={{ border: 'none', background: 'none' }}
+                style={{ border: 'none', background: 'none', zIndex: 5 }}
               >
                 <i className={showPassword ? "bx bx-hide" : "bx bx-show"}></i>
               </button>
-              {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+              {errors.password && (
+                <div className="invalid-feedback">
+                  <i className="bx bx-error-circle me-1"></i>
+                  {errors.password}
+                </div>
+              )}
             </div>
             
+            {/* Confirm Password Field */}
             <div className="mb-3 position-relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
@@ -312,13 +346,19 @@ const CallToAction = () => {
                 className="btn btn-link position-absolute top-50 end-0 translate-middle-y pe-3 text-muted"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isLoading}
-                style={{ border: 'none', background: 'none' }}
+                style={{ border: 'none', background: 'none', zIndex: 5 }}
               >
                 <i className={showConfirmPassword ? "bx bx-hide" : "bx bx-show"}></i>
               </button>
-              {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
+              {errors.confirmPassword && (
+                <div className="invalid-feedback">
+                  <i className="bx bx-error-circle me-1"></i>
+                  {errors.confirmPassword}
+                </div>
+              )}
             </div>
             
+            {/* Terms Checkbox */}
             <div className="mb-4">
               <div className="form-check">
                 <input
@@ -334,10 +374,16 @@ const CallToAction = () => {
                 <label className="form-check-label text-muted" htmlFor="agreeToTerms">
                   I agree to the <a href="#" className="text-primary text-decoration-none">Terms of Service</a> and <a href="#" className="text-primary text-decoration-none">Privacy Policy</a>
                 </label>
-                {errors.agreeToTerms && <div className="invalid-feedback d-block">{errors.agreeToTerms}</div>}
+                {errors.agreeToTerms && (
+                  <div className="invalid-feedback d-block">
+                    <i className="bx bx-error-circle me-1"></i>
+                    {errors.agreeToTerms}
+                  </div>
+                )}
               </div>
             </div>
             
+            {/* Submit Button */}
             <button 
               type="submit" 
               className="btn btn-lg w-100 text-white fw-semibold d-flex align-items-center justify-content-center"
@@ -358,16 +404,110 @@ const CallToAction = () => {
                   Creating Account...
                 </>
               ) : (
-                'Create Account'
+                <>
+                  <i className="bx bx-user-plus me-2"></i>
+                  Create Account
+                </>
               )}
             </button>
             
+            {/* Login Link */}
             <p className="text-center mt-4 mb-0 text-muted">
-              Already have an account? <a href="/login" className="text-primary text-decoration-none fw-semibold">Sign In</a>
+              Already have an account? 
+              <button 
+                type="button"
+                onClick={() => navigate('/login')} 
+                className="btn btn-link p-0 ms-1 text-primary text-decoration-none fw-semibold"
+                disabled={isLoading}
+              >
+                Sign In
+              </button>
             </p>
           </form>
+
+          {/* API Status Indicator (for development) */}
+          {/* {process.env.NODE_ENV === 'development' && (
+            <div className="mt-3">
+              <small className="text-muted">
+                <i className="bx bx-info-circle me-1"></i>
+                API Integration: Registration + Auto-Login + Dashboard Redirect
+              </small>
+            </div>
+          )} */}
         </div>
       </div>
+
+      {/* Component Styles */}
+      <style jsx>{`
+        .form-control.is-invalid {
+          border-color: #dc3545 !important;
+          background-color: #fff5f5 !important;
+        }
+
+        .invalid-feedback {
+          display: block;
+          color: #dc3545;
+          font-size: 0.875rem;
+          margin-top: 0.25rem;
+        }
+
+        .alert {
+          border-radius: 10px;
+          border: none;
+          font-size: 0.9rem;
+        }
+
+        .alert-danger {
+          background-color: #fee2e2;
+          color: #b91c1c;
+        }
+
+        .btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .form-control:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .btn-link:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .spinner-border-sm {
+          width: 1rem;
+          height: 1rem;
+          border-width: 0.125rem;
+        }
+
+        .form-check-input.is-invalid {
+          border-color: #dc3545;
+        }
+
+        .form-check-input.is-invalid:checked {
+          background-color: #dc3545;
+          border-color: #dc3545;
+        }
+
+        /* Ensure password toggle button is visible */
+        .position-relative .btn-link {
+          z-index: 10;
+        }
+
+        /* Success state animation */
+        .bg-success {
+          animation: successPulse 2s infinite;
+        }
+
+        @keyframes successPulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </section>
   );
 };

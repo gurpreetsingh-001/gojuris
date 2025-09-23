@@ -118,16 +118,22 @@ const Footer = () => {
               </div>
               
               <div className="mb-2">
+                <div className="d-flex align-items-start mb-2">
+                <i className="bx bx-map text-primary me-2 mt-1"></i>
                 <small style={{ color: '#CBD5E0' }}>
                   <strong>Branch:</strong> D-142, Lower Gr Floor, Lajpat Nagar-I, New Delhi – 110 024
                 </small>
               </div>
+              </div>
               
               <div className="mb-3">
+                <div className="d-flex align-items-start mb-2">
+                <i className="bx bx-map text-primary me-2 mt-1"></i>
                 <small style={{ color: '#CBD5E0' }}>
                   <strong>Mumbai Office:</strong> 2nd Floor, Fine Mansion, Near Mumbai Bank, D. N. Road, Fort, Mumbai 400001 (India)
                 </small>
               </div>
+            </div>
             </div>
 
             <div className="mb-2">

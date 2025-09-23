@@ -63,8 +63,8 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="bg-secondary py-5">
-      <div className="container py-md-3 py-lg-5">
+    <section>
+      <div className="container py-md-3 ">
         <div className="text-center mb-5">
           <h2 className="h1 mb-4">Success Stories with Gojuris</h2>
           <p className="fs-lg text-muted">

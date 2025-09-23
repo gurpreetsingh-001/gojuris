@@ -28,6 +28,7 @@ html {
   --gj-gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #6366f1 100%);
   --gj-gradient-secondary: linear-gradient(135deg, #6366f1 0%, #00CED1 50%, #20B2AA 100%);
   --gj-gradient-accent: linear-gradient(45deg, #8b5cf6, #d946ef, #6366f1, #00CED1);
+  --gj-gradient-bhh: linear-gradient(135deg, #eee0f0 0%, #c3b2e9c0 50%, #c3b2e9c0 100%);
   
   /* Neutral Colors */
   --gj-light: #ffffff;
@@ -851,7 +852,7 @@ footer hr {
 /* Updated Compact Search Interface with Mobile-First Design */
 .search-interface-compact {
   padding: 1rem 0;
-  background: var(--gj-gradient-secondary);
+  background: var(--gj-gradient-primary);
   position: relative;
 }
 
@@ -1408,7 +1409,7 @@ footer hr {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  /* background: rgba(255, 255, 255, 0.1); */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1423,7 +1424,7 @@ footer hr {
 }
 
 .sidebar-item.active .sidebar-icon {
-  background: rgba(255, 255, 255, 0.3);
+  /* background: rgba(255, 255, 255, 0.3); */
 }
 
 .sidebar-icon i {
@@ -2058,7 +2059,7 @@ footer hr {
   font-size: 2rem;
   font-weight: 600;
   color: var(--gj-dark);
-  text-align: center;
+  text-align: left;
   margin-bottom: 2rem;
 }
 
@@ -2411,6 +2412,77 @@ footer hr {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
+}
+
+/* Citation Loading States */
+.citation-dropdown-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.citation-dropdown-btn:disabled:hover {
+  border-color: var(--gj-border);
+}
+
+.citation-search-btn.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #ccc;
+}
+
+.citation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: var(--gj-gray);
+  font-style: italic;
+}
+
+.citation-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+/* Citation Error States */
+.citation-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background-color: #fee2e2;
+  border-radius: 4px;
+  border: 1px solid #fca5a5;
+}
+
+.citation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: var(--gj-gray);
+  font-style: italic;
+  background-color: #f8f9fa;
+}
+
+.citation-dropdown .citation-error {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  background-color: #fee2e2;
+}
+
+.citation-dropdown .citation-loading {
+  margin: 0;
+  background-color: #f8f9fa;
+}
+/* Animation for loading text */
+@keyframes dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  90%, 100% { content: '...'; }
 }
 
 .citation-dropdown-btn:hover {
@@ -3085,7 +3157,8 @@ footer hr {
 }
 
 .footer-text {
-  font-size: 1rem;
+  font-size: 1.8rem;
+  font-weight: 500;
   color: var(--gj-dark);
   margin-bottom: 0.5rem;
 }
@@ -3377,7 +3450,7 @@ footer hr {
 }
 
 .ai-chat-layout-with-nav .chat-form {
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -3531,8 +3604,8 @@ footer hr {
 }
 
 .ai-search-content-with-sidebar .search-main-title {
-  font-size: clamp(1.8rem, 6vw, 2.5rem);
-  font-weight: 700;
+  font-size: clamp(1.8rem, 6vw, 1.8rem);
+  font-weight: 400;
   color: var(--gj-dark);
   line-height: 1.2;
   margin-bottom: 2rem;
@@ -3637,7 +3710,7 @@ footer hr {
 }
 
 .dashboard-container-compact {
-  max-width: 1400px;
+  max-width: 1150px;
   width: 100%;
   margin: 0 auto;
 }
@@ -3675,8 +3748,8 @@ footer hr {
 }
 
 .dashboard-subtitle-compact p {
-  font-size: 0.95rem;
-  color: #6b7280;
+  font-size: 1.4rem;
+  color: #000000;
   line-height: 1.5;
   margin: 0;
 }
@@ -4189,7 +4262,7 @@ footer hr {
   }
   
   .services-grid-compact {
-    max-width: 1400px;
+    max-width: 1020px;
   }
 }
 
@@ -4761,50 +4834,24 @@ footer hr {
 }
 
 /* Hero Section Improvements */
-.hero-section {
-  overflow-x: hidden;
-}
 
-.hero-section .container {
-  max-width: 100%;
-  padding-left: 15px;
-  padding-right: 15px;
-}
+
 
 /* Responsive Logo */
 .navbar-brand img {
-  height: clamp(40px, 6vw, 48px) !important;
+  height: clamp(40px, 6vw, 65px) !important;
   width: auto !important;
-  max-width: 180px !important;
+  max-width: 210px !important;
 }
 
 /* Mobile Hero Fixes */
 @media (max-width: 991.98px) {
-  .hero-section .row {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
+
   
-  .hero-section .col-12 {
-    padding-left: 15px !important;
-    padding-right: 15px !important;
-  }
+
 }
 
-/* Image Fallback Styling */
-.hero-image-fallback {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 4rem;
-  width: 100%;
-  max-width: 400px;
-  height: 400px;
-  margin: 0 auto;
-}
+
 
 /* Search Header Section */
 .search-header-section {
@@ -4862,6 +4909,195 @@ footer hr {
   
   .search-main-heading {
     font-size: 1.25rem;
+  }
+}
+
+/* Hero Section - Simple and Clean */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.hero-section {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.hero-section.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .hero-section .row {
+    text-align: center;
+  }
+  
+  .hero-section .col-lg-6:first-child {
+    margin-bottom: 2rem;
+  }
+}
+
+
+/* Add to your existing styles/main.css or create a new pricing.css */
+
+/* Pricing Plans Specific Styles */
+.pricing-plans-page {
+}
+
+.pricing-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+}
+
+.pricing-card-popular {
+  position: relative;
+  z-index: 2;
+}
+
+.pricing-card-popular::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--gj-gradient-secondary);
+  border-radius: 1rem;
+  z-index: -1;
+  opacity: 0.8;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15) !important;
+}
+
+/* Feature comparison table styles */
+.feature-comparison .table {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.feature-comparison .table td,
+.feature-comparison .table th {
+  border-color: #e2e8f0;
+  padding: 1rem;
+}
+
+.feature-comparison .table tbody tr:hover {
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+/* FAQ Section */
+.faq-section .accordion-item {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.faq-section .accordion-button {
+  color: var(--gj-dark);
+}
+
+.faq-section .accordion-button:not(.collapsed) {
+  background-color: var(--gj-primary);
+  color: white;
+}
+
+.faq-section .accordion-button:focus {
+  border-color: var(--gj-primary);
+  box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
+}
+
+/* Billing toggle switch */
+.form-check-input {
+  width: 3rem;
+  height: 1.5rem;
+  background-color: #6c757d;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.form-check-input:checked {
+  background-color: var(--gj-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pricing-hero .display-4 {
+    font-size: 2rem;
+  }
+  
+  .pricing-hero .lead {
+    font-size: 1rem;
+  }
+  
+  .card .display-4 {
+    font-size: 2rem;
+  }
+  
+  .feature-comparison {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .table-responsive {
+    border-radius: 0.5rem;
+  }
+}
+
+/* Animation for plan selection */
+@keyframes planSelected {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.card.plan-selected {
+  animation: planSelected 0.3s ease-in-out;
+}
+
+/* Custom badge styles */
+.badge {
+  border-radius: 0.5rem;
+}
+
+/* Button hover effects */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--si-primary-rgb), 0.3);
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-2px);
+}
+
+/* Table responsive improvements */
+@media (max-width: 992px) {
+  .table-responsive .table {
+    font-size: 0.875rem;
+  }
+  
+  .table-responsive .table td,
+  .table-responsive .table th {
+    padding: 0.75rem 0.5rem;
   }
 }
 /* End of CSS file */

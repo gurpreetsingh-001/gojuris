@@ -115,7 +115,7 @@ const Features = () => {
   return (
     <>
       {/* Features Section */}
-      <section className="container py-5 mb-2 mb-md-4 mb-lg-5" ref={featuresRef}>
+      <section className="container pt-4 mb-2 mb-md-4" ref={featuresRef}>
         <div className="text-center" style={{ marginBottom: '2px' }}>
           <h2 className="h1 mb-3 text-primary">What's New in GoJuris.ai</h2>
         </div>

@@ -1135,7 +1135,7 @@ formatTextChunk(text) {
 
   // 🚀 Execute the search
   async executeSearch(type, data, options = {}) {
-    console.log(`🔍 Executing ${type.toUpperCase()} Search`);
+    console.log(`Executing ${type.toUpperCase()} Search`);
 
     const requestPayload = this.buildRequest(type, data);
 
@@ -1151,7 +1151,7 @@ formatTextChunk(text) {
         : "Find relevant legal cases using AI/Keyword search"),
     });
 
-    console.log('📦 Final Payload:', JSON.stringify(payload, null, 2));
+    console.log('Final Payload:', JSON.stringify(payload, null, 2));
 
     try {
       const response = await fetch(`${this.baseURL}/Judgement/Search`, {
@@ -1191,71 +1191,6 @@ formatTextChunk(text) {
     return this.executeSearch("citation", citationData, options);
   }
 
-
-
-async searchCitations(citationData) {
-  console.log('📖 Citation Search - Passing Individual Fields');
-  console.log('Citation Data:', citationData);
-
-  // Create payload with individual citation fields as separate parameters
-  const payload = {
-    requests: [
-      {
-        
-        // CITATION-SPECIFIC FIELDS - Pass as individual parameters
-        journal: citationData.journal || "",           // [Journal name]
-        year: citationData.year || "",                 // [Year] 
-        volume: citationData.volume || "",             // [Volume]
-        page: citationData.page || "",                 // [Page number]
-        court: citationData.court || "",               // [Court]
-        
-        // Citation field in correct format: Year → Volume → Journal → Page
-        citation: citationData.citation || `${citationData.year || ''} ${citationData.volume || ''} ${citationData.journal || ''} ${citationData.page || ''}`.trim(),
-        
-      }
-    ],
-    sortBy: "relevance",
-    sortOrder: "desc", 
-    page: 1,
-    pageSize: 25,
-    inst: "",
-    prompt: "Citation search by journal, year, volume, and page"
-  };
-
-  console.log('🚀 Citation Search Payload with Individual Fields:');
-  console.log('📋 Year:', citationData.year);
-  console.log('📋 Volume:', citationData.volume);
-  console.log('📋 Journal:', citationData.journal);
-  console.log('📋 Page:', citationData.page);
-  console.log('📋 Court:', citationData.court);
-  console.log('📋 Citation Format (Year→Volume→Journal→Page):', `${citationData.year || ''} ${citationData.volume || ''} ${citationData.journal || ''} ${citationData.page || ''}`.trim());
-  console.log('📋 Full Payload:', JSON.stringify(payload, null, 2));
-
-  try {
-    // Use /Judgement/Search endpoint for citation search
-    const response = await fetch(`${this.baseURL}/Judgement/Search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getAccessToken()}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Citation Search Error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Citation Search Response:', result);
-    return result;
-
-  } catch (error) {
-    console.error('❌ Citation Search Error:', error);
-    throw new Error(`Citation search failed: ${error.message}`);
-  }
-}
 }
 
 // Create singleton instance

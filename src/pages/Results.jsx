@@ -16,6 +16,7 @@ const Results = () => {
   const [searchType, setSearchType] = useState('Search');
   const [isLoading, setIsLoading] = useState(true);
   const [embeddingVector, setEmbeddingVector] = useState(null);
+  const [searchData, setSearchData] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,6 +55,7 @@ const Results = () => {
         setTotalResults(resultsData.totalCount || results.length);
         setSearchType(resultsData.searchType || 'Search');
         setEmbeddingVector(resultsData.embeddingVector || null);
+        setSearchData(resultsData.searchData || null);
         
         // Extract unique years and courts from results
         extractFiltersFromResults(results);
@@ -243,6 +245,34 @@ useEffect(() => {
             const apiResponse = await ApiService.searchWithAI(
               searchQuery, 
               embeddingVector, 
+              {
+                pageSize: 25,
+                page: page,
+                sortBy: "relevance",
+                sortOrder: "desc"
+              }
+            );
+            
+            setDisplayedResults(apiResponse.hits || []);
+            setCurrentPage(page);
+          }
+          else if (searchType === 'Keyword Search') {
+            const apiResponse = await ApiService.searchKeyword(
+              searchQuery,
+              {
+                pageSize: 25,
+                page: page,
+                sortBy: "relevance",
+                sortOrder: "desc"
+              }
+            );
+            
+            setDisplayedResults(apiResponse.hits || []);
+            setCurrentPage(page);
+          }
+          else if (searchType === 'Citation Search') {
+            const apiResponse = await ApiService.searchCitation(
+              searchData,
               {
                 pageSize: 25,
                 page: page,

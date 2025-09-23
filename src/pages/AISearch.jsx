@@ -14,7 +14,7 @@ const AISearch = () => {
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
-    
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -22,7 +22,7 @@ const AISearch = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    
+
     if (!searchQuery.trim() || isLoading) return;
 
     setIsLoading(true);
@@ -35,9 +35,9 @@ const AISearch = () => {
       // Step 1: Generate embedding
       const embeddingData = await ApiService.generateEmbedding(searchQuery);
       console.log('✅ Embedding generated');
-      
+
       const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data || embeddingData;
-      
+
       if (!embeddingVector || !Array.isArray(embeddingVector)) {
         throw new Error('Invalid embedding response from API');
       }
@@ -108,7 +108,7 @@ const AISearch = () => {
   return (
     <div className="gojuris-layout">
       <Sidebar />
-      
+
       <div className="gojuris-main">
         <Navbar />
 
@@ -119,7 +119,7 @@ const AISearch = () => {
               {error}
             </div>
           )}
-          
+
           <div className="ai-search-container">
             {/* Header Badge */}
             <div className="search-header">
@@ -128,13 +128,13 @@ const AISearch = () => {
                 <span>AI Searches</span>
               </div>
             </div>
-            
+
             {/* Main Hero Section */}
             <div className="search-hero">
               <h1 className="hero-title">
                 Discover patterns, context, and legal logic—faster than ever.
               </h1>
-              
+
               {/* Search Box */}
               <div className="search-container">
                 <form onSubmit={handleSearch} className="search-form">
@@ -148,25 +148,25 @@ const AISearch = () => {
                       disabled={isLoading}
                     />
                     <div className="input-actions">
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className={`voice-btn ${isListening ? 'listening' : ''}`}
                         onClick={handleVoiceSearch}
                         disabled={isLoading}
                       >
                         <i className="bx bx-microphone"></i>
                       </button>
-                      <button 
-                        type="submit" 
+                      <button
+                        type="submit"
                         className="search-btn"
                         disabled={isLoading || !searchQuery.trim()}
                       >
                         {isLoading ? (
                           <i className="bx bx-loader bx-spin"></i>
                         ) : (
-                          <img 
-                            src="/i-ai-search-03.png" 
-                            alt="Search" 
+                          <img
+                            src="/i-ai-search-03.png"
+                            alt="Search"
                             className="search-icon-img"
                           />
                         )}
@@ -188,7 +188,7 @@ const AISearch = () => {
                 Making legal search easy for you or Simplifying legal search for you
               </h2>
               <p className="description-text">
-                Tailored for legal professionals, our advanced search options simplify legal research. Effortlessly access    <br /> 
+                Tailored for legal professionals, our advanced search options simplify legal research. Effortlessly access    <br />
                 judgments, statutes, and citations, saving time and enhancing your workflow efficiency.
               </p>
               <p className="includes-text">

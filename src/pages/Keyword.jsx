@@ -14,7 +14,7 @@ const Keyword = () => {
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
-    
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -22,7 +22,7 @@ const Keyword = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    
+
     if (!searchQuery.trim() || isLoading) return;
 
     setIsLoading(true);
@@ -31,7 +31,7 @@ const Keyword = () => {
     try {
       console.log('Starting Search process...');
       console.log('Query:', searchQuery);
-      
+
       // Step 1: Search
       const apiResponse = await ApiService.searchKeyword(searchQuery, {
         pageSize: 25,
@@ -95,7 +95,7 @@ const Keyword = () => {
   return (
     <div className="gojuris-layout">
       <Sidebar />
-      
+
       <div className="gojuris-main">
         <Navbar />
 
@@ -106,7 +106,7 @@ const Keyword = () => {
               {error}
             </div>
           )}
-          
+
           <div className="ai-search-container">
             {/* Header Badge */}
             <div className="search-header">
@@ -115,13 +115,13 @@ const Keyword = () => {
                 <span>Keyword Search</span>
               </div>
             </div>
-            
+
             {/* Main Hero Section */}
             <div className="search-hero">
               <h1 className="hero-title">
                 Discover patterns, context, and legal logic—faster than ever.
               </h1>
-              
+
               {/* Search Box */}
               <div className="search-container">
                 <form onSubmit={handleSearch} className="search-form">
@@ -135,25 +135,25 @@ const Keyword = () => {
                       disabled={isLoading}
                     />
                     <div className="input-actions">
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className={`voice-btn ${isListening ? 'listening' : ''}`}
                         onClick={handleVoiceSearch}
                         disabled={isLoading}
                       >
                         <i className="bx bx-microphone"></i>
                       </button>
-                      <button 
-                        type="submit" 
+                      <button
+                        type="submit"
                         className="search-btn"
                         disabled={isLoading || !searchQuery.trim()}
                       >
                         {isLoading ? (
                           <i className="bx bx-loader bx-spin"></i>
                         ) : (
-                          <img 
-                            src="/i-ai-search-03.png" 
-                            alt="Search" 
+                          <img
+                            src="/i-ai-search-03.png"
+                            alt="Search"
                             className="search-icon-img"
                           />
                         )}
@@ -175,7 +175,7 @@ const Keyword = () => {
                 Making legal search easy for you or Simplifying legal search for you
               </h2>
               <p className="description-text">
-                Tailored for legal professionals, our advanced search options simplify legal research. Effortlessly access    <br /> 
+                Tailored for legal professionals, our advanced search options simplify legal research. Effortlessly access    <br />
                 judgments, statutes, and citations, saving time and enhancing your workflow efficiency.
               </p>
               <p className="includes-text">

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import ApiService from '../services/apiService';
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 const AIChat = () => {
   const [message, setMessage] = useState('');
@@ -44,185 +46,155 @@ const AIChat = () => {
   ];
 
   // Handle message sending - ONLY API responses
-const handleSendMessage = async (e) => {
-  e.preventDefault();
-  
-  if (!message.trim() || isLoading) return;
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
 
-  const userMessage = message;
-  setMessage('');
-  setIsLoading(true);
-  setError('');
+    if (!message.trim() || isLoading) return;
 
-  // Add user message to chat
-  setChatHistory(prev => [...prev, { 
-    type: 'user', 
-    text: userMessage,
-    timestamp: new Date().toLocaleTimeString()
-  }]);
+    const userMessage = message;
+    setMessage('');
+    setIsLoading(true);
+    setError('');
 
-  // Create placeholder for AI response
-  const aiMessageIndex = Date.now();
-  setChatHistory(prev => [...prev, { 
-    type: 'ai', 
-    text: '',
-    isStreaming: true,
-    id: aiMessageIndex,
-    timestamp: new Date().toLocaleTimeString()
-  }]);
+    // Add user message to chat
+    setChatHistory(prev => [...prev, {
+      type: 'user',
+      text: userMessage,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
 
-  try {
-    // Step 1: Generate AI Embedding
-    console.log('🧠 Generating AI embedding for:', userMessage);
-    const embeddingData = await ApiService.generateEmbedding(userMessage);
-    
-    if (!embeddingData) {
-      throw new Error('Failed to generate embedding');
-    }
+    // Create placeholder for AI response
+    const aiMessageIndex = Date.now();
+    setChatHistory(prev => [...prev, {
+      type: 'ai',
+      text: '',
+      isStreaming: true,
+      id: aiMessageIndex,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
 
-    const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
-    
-    if (!Array.isArray(embeddingVector)) {
-      throw new Error('Invalid embedding format received');
-    }
+    try {
+      // Step 1: Generate AI Embedding
+      console.log('🧠 Generating AI embedding for:', userMessage);
+      const embeddingData = await ApiService.generateEmbedding(userMessage);
 
-    console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
+      if (!embeddingData) {
+        throw new Error('Failed to generate embedding');
+      }
 
-    let streamedText = '';
-    let hasError = false;
+      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
 
-    // Step 2: Start AI Chat Stream
-    await ApiService.streamAIChat(
-      userMessage, 
-      embeddingVector,
-      {
-        searchType: 'chat',
-        pageSize: 10,
-        page: 0,
-        sortBy: "relevance",
-        sortOrder: "desc",
-        prompt: "Find relevant legal cases"
-      },
-      // ✅ FIXED onMessage callback with proper spacing
-      (chunkText) => {
-        console.log('📥 Stream chunk received:', chunkText);
-        
-        if (chunkText) {
-          // ✅ CRITICAL FIX: Handle spacing between chunks properly
-          if (streamedText.length > 0) {
-            // Add space if the previous text doesn't end with whitespace 
-            // and the new chunk doesn't start with whitespace or punctuation
-            const lastChar = streamedText.slice(-1);
+      if (!Array.isArray(embeddingVector)) {
+        throw new Error('Invalid embedding format received');
+      }
+
+      console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
+
+      let streamedText = '';
+      let hasError = false;
+
+      // Step 2: Start AI Chat Stream
+      let accumulatedText = "";
+
+      await ApiService.streamAIChat(
+        userMessage,
+        embeddingVector,
+        {
+          searchType: 'chat',
+          pageSize: 10,
+          page: 0,
+          sortBy: "relevance",
+          sortOrder: "desc",
+          prompt: "Find relevant legal cases"
+        },
+        // ✅ onMessage callback
+        (chunkText) => {
+          if (!chunkText) return;
+          //chunkText = chunkText.startsWith('data:') ? chunkText.substring(6).trim() : chunkText;
+          // Append chunk safely with spacing
+          if (accumulatedText.length > 0) {
+            const lastChar = accumulatedText.slice(-1);
             const firstChar = chunkText.charAt(0);
-            
             if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;:!?\n\r]/)) {
-              streamedText += ' ';
+              accumulatedText += ' ';
             }
           }
-          
-          streamedText += chunkText;
+          accumulatedText += chunkText;
 
-          // Update the AI message in real-time with formatted text
-          setChatHistory(prev => prev.map(msg => 
-            msg.id === aiMessageIndex 
-              ? { 
-                  ...msg, 
-                  text: formatStreamedText(streamedText), 
-                  isStreaming: true 
-                }
+          // Convert Markdown to HTML
+          const rawHtml = marked.parse(accumulatedText, { breaks: true });
+
+          // Sanitize while keeping formatting
+          const cleanHtml = DOMPurify.sanitize(rawHtml);
+
+          // Update chat history
+          setChatHistory(prev => prev.map(msg =>
+            msg.id === aiMessageIndex
+              ? {
+                ...msg,
+                text: cleanHtml,
+                isStreaming: true
+              }
               : msg
           ));
-        }
-      },
-      // onError callback
-      (error) => {
-        console.error('❌ Stream error:', error);
-        hasError = true;
-        setChatHistory(prev => prev.map(msg => 
-          msg.id === aiMessageIndex 
-            ? { 
-                ...msg, 
-                text: streamedText || 'Sorry, I encountered an error while processing your request.',
+        },
+        // onError
+        (error) => {
+          console.error('❌ Stream error:', error);
+          setChatHistory(prev => prev.map(msg =>
+            msg.id === aiMessageIndex
+              ? {
+                ...msg,
+                text: accumulatedText || 'Sorry, an error occurred while processing your request.',
                 isStreaming: false,
                 isError: true
               }
-            : msg
-        ));
-      },
-      // onComplete callback
-      () => {
-        console.log('✅ Stream completed');
-        console.log('📝 Final text:', streamedText);
-        if (!hasError) {
-          setChatHistory(prev => prev.map(msg => 
-            msg.id === aiMessageIndex 
-              ? { 
-                  ...msg, 
-                  text: formatStreamedText(streamedText) || 'No response received.',
-                  isStreaming: false,
-                  metadata: {
-                    embeddingGenerated: true,
-                    vectorLength: embeddingVector.length,
-                    isApiResponse: true,
-                    searchType: 'AI Chat (Streaming)',
-                    searchQuery: userMessage
-                  }
+              : msg
+          ));
+        },
+        // onComplete
+        () => {
+          const finalHtml = DOMPurify.sanitize(
+            marked.parse(accumulatedText.replace("data:", "") || 'No response received.', { breaks: true })
+          );
+
+          setChatHistory(prev => prev.map(msg =>
+            msg.id === aiMessageIndex
+              ? {
+                ...msg,
+                text: finalHtml,
+                isStreaming: false,
+                metadata: {
+                  embeddingGenerated: true,
+                  vectorLength: embeddingVector?.length || 0,
+                  isApiResponse: true,
+                  searchType: 'AI Chat (Streaming)',
+                  searchQuery: userMessage
                 }
+              }
               : msg
           ));
         }
-      }
-    );
+      );
 
-  } catch (generalError) {
-    console.error('❌ General Error:', generalError);
-    
-    setChatHistory(prev => prev.map(msg => 
-      msg.id === aiMessageIndex 
-        ? { 
-            ...msg, 
+    } catch (generalError) {
+      console.error('❌ General Error:', generalError);
+
+      setChatHistory(prev => prev.map(msg =>
+        msg.id === aiMessageIndex
+          ? {
+            ...msg,
             text: `I encountered an error: ${generalError.message}. Please try again.`,
             isStreaming: false,
             isError: true
           }
-        : msg
-    ));
-  } finally {
-    setIsLoading(false);
-  }
-};
+          : msg
+      ));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-// ✅ IMPROVED: Better text formatting function
-const formatStreamedText = (text) => {
-  if (!text) return '';
-  
-  return text
-    // Convert markdown to HTML
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>') // Bold text
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>') // Italic text
-    
-    // Handle sections and headers
-    .replace(/^(.*?:)\s*$/gm, '<h4 style="margin: 1em 0 0.5em 0; color: #333; font-weight: 600;">$1</h4>') // Headers ending with colon
-    
-    // Handle line breaks and paragraphs
-    .replace(/\n\s*\n/g, '</p><p style="margin: 0.8em 0;">') // Double line breaks = paragraphs
-    .replace(/\n/g, '<br>') // Single line breaks
-    
-    // Handle lists
-    .replace(/^\s*[-*+]\s+(.+)$/gm, '<li style="margin: 0.3em 0;">$1</li>') // Bullet points
-    .replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li style="margin: 0.3em 0;">$1. $2</li>') // Numbered lists
-    
-    // Handle citations and links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #3498db; text-decoration: none;">$1</a>') // Markdown links
-    
-    // Wrap in paragraph if not already wrapped
-    .replace(/^(?!<[h4|p|li])(.)/s, '<p style="margin: 0.8em 0;">$1')
-    .replace(/(.)(?![h4|p|li]>)$/s, '$1</p>')
-    
-    // Clean up
-    .replace(/<\/p><p[^>]*><br>/g, '</p><p style="margin: 0.8em 0;">')
-    .replace(/<br><\/p>/g, '</p>');
-};
 
   // Helper function to process search results
   const processSearchResults = (searchResults, userMessage) => {
@@ -540,44 +512,44 @@ const formatStreamedText = (text) => {
                       <i className={`bx ${msg.type === 'user' ? 'bx-user' : 'bx-bot'}`}></i>
                     </div>
                     <div className="message-content">
-  {msg.type === 'ai' && (msg.metadata?.isApiResponse || msg.isStreaming) ? (
-    <div 
-      className="api-response-content"
-      style={{
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        fontSize: '14px',
-        lineHeight: '1.6',
-        color: '#333'
-      }}
-      dangerouslySetInnerHTML={{ __html: msg.text }} 
-    />
-  ) : (
-    <pre style={{ 
-      whiteSpace: 'pre-wrap', 
-      wordWrap: 'break-word',
-      fontFamily: 'inherit',
-      margin: 0,
-      lineHeight: '1.6'
-    }}>
-      {msg.text}
-    </pre>
-  )}
-  
-  {/* Show typing indicator for streaming messages */}
-  {msg.isStreaming && (
-    <div className="typing-indicator" style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      marginTop: '8px',
-      color: '#8B5CF6'
-    }}>
-      <div className="typing-dot"></div>
-      <div className="typing-dot"></div>
-      <div className="typing-dot"></div>
-    </div>
-  )}
-</div>
+                      {msg.type === 'ai' && (msg.metadata?.isApiResponse || msg.isStreaming) ? (
+                        <div
+                          className="api-response-content"
+                          style={{
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                            fontSize: '14px',
+                            lineHeight: '1.6',
+                            color: '#333'
+                          }}
+                          dangerouslySetInnerHTML={{ __html: msg.text }}
+                        />
+                      ) : (
+                        <pre style={{
+                          whiteSpace: 'pre-wrap',
+                          wordWrap: 'break-word',
+                          fontFamily: 'inherit',
+                          margin: 0,
+                          lineHeight: '1.6'
+                        }}>
+                          {msg.text}
+                        </pre>
+                      )}
+
+                      {/* Show typing indicator for streaming messages */}
+                      {msg.isStreaming && (
+                        <div className="typing-indicator" style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          marginTop: '8px',
+                          color: '#8B5CF6'
+                        }}>
+                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
 

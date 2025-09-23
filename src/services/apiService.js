@@ -55,55 +55,55 @@ class ApiService {
   }
 
   async logout() {
-  try {
-    // Optional: Call logout API endpoint if it exists
-    // Uncomment if your backend has a logout endpoint
-    /*
     try {
-      await fetch(`${this.baseURL}/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getAccessToken()}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (apiError) {
-      console.warn('Logout API call failed:', apiError);
-      // Continue with local cleanup even if API fails
-    }
-    */
+      // Optional: Call logout API endpoint if it exists
+      // Uncomment if your backend has a logout endpoint
+      /*
+      try {
+        await fetch(`${this.baseURL}/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.getAccessToken()}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (apiError) {
+        console.warn('Logout API call failed:', apiError);
+        // Continue with local cleanup even if API fails
+      }
+      */
 
-    // Clear all authentication data
+      // Clear all authentication data
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('expiresAt');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userData');
+
+      console.log('✅ Logout successful - all data cleared');
+      return true;
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      // Force clear even if there's an error
+      localStorage.clear();
+      throw error;
+    }
+  }
+
+  // Update clearTokensAndRedirect to be more explicit
+  clearTokensAndRedirect() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('expiresAt');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userData');
-    
-    console.log('✅ Logout successful - all data cleared');
-    return true;
-  } catch (error) {
-    console.error('❌ Logout error:', error);
-    // Force clear even if there's an error
-    localStorage.clear();
-    throw error;
-  }
-}
 
-// Update clearTokensAndRedirect to be more explicit
-clearTokensAndRedirect() {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('expiresAt');
-  localStorage.removeItem('userEmail');
-  localStorage.removeItem('userData');
-
-  // Only redirect if we're not already on login/signup pages
-  const currentPath = window.location.pathname;
-  if (!['/login', '/password', '/signup', '/'].includes(currentPath)) {
-    window.location.href = '/login';
+    // Only redirect if we're not already on login/signup pages
+    const currentPath = window.location.pathname;
+    if (!['/login', '/password', '/signup', '/'].includes(currentPath)) {
+      window.location.href = '/login';
+    }
   }
-}
 
   // ================ CORE API METHODS ================
   async makeRequest(endpoint, options = {}) {
@@ -283,43 +283,43 @@ clearTokensAndRedirect() {
 
   // Add this method to your existing ApiService class
 
-// ================ USER PROFILE METHODS ================
-async getUserInfo() {
-  try {
-    console.log('👤 Fetching user info');
-    
-    const response = await fetch(`${this.baseURL}/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${this.getAccessToken()}`,
-        'Accept': 'application/json'
+  // ================ USER PROFILE METHODS ================
+  async getUserInfo() {
+    try {
+      console.log('👤 Fetching user info');
+
+      const response = await fetch(`${this.baseURL}/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.status === 401) {
+        console.log('🔐 Authentication failed, redirecting to login');
+        this.clearTokensAndRedirect();
+        throw new Error('Session expired. Please login again.');
       }
-    });
 
-    if (response.status === 401) {
-      console.log('🔐 Authentication failed, redirecting to login');
-      this.clearTokensAndRedirect();
-      throw new Error('Session expired. Please login again.');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'Failed to fetch user info');
+      }
+
+      const data = await response.json();
+      console.log('✅ User info retrieved successfully');
+      return data;
+    } catch (error) {
+      console.error('❌ Get user info failed:', error);
+      throw error;
     }
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || errorData.detail || 'Failed to fetch user info');
-    }
-
-    const data = await response.json();
-    console.log('✅ User info retrieved successfully');
-    return data;
-  } catch (error) {
-    console.error('❌ Get user info failed:', error);
-    throw error;
   }
-}
 
-// Get user profile (alias method for backward compatibility)
-async getUserProfile() {
-  return this.getUserInfo();
-}
+  // Get user profile (alias method for backward compatibility)
+  async getUserProfile() {
+    return this.getUserInfo();
+  }
 
   // ================ SEARCH APIs ================
   async performSearch(searchData) {
@@ -779,262 +779,243 @@ async getUserProfile() {
   }
 
   // AI Search using /Judgement/Search with queryVector (as per developer note)
- // Add this method to your existing ApiService class
+  // Add this method to your existing ApiService class
 
 
-// Add this method to your existing ApiService class
+  // Add this method to your existing ApiService class
 
-// ================ JUDGMENT API ================
-async getJudgementDetails(keycode, searchPayload = {}) {
-  try {
-    console.log('⚖️ Fetching judgment details for keycode:', keycode);
-    console.log('📋 Search payload:', searchPayload);
+  // ================ JUDGMENT API ================
+  async getJudgementDetails(keycode, searchPayload = {}) {
+    try {
+      console.log('⚖️ Fetching judgment details for keycode:', keycode);
+      console.log('📋 Search payload:', searchPayload);
 
-    // Use the same payload structure as search API
+      // Use the same payload structure as search API
+      const payload = {
+        requests: [
+          {
+            keycode: searchPayload.keycode || 0,
+            query: searchPayload.query || "",
+            subject: searchPayload.subject || "",
+            fulltext: searchPayload.fulltext || "",
+            headnote: searchPayload.headnote || "",
+            judgement: searchPayload.judgement || "",
+            headnoteAll: searchPayload.headnoteAll || "",
+            judges: searchPayload.judges || "",
+            appellant: searchPayload.appellant || "",
+            respondent: searchPayload.respondent || "",
+            caseNo: searchPayload.caseNo || "",
+            citation: searchPayload.citation || "",
+            advocate: searchPayload.advocate || "",
+            issueForConsideration: searchPayload.issueForConsideration || "",
+            lawPoint: searchPayload.lawPoint || "",
+            held: searchPayload.held || "",
+            backgroundFacts: searchPayload.backgroundFacts || "",
+            partiesContentions: searchPayload.partiesContentions || "",
+            disposition: searchPayload.disposition || "",
+            favour: searchPayload.favour || "",
+            yearFrom: searchPayload.yearFrom || 0,
+            yearTo: searchPayload.yearTo || 0,
+            result: searchPayload.result || "",
+            casesReferred: searchPayload.casesReferred || "",
+            isState: searchPayload.isState !== undefined ? searchPayload.isState : true,
+            acts: searchPayload.acts || [],
+            sections: searchPayload.sections || [],
+            mainkeys: searchPayload.mainkeys || [],
+            years: searchPayload.years || [],
+            queryVector: searchPayload.queryVector || [],
+            isAi: searchPayload.isAi || false
+          }
+        ],
+        sortBy: searchPayload.sortBy || "relevance",
+        sortOrder: searchPayload.sortOrder || "desc",
+        page: searchPayload.page || 0,
+        pageSize: searchPayload.pageSize || 1,
+        inst: searchPayload.inst || "",
+        prompt: searchPayload.prompt || ""
+      };
+
+      const response = await fetch(`${this.baseURL}/Judgement/GetJudgement/${keycode}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch judgment: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Judgment details retrieved successfully');
+      return result;
+
+    } catch (error) {
+      console.error('❌ Get judgment failed:', error);
+      throw error;
+    }
+  }
+  // Add this method to your ApiService class in apiService.js
+
+  // ================ AI CHAT SEARCH - MAIN METHOD ================
+  async searchJudgementsWithAI(userQuery, embeddingVector, options = {}) {
+    const searchType = options.searchType || 'chat';
+
+    if (searchType === 'chat') {
+      return this.searchWithAI_Chat(userQuery, embeddingVector, options);
+    } else {
+      return this.searchWithAI_Advanced(userQuery, embeddingVector, options);
+    }
+  }
+
+  // Make sure you also have the searchWithAI_Chat method:
+  async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
+    console.log('💬 AI Chat Search - Simplified Payload');
+    console.log('Query:', userQuery);
+    console.log('Vector Length:', embeddingVector?.length);
+
     const payload = {
       requests: [
         {
-          keycode: searchPayload.keycode || 0,
-          query: searchPayload.query || "",
-          subject: searchPayload.subject || "",
-          fulltext: searchPayload.fulltext || "",
-          headnote: searchPayload.headnote || "",
-          judgement: searchPayload.judgement || "",
-          headnoteAll: searchPayload.headnoteAll || "",
-          judges: searchPayload.judges || "",
-          appellant: searchPayload.appellant || "",
-          respondent: searchPayload.respondent || "",
-          caseNo: searchPayload.caseNo || "",
-          citation: searchPayload.citation || "",
-          advocate: searchPayload.advocate || "",
-          issueForConsideration: searchPayload.issueForConsideration || "",
-          lawPoint: searchPayload.lawPoint || "",
-          held: searchPayload.held || "",
-          backgroundFacts: searchPayload.backgroundFacts || "",
-          partiesContentions: searchPayload.partiesContentions || "",
-          disposition: searchPayload.disposition || "",
-          favour: searchPayload.favour || "",
-          yearFrom: searchPayload.yearFrom || 0,
-          yearTo: searchPayload.yearTo || 0,
-          result: searchPayload.result || "",
-          casesReferred: searchPayload.casesReferred || "",
-          isState: searchPayload.isState !== undefined ? searchPayload.isState : true,
-          acts: searchPayload.acts || [],
-          sections: searchPayload.sections || [],
-          mainkeys: searchPayload.mainkeys || [],
-          years: searchPayload.years || [],
-          queryVector: searchPayload.queryVector || [],
-          isAi: searchPayload.isAi || false
+          query: userQuery,
+          queryVector: embeddingVector
         }
       ],
-      sortBy: searchPayload.sortBy || "relevance",
-      sortOrder: searchPayload.sortOrder || "desc",
-      page: searchPayload.page || 0,
-      pageSize: searchPayload.pageSize || 1,
-      inst: searchPayload.inst || "",
-      prompt: searchPayload.prompt || ""
+      sortBy: options.sortBy || "relevance",
+      sortOrder: options.sortOrder || "desc",
+      page: options.page || 1,
+      pageSize: options.pageSize || 5,
+      inst: options.inst || "",
+      prompt: options.prompt || "Find relevant legal cases"
     };
 
-    const response = await fetch(`${this.baseURL}/Judgement/GetJudgement/${keycode}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getAccessToken()}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to fetch judgment: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Judgment details retrieved successfully');
-    return result;
-
-  } catch (error) {
-    console.error('❌ Get judgment failed:', error);
-    throw error;
-  }
-}
-// Add this method to your ApiService class in apiService.js
-
-// ================ AI CHAT SEARCH - MAIN METHOD ================
-async searchJudgementsWithAI(userQuery, embeddingVector, options = {}) {
-  const searchType = options.searchType || 'chat';
-  
-  if (searchType === 'chat') {
-    return this.searchWithAI_Chat(userQuery, embeddingVector, options);
-  } else {
-    return this.searchWithAI_Advanced(userQuery, embeddingVector, options);
-  }
-}
-
-// Make sure you also have the searchWithAI_Chat method:
-async searchWithAI_Chat(userQuery, embeddingVector, options = {}) {
-  console.log('💬 AI Chat Search - Simplified Payload');
-  console.log('Query:', userQuery);
-  console.log('Vector Length:', embeddingVector?.length);
-
-  const payload = {
-    requests: [
-      {
-        query: userQuery,
-        queryVector: embeddingVector
-      }
-    ],
-    sortBy: options.sortBy || "relevance",
-    sortOrder: options.sortOrder || "desc", 
-    page: options.page || 1,
-    pageSize: options.pageSize || 5,
-    inst: options.inst || "",
-    prompt: options.prompt || "Find relevant legal cases"
-  };
-
-  console.log('🚀 AI Chat Payload:', JSON.stringify(payload, null, 2));
-
-  try {
-    // ✅ CORRECTED: Use /AIChat instead of /aichat or /Judgement/SearchWithAI
-    const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getAccessToken()}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `AI Chat Search Error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ AI Chat Search Response:', result);
-    return result;
-
-  } catch (error) {
-    console.error('❌ AI Chat Search Error:', error);
-    throw new Error(`AI Chat Search failed: ${error.message}`);
-  }
-}
-// ================ STREAMING AI CHAT METHOD ================
-// ================ STREAMING AI CHAT METHOD ================
-async streamAIChat(userQuery, embeddingVector, options = {}, onMessage, onError, onComplete) {
-  console.log('🌊 Starting AI Chat Stream...');
-  console.log('Query:', userQuery);
-  console.log('Vector Length:', embeddingVector?.length);
-
-  const payload = {
-    requests: [
-      {
-        query: userQuery,
-        queryVector: embeddingVector
-      }
-    ],
-    sortBy: options.sortBy || "relevance",
-    sortOrder: options.sortOrder || "desc", 
-    page: options.page || 1,
-    pageSize: options.pageSize || 5,
-    inst: options.inst || "",
-    prompt: options.prompt || "Find relevant legal cases"
-  };
-
-  console.log('🚀 AI Chat Stream Payload:', JSON.stringify(payload, null, 2));
-
-  try {
-    const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getAccessToken()}`,
-        'Accept': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Stream Error: ${response.status}`);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    let buffer = '';
+    console.log('🚀 AI Chat Payload:', JSON.stringify(payload, null, 2));
 
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          console.log('✅ Stream completed');
-          if (onComplete) onComplete();
-          break;
+      // ✅ CORRECTED: Use /AIChat instead of /aichat or /Judgement/SearchWithAI
+      const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `AI Chat Search Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ AI Chat Search Response:', result);
+      return result;
+
+    } catch (error) {
+      console.error('❌ AI Chat Search Error:', error);
+      throw new Error(`AI Chat Search failed: ${error.message}`);
+    }
+  }
+  // ================ STREAMING AI CHAT METHOD ================
+  // ================ STREAMING AI CHAT METHOD ================
+  async streamAIChat(userQuery, embeddingVector, options = {}, onMessage, onError, onComplete) {
+    console.log('🌊 Starting AI Chat Stream...');
+    const payload = {
+      requests: [
+        {
+          query: userQuery,
+          queryVector: embeddingVector
         }
+      ],
+      sortBy: options.sortBy || "relevance",
+      sortOrder: options.sortOrder || "desc",
+      page: options.page || 1,
+      pageSize: options.pageSize || 5,
+      inst: options.inst || "",
+      prompt: options.prompt || "Find relevant legal cases"
+    };
 
-        // Decode the chunk
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
+    try {
+      const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify(payload),
+      });
 
-        // Process complete lines
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; 
+      if (!response.ok) throw new Error(`Stream Error: ${response.status}`);
 
-        for (const line of lines) {
-          if (line.trim() === '') continue;
-          
-          // Handle Server-Sent Events format
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6).trim();
-            
-            if (data === '[DONE]') {
-              console.log('✅ Stream finished with [DONE] marker');
-              if (onComplete) onComplete();
-              return;
-            }
-            
-            if (data && data !== '') {
-              // ✅ FIXED: Send the raw chunk without processing here
-              if (onMessage) onMessage(data);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (onComplete) onComplete();
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || ''; // keep incomplete line
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+
+            if (line.startsWith('data: ')) {
+              const data = line.substring(6).trim();
+              if (data === '[DONE]') {
+                if (onComplete) onComplete();
+                return;
+              }
+              if (data && onMessage) {
+                // Send raw chunk to React for accumulation
+                onMessage(data);
+              }
             }
           }
         }
+      } finally {
+        reader.releaseLock();
       }
-    } finally {
-      reader.releaseLock();
+    } catch (error) {
+      console.error('❌ AI Chat Stream Error:', error);
+      if (onError) onError(error);
+      throw error;
     }
-
-  } catch (error) {
-    console.error('❌ AI Chat Stream Error:', error);
-    if (onError) onError(error);
-    throw new Error(`AI Chat Stream failed: ${error.message}`);
   }
-}
 
-// ✅ NEW: Add text formatting helper method
-formatTextChunk(text) {
-  if (!text) return '';
-  
-  try {
-    // Try to parse as JSON first
-    const jsonData = JSON.parse(text);
-    if (jsonData.content) return jsonData.content;
-    if (jsonData.text) return jsonData.text;
-    if (jsonData.message) return jsonData.message;
-    return text;
-  } catch (e) {
-    // Not JSON, process as plain text
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
-      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic text
-      .replace(/\n\n/g, '</p><p>') // Double line breaks = paragraphs
-      .replace(/\n/g, '<br>') // Single line breaks
-      .replace(/^\s*[-*+]\s+/gm, '<br>• ') // Bullet points
-      .replace(/^\s*\d+\.\s+/gm, '<br>$&'); // Numbered lists
+  // ✅ NEW: Add text formatting helper method
+  formatTextChunk(text) {
+    if (!text) return '';
+
+    try {
+      // Try to parse as JSON first
+      const jsonData = JSON.parse(text);
+      if (jsonData.content) return jsonData.content;
+      if (jsonData.text) return jsonData.text;
+      if (jsonData.message) return jsonData.message;
+      return text;
+    } catch (e) {
+      // Not JSON, process as plain text
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic text
+        .replace(/\n\n/g, '</p><p>') // Double line breaks = paragraphs
+        .replace(/\n/g, '<br>') // Single line breaks
+        .replace(/^\s*[-*+]\s+/gm, '<br>• ') // Bullet points
+        .replace(/^\s*\d+\.\s+/gm, '<br>$&'); // Numbered lists
+    }
   }
-}
   // ================ DYNAMIC PAYLOAD SYSTEM ================
   createSearchPayload(searchType, formData) {
     const basePayload = {

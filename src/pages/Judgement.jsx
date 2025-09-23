@@ -26,7 +26,7 @@ const Judgement = () => {
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
-    
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -84,7 +84,7 @@ const Judgement = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Date not available';
-    
+
     try {
       const dateStr = dateString.toString();
       if (dateStr.length === 8) {
@@ -156,7 +156,7 @@ const Judgement = () => {
   return (
     <div className="gojuris-layout">
       <Sidebar />
-      
+
       <div className="gojuris-main">
         <Navbar />
 
@@ -267,7 +267,7 @@ const Judgement = () => {
               <div className="section-heading">HEADNOTE S</div>
               <div className="section-text">
                 <div className="headnote-content">
-                  <strong>{judgmentData.newHeadnote }</strong>
+                  <strong>{judgmentData.newHeadnote}</strong>
                 </div>
                 <div className="held-content">
                   <em>Held:</em> {judgmentData.held || 'The appeal is found to be without merit and is dismissed. (Paras: 12, 13)'}
@@ -346,7 +346,7 @@ const Judgement = () => {
           </div>
         </div>
       </div>
-      
+
       <RightSidebar />
 
       <style jsx>{`

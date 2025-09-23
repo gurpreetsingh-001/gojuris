@@ -7,7 +7,7 @@ import ApiService from '../services/apiService';
 
 const Citation = () => {
   const navigate = useNavigate();
-  
+
   // State for selected values
   const [selectedJournal, setSelectedJournal] = useState('Select a option');
   const [selectedYear, setSelectedYear] = useState('Select a option');
@@ -54,7 +54,7 @@ const Citation = () => {
   useEffect(() => {
     document.body.style.paddingTop = '0';
     loadJournals();
-    
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -63,7 +63,7 @@ const Citation = () => {
   // Authenticated API request helper
   const makeAuthenticatedRequest = async (url) => {
     const token = ApiService.getAccessToken();
-    
+
     if (!token) {
       throw new Error('No access token found. Please login again.');
     }
@@ -95,7 +95,7 @@ const Citation = () => {
       setIsLoadingJournals(true);
       setJournalsError('');
       console.log('🔍 Loading journals...');
-      
+
       const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals`);
       setJournals(data);
       console.log('✅ Journals loaded:', data);
@@ -112,7 +112,7 @@ const Citation = () => {
       setIsLoadingYears(true);
       setYearsError('');
       console.log('🔍 Loading years for:', journalName);
-      
+
       const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years`);
       setYears(data);
       console.log('✅ Years loaded for', journalName, ':', data);
@@ -130,7 +130,7 @@ const Citation = () => {
       setIsLoadingVolumes(true);
       setVolumesError('');
       console.log('🔍 Loading volumes for:', journalName, year);
-      
+
       const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes`);
       setVolumes(data);
       console.log('✅ Volumes loaded for', journalName, year, ':', data);
@@ -148,7 +148,7 @@ const Citation = () => {
       setIsLoadingPages(true);
       setPagesError('');
       console.log('🔍 Loading pages for:', journalName, year, volume);
-      
+
       const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes/${encodeURIComponent(volume)}/pages`);
       setPages(data);
       console.log('✅ Pages loaded for', journalName, year, volume, ':', data);
@@ -165,7 +165,7 @@ const Citation = () => {
   const handleJournalSelect = (journal) => {
     setSelectedJournal(journal);
     setIsJournalOpen(false);
-    
+
     // Reset dependent dropdowns
     setSelectedYear('Select a option');
     setSelectedVolume('Select a option');
@@ -173,12 +173,12 @@ const Citation = () => {
     setYears([]);
     setVolumes([]);
     setPages([]);
-    
+
     // Clear errors
     setYearsError('');
     setVolumesError('');
     setPagesError('');
-    
+
     // Load years for selected journal
     if (journal !== 'Select a option') {
       loadYears(journal);
@@ -188,17 +188,17 @@ const Citation = () => {
   const handleYearSelect = (year) => {
     setSelectedYear(year);
     setIsYearOpen(false);
-    
+
     // Reset dependent dropdowns
     setSelectedVolume('Select a option');
     setSelectedPage('Select a option');
     setVolumes([]);
     setPages([]);
-    
+
     // Clear errors
     setVolumesError('');
     setPagesError('');
-    
+
     // Load volumes for selected journal and year
     if (year !== 'Select a option' && selectedJournal !== 'Select a option') {
       loadVolumes(selectedJournal, year);
@@ -208,14 +208,14 @@ const Citation = () => {
   const handleVolumeSelect = (volume) => {
     setSelectedVolume(volume);
     setIsVolumeOpen(false);
-    
+
     // Reset dependent dropdown
     setSelectedPage('Select a option');
     setPages([]);
-    
+
     // Clear errors
     setPagesError('');
-    
+
     // Load pages for selected journal, year, and volume
     if (volume !== 'Select a option' && selectedJournal !== 'Select a option' && selectedYear !== 'Select a option') {
       loadPages(selectedJournal, selectedYear, volume);
@@ -234,13 +234,13 @@ const Citation = () => {
 
   const handleSearch = async (type) => {
     console.log('Search type:', type);
-    
+
     // Validate required fields
     if (selectedJournal === 'Select a option') {
       alert('Please select a journal');
       return;
     }
-    
+
     // Collect search data
     const searchData = {
       journal: selectedJournal,
@@ -250,17 +250,17 @@ const Citation = () => {
       court: selectedCourt !== 'All Courts Selected' ? selectedCourt : null,
       searchType: type
     };
-    
+
     console.log('🔍 Citation search data:', searchData);
-    
+
     try {
       setIsLoading(true);
-      
+
       // Use the new citation search API (NO EMBEDDINGS)
       const results = await ApiService.searchCitation(searchData);
-      
+
       console.log('✅ Citation Search Results:', results);
-      
+
       // Store results in sessionStorage (same format as other searches)
       const resultsData = {
         results: results.hits || [],
@@ -270,13 +270,13 @@ const Citation = () => {
         timestamp: new Date().toISOString(),
         searchData: searchData
       };
-      
+
       console.log('💾 Storing citation results in sessionStorage:', resultsData);
       sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
-      
+
       // Navigate to results page
       navigate('/results');
-      
+
     } catch (error) {
       console.error('Citation search failed:', error);
       alert(`Citation search failed: ${error.message}`);
@@ -324,14 +324,14 @@ const Citation = () => {
   return (
     <div className="gojuris-layout">
       <Sidebar />
-      
+
       <div className="gojuris-main">
         <Navbar />
 
         <div className="citation-container" style={{ padding: '2rem' }}>
           <div className="citation-content">
             <h1 className="citation-main-title">Citation Search (Law Journals of India)</h1>
-            
+
             <div className="citation-form">
               <div className="citation-row">
                 <div className="citation-field">
@@ -345,10 +345,10 @@ const Citation = () => {
                       {isLoadingJournals ? 'Loading journals...' : selectedJournal}
                       <i className="bx bx-chevron-down"></i>
                     </button>
-                    
+
                     {(isJournalOpen || isLoadingJournals || journalsError) && (
                       <>
-                        <div 
+                        <div
                           className="dropdown-backdrop"
                           onClick={() => setIsJournalOpen(false)}
                         />
@@ -370,10 +370,10 @@ const Citation = () => {
                       {isLoadingYears ? 'Loading years...' : selectedYear}
                       <i className="bx bx-chevron-down"></i>
                     </button>
-                    
+
                     {(isYearOpen || isLoadingYears || yearsError) && selectedJournal !== 'Select a option' && (
                       <>
-                        <div 
+                        <div
                           className="dropdown-backdrop"
                           onClick={() => setIsYearOpen(false)}
                         />
@@ -397,10 +397,10 @@ const Citation = () => {
                       {isLoadingVolumes ? 'Loading volumes...' : selectedVolume}
                       <i className="bx bx-chevron-down"></i>
                     </button>
-                    
+
                     {(isVolumeOpen || isLoadingVolumes || volumesError) && selectedYear !== 'Select a option' && (
                       <>
-                        <div 
+                        <div
                           className="dropdown-backdrop"
                           onClick={() => setIsVolumeOpen(false)}
                         />
@@ -422,10 +422,10 @@ const Citation = () => {
                       {isLoadingPages ? 'Loading pages...' : selectedPage}
                       <i className="bx bx-chevron-down"></i>
                     </button>
-                    
+
                     {(isPageOpen || isLoadingPages || pagesError) && selectedVolume !== 'Select a option' && (
                       <>
-                        <div 
+                        <div
                           className="dropdown-backdrop"
                           onClick={() => setIsPageOpen(false)}
                         />
@@ -436,7 +436,7 @@ const Citation = () => {
                   {pagesError && <div className="citation-error">{pagesError}</div>}
                 </div>
               </div>
-   
+
               <div className="citation-court-field">
                 <div className="citation-dropdown-wrapper full-width">
                   <button
@@ -446,10 +446,10 @@ const Citation = () => {
                     {selectedCourt}
                     <i className="bx bx-chevron-down"></i>
                   </button>
-                  
+
                   {isCourtOpen && (
                     <>
-                      <div 
+                      <div
                         className="dropdown-backdrop"
                         onClick={() => setIsCourtOpen(false)}
                       />
@@ -471,7 +471,7 @@ const Citation = () => {
 
               <div className="citation-actions">
                 <div className="citation-buttons">
-                  <button 
+                  <button
                     className="citation-search-btn primary"
                     onClick={() => handleSearch('citations')}
                     disabled={selectedJournal === 'Select a option' || isLoading}

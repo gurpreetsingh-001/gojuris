@@ -257,7 +257,7 @@ const Citation = () => {
       setIsLoading(true);
       
       // Use the new citation search API (NO EMBEDDINGS)
-      const results = await ApiService.searchCitations(searchData);
+      const results = await ApiService.searchCitation(searchData);
       
       console.log('✅ Citation Search Results:', results);
       

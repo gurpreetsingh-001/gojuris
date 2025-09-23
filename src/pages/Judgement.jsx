@@ -146,7 +146,7 @@ const Judgement = () => {
   const tabs = [
     { id: 'issue', label: 'ISSUE FOR CONSIDERATION', ref: issueRef },
     { id: 'lawpoints', label: 'LAW POINTS', ref: lawPointsRef },
-    { id: 'headnotes', label: 'HEADNOTE S', ref: headnotesRef },
+    { id: 'headnotes', label: 'HEADNOTES', ref: headnotesRef },
     { id: 'held', label: 'HELD', ref: heldRef },
     { id: 'facts', label: 'FACTS', ref: factsRef },
     { id: 'contentions', label: 'PARTIES CONTENTIONS', ref: contentionsRef },
@@ -189,7 +189,7 @@ const Judgement = () => {
           <div className="judgment-header-info">
             {/* Main Citation */}
             <div className="main-citation-line">
-              {judgmentData.mainCitation || `${new Date().getFullYear()} Legal Eagle (SC) ${Math.floor(Math.random() * 100)} : ${new Date().getFullYear()} Gojuris (SC) ${Math.floor(Math.random() * 100)}`}
+              {judgmentData.mainCitation}
             </div>
 
             {/* Court Name */}
@@ -199,7 +199,7 @@ const Judgement = () => {
 
             {/* Equivalent Citations */}
             <div className="equivalent-citations">
-              Equivalent Citations : {judgmentData.citation || '2023 INSC 1133'}
+              Equivalent Citations : {judgmentData.fullequivicit}
             </div>
 
             {/* Judges */}
@@ -233,7 +233,7 @@ const Judgement = () => {
             <div ref={issueRef} className="content-section">
               <div className="section-heading">ISSUE FOR CONSIDERATION</div>
               <div className="section-text">
-                {judgmentData.issueForConsideration || 'Whether the learned 1st Appellate Court erred in absolving the Insurance Company of liability to satisfy the awarded amount of compensation, given that the accident occurred before the insurance policy became operative.'}
+                {judgmentData.issueForConsideration}
               </div>
             </div>
 
@@ -267,7 +267,7 @@ const Judgement = () => {
               <div className="section-heading">HEADNOTE S</div>
               <div className="section-text">
                 <div className="headnote-content">
-                  <strong>Motor Vehicles Act — Insurance — Liability of Insurance Company — Validity of Insurance Contract — Appeal against dismissal of compensation claim — Accident occurred prior to operative time of insurance policy — Claimant suffered serious injuries in an accident involving an uninsured vehicle — Tribunal awarded compensation but held owner and driver liable due to lack of insurance coverage — Appellate Court upheld this decision, concluding no liability on the Insurance Company as the policy commenced at 10 a.m. on the date of the accident, which occurred at 7.30 a.m. — The specific time mentioned in the insurance policy prohibits any assumption of coverage prior to that time — Established legal principle that an insurance policy becomes operative only from the specified time if mentioned — Appeal dismissed as the Insurance Company was not liable to indemnify the owner for the claim. (Paras: 4, 6, 12, 13)</strong>
+                  <strong>{judgmentData.newHeadnote }</strong>
                 </div>
                 <div className="held-content">
                   <em>Held:</em> {judgmentData.held || 'The appeal is found to be without merit and is dismissed. (Paras: 12, 13)'}

@@ -29,30 +29,18 @@ const Keyword = () => {
     setError('');
 
     try {
-      console.log('🤖 Starting AI Search process...');
+      console.log('Starting Search process...');
       console.log('Query:', searchQuery);
-
-      // Step 1: Generate embedding
-      const embeddingData = await ApiService.generateEmbedding(searchQuery);
-      console.log('✅ Embedding generated');
       
-      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data || embeddingData;
-      
-      if (!embeddingVector || !Array.isArray(embeddingVector)) {
-        throw new Error('Invalid embedding response from API');
-      }
-
-      console.log(`✅ Embedding vector length: ${embeddingVector.length}`);
-
-      // Step 2: AI Search
-      const apiResponse = await ApiService.searchJudgementsWithAI_ForSearch(searchQuery, embeddingVector, {
+      // Step 1: Search
+      const apiResponse = await ApiService.searchKeyword(searchQuery, {
         pageSize: 25,
         page: 1,
         sortBy: "relevance",
         sortOrder: "desc"
       });
 
-      console.log('✅ AI Search API Response:', apiResponse);
+      console.log('✅ Search API Response:', apiResponse);
 
       // Handle the exact API structure: { total: number, hits: array }
       const searchResults = apiResponse.hits || [];
@@ -71,8 +59,7 @@ const Keyword = () => {
         query: searchQuery,
         results: searchResults,
         totalCount: totalCount,
-        searchType: 'AI Search',
-        embeddingVector: embeddingVector,
+        searchType: 'Keyword Search',
         timestamp: new Date().toISOString(),
         originalApiResponse: {
           total: apiResponse.total,

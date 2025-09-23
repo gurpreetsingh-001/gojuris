@@ -240,7 +240,7 @@ useEffect(() => {
           setCurrentPage(page);
         } else {
           if (embeddingVector && searchType === 'AI Search') {
-            const apiResponse = await ApiService.searchJudgementsWithAI_ForSearch(
+            const apiResponse = await ApiService.searchWithAI(
               searchQuery, 
               embeddingVector, 
               {

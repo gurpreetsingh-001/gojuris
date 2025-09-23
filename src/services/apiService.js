@@ -781,55 +781,6 @@ async getUserProfile() {
   // AI Search using /Judgement/Search with queryVector (as per developer note)
  // Add this method to your existing ApiService class
 
-// 🔍 SIMPLIFIED AI SEARCH - For AI Search page (minimal payload)
-async searchJudgementsWithAI_ForSearch(userQuery, embeddingVector, options = {}) {
-  console.log('🔍 AI Search - Simplified Payload (like AI Chat)');
-  console.log('Query:', userQuery);
-  console.log('Vector Length:', embeddingVector?.length);
-
-  // Use the same simplified payload structure as AI Chat
-  const payload = {
-    requests: [
-      {
-        query: userQuery,
-        queryVector: embeddingVector
-      }
-    ],
-    sortBy: options.sortBy || "relevance",
-    sortOrder: options.sortOrder || "desc", 
-    page: options.page || 1,  // AI Search uses 0-based pagination
-    pageSize: options.pageSize || 25,
-    inst: options.inst || "",
-    prompt: options.prompt || "Find relevant legal cases using AI search"
-  };
-
-  console.log('🚀 AI Search Simplified Payload:', JSON.stringify(payload, null, 2));
-
-  try {
-    // Use /Judgement/Search endpoint as per developer note
-    const response = await fetch(`${this.baseURL}/Judgement/Search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getAccessToken()}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `AI Search Error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ AI Search Simplified Response:', result);
-    return result;
-
-  } catch (error) {
-    console.error('❌ AI Search Simplified Error:', error);
-    throw new Error(`AI Search failed: ${error.message}`);
-  }
-}
 
 // Add this method to your existing ApiService class
 
@@ -1146,14 +1097,102 @@ formatTextChunk(text) {
         };
     }
   }
-// Add this method to apiService.js
 
-// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
-// Add this method to your ApiService class in apiService.js
+  // Utility: remove null/empty values
+  cleanObject(obj) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, v]) => v !== null && v !== undefined && v !== "")
+    );
+  }
 
-// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
-// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
-// ================ CITATION SEARCH API (NO EMBEDDINGS) ================
+  // Build request payload based on type
+  buildRequest(type, data) {
+    switch (type) {
+      case "citation":
+        return this.cleanObject({
+          journal: data.journal,
+          year: data.year,
+          volume: data.volume,
+          page: data.page,
+          court: data.court,
+          citation: data.citation || `${data.year || ''} ${data.volume || ''} ${data.journal || ''} ${data.page || ''}`.trim(),
+        });
+
+      case "ai":
+        return this.cleanObject({
+          query: data.query,
+          queryVector: data.embeddingVector,
+        });
+
+      case "keyword":
+        if (typeof data === "string") return { query: data };
+        return this.cleanObject({ query: data.query });
+
+      default:
+        throw new Error(`Unknown search type: ${type}`);
+    }
+  }
+
+  // 🚀 Execute the search
+  async executeSearch(type, data, options = {}) {
+    console.log(`🔍 Executing ${type.toUpperCase()} Search`);
+
+    const requestPayload = this.buildRequest(type, data);
+
+    const payload = this.cleanObject({
+      requests: [requestPayload],
+      sortBy: options.sortBy || "relevance",
+      sortOrder: options.sortOrder || "desc",
+      page: options.page || 1,
+      pageSize: options.pageSize || 25,
+      inst: options.inst,
+      prompt: options.prompt || (type === "citation"
+        ? "Citation search by journal, year, volume, and page"
+        : "Find relevant legal cases using AI/Keyword search"),
+    });
+
+    console.log('📦 Final Payload:', JSON.stringify(payload, null, 2));
+
+    try {
+      const response = await fetch(`${this.baseURL}/Judgement/Search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Search Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Search Response:', result);
+      return result;
+
+    } catch (error) {
+      console.error(`❌ ${type.toUpperCase()} Search Error:`, error);
+      throw new Error(`${type} search failed: ${error.message}`);
+    }
+  }
+
+  // Wrappers
+  async searchWithAI(query, embeddingVector, options = {}) {
+    return this.executeSearch("ai", { query, embeddingVector }, options);
+  }
+
+  async searchKeyword(query, options = {}) {
+    return this.executeSearch("keyword", typeof query === "string" ? query : { query }, options);
+  }
+
+  async searchCitation(citationData, options = {}) {
+    return this.executeSearch("citation", citationData, options);
+  }
+
+
+
 async searchCitations(citationData) {
   console.log('📖 Citation Search - Passing Individual Fields');
   console.log('Citation Data:', citationData);
@@ -1162,8 +1201,6 @@ async searchCitations(citationData) {
   const payload = {
     requests: [
       {
-        // Basic search query (can be empty for citation search)
-        query: "",
         
         // CITATION-SPECIFIC FIELDS - Pass as individual parameters
         journal: citationData.journal || "",           // [Journal name]
@@ -1175,38 +1212,6 @@ async searchCitations(citationData) {
         // Citation field in correct format: Year → Volume → Journal → Page
         citation: citationData.citation || `${citationData.year || ''} ${citationData.volume || ''} ${citationData.journal || ''} ${citationData.page || ''}`.trim(),
         
-        // Standard fields (empty for citation search)
-        keycode: 0,
-        subject: "",
-        fulltext: "",
-        headnote: "",
-        judgement: "",
-        headnoteAll: "",
-        judges: "",
-        appellant: "",
-        respondent: "",
-        caseNo: "",
-        advocate: "",
-        issueForConsideration: "",
-        lawPoint: "",
-        held: "",
-        backgroundFacts: "",
-        partiesContentions: "",
-        disposition: "",
-        favour: "",
-        yearFrom: citationData.year ? parseInt(citationData.year) : 0,
-        yearTo: citationData.year ? parseInt(citationData.year) : 0,
-        result: "",
-        casesReferred: "",
-        isState: false,
-        acts: [],
-        sections: [],
-        mainkeys: [],
-        years: citationData.year ? [citationData.year] : [],
-        
-        // NO queryVector for citation search (no embeddings)
-        queryVector: [],
-        isAi: false
       }
     ],
     sortBy: "relevance",

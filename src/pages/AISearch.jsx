@@ -45,7 +45,7 @@ const AISearch = () => {
       console.log(`✅ Embedding vector length: ${embeddingVector.length}`);
 
       // Step 2: AI Search
-      const apiResponse = await ApiService.searchJudgementsWithAI_ForSearch(searchQuery, embeddingVector, {
+      const apiResponse = await ApiService.searchWithAI(searchQuery, embeddingVector, {
         pageSize: 25,
         page: 1,
         sortBy: "relevance",

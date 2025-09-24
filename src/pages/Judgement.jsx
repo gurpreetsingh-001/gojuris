@@ -13,7 +13,7 @@ const Judgement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('issue');
-
+const [activeNotesTab, setActiveNotesTab] = useState('advocates');
   // Refs for scroll targets
   const issueRef = useRef(null);
   const lawPointsRef = useRef(null);
@@ -240,12 +240,12 @@ const Judgement = () => {
             {/* Law Points */}
             <div ref={lawPointsRef} className="content-section">
               <div className="section-heading">LAW POINTS</div>
-              <div className="section-text">
+              <div className="section-text-lawpoint">
                 {judgmentData.lawPoint ? (
                   <div>
                     {judgmentData.lawPoint.split('\n').map((point, index) => (
                       <div key={index} className="law-point-item">
-                        <strong>{index + 1})</strong> {point.trim()}
+                        <strong></strong> {point.trim()}
                       </div>
                     ))}
                   </div>
@@ -264,70 +264,106 @@ const Judgement = () => {
 
             {/* Headnotes */}
             <div ref={headnotesRef} className="content-section">
-              <div className="section-heading">HEADNOTE S</div>
+              <div className="section-heading">HEADNOTE/S</div>
               <div className="section-text">
                 <div className="headnote-content">
                   <strong>{judgmentData.newHeadnote}</strong>
                 </div>
                 <div className="held-content">
-                  <em>Held:</em> {judgmentData.held || 'The appeal is found to be without merit and is dismissed. (Paras: 12, 13)'}
+                  <em><strong>Held:</strong></em> {judgmentData.held || ''}
                 </div>
                 <div className="background-facts">
-                  <strong>Background Facts:</strong> {judgmentData.backgroundFacts || 'The claimant suffered serious injuries in a vehicular accident on 5th August 1994, leading to a claim for compensation before the Motor Accident Compensation Tribunal, which awarded compensation but held the Insurance Company not liable due to the policy\'s operative time. (Paras: 1, 2, 3)'}
+                  <em><strong>Background Facts:</strong></em> {judgmentData.backgroundFacts || ''}
                 </div>
               </div>
             </div>
 
             {/* Held */}
-            <div ref={heldRef} className="content-section">
+            {/* <div ref={heldRef} className="content-section">
               <div className="section-heading">HELD</div>
               <div className="section-text">
                 {judgmentData.held || 'The appeal is found to be without merit and is dismissed.'}
               </div>
-            </div>
+            </div> */}
 
             {/* Facts */}
-            <div ref={factsRef} className="content-section">
+            {/* <div ref={factsRef} className="content-section">
               <div className="section-heading">FACTS</div>
               <div className="section-text">
                 {judgmentData.backgroundFacts || 'The claimant suffered serious injuries in a vehicular accident, leading to a claim for compensation before the Motor Accident Compensation Tribunal.'}
               </div>
-            </div>
+            </div> */}
 
             {/* Parties Contentions */}
             <div ref={contentionsRef} className="content-section">
-              <div className="section-heading">PARTIES CONTENTIONS</div>
-              <div className="section-text">
-                {judgmentData.partiesContentions || 'Not available'}
+              {/* <div className="section-heading">PARTIES CONTENTIONS</div> */}
+              <div className="section-text-parties">
+               <em><strong>Parties Contentions:</strong></em> {judgmentData.partiesContentions || 'Not available'}
               </div>
             </div>
 
             {/* Disposition */}
             <div ref={dispositionRef} className="content-section">
-              <div className="section-heading">DISPOSITION</div>
+              {/* <div className="section-heading">DISPOSITION</div> */}
               <div className="section-text">
-                {judgmentData.disposition || 'Appeal dismissed'}
+                 <em><strong>Disposition: </strong></em>{judgmentData.disposition || 'Appeal dismissed'}
               </div>
             </div>
 
             {/* Case Notes & Summaries */}
             <div className="content-section">
-              <div className="section-heading">CASE NOTES & SUMMARIES</div>
-              <div className="section-text">
-                <div className="case-notes-table">
-                  <div className="notes-row">
-                    <div className="notes-cell"><strong>Advocates :</strong></div>
-                    <div className="notes-cell"><strong>Acts Referred :</strong></div>
-                    <div className="notes-cell"><strong>Cases Cited :</strong></div>
-                  </div>
-                  <div className="notes-row">
-                    <div className="notes-cell">{judgmentData.advocate || 'Adv. Vivek Sharma, Sr. Sharma, M/s 2-3 Chambers, Sukhvinder Singh'}</div>
-                    <div className="notes-cell">Motor Vehicles Act, 1988</div>
-                    <div className="notes-cell">Various precedents cited</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div className="section-text">
+    {/* Disposition line */}
+    <div className="disposition-line">
+      <em><strong>Disposition: </strong></em>{judgmentData.disposition || 'The appeal is dismissed.'}
+    </div>
+    
+    {/* Case Notes Tabs */}
+    <div className="case-notes-tabs-container">
+      <div className="case-notes-tabs">
+        <button
+          className={`case-notes-tab ${activeNotesTab === 'advocates' ? 'active' : ''}`}
+          onClick={() => setActiveNotesTab('advocates')}
+        >
+          Advocates
+        </button>
+        <button
+          className={`case-notes-tab ${activeNotesTab === 'acts' ? 'active' : ''}`}
+          onClick={() => setActiveNotesTab('acts')}
+        >
+          Acts Referred
+        </button>
+        <button
+          className={`case-notes-tab ${activeNotesTab === 'cases' ? 'active' : ''}`}
+          onClick={() => setActiveNotesTab('cases')}
+        >
+          Cases Cited
+        </button>
+      </div>
+      
+      {/* Tab Content */}
+      <div className="case-notes-content">
+        {activeNotesTab === 'advocates' && (
+          <div className="tab-content">
+            {judgmentData.advocate || 'Adv. Vivek Sharma, Sr. Sharma, M/s 2-3 Chambers, Sukhvinder Singh'}
+          </div>
+        )}
+        {activeNotesTab === 'acts' && (
+          <div className="tab-content">
+            <div>1. Central Excise Act -- S.35L</div>
+            <div>2. Finance Act -- S.65(23)</div>
+            <div>3. Finance Act -- S.65(105)</div>
+          </div>
+        )}
+        {activeNotesTab === 'cases' && (
+          <div className="tab-content">
+            Various precedents cited
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
 
             {/* Judgment Order */}
             {judgmentData.judgement && (
@@ -401,7 +437,7 @@ const Judgement = () => {
         /* Document Styling */
         .judgment-document {
           background: white;
-          font-family: 'Times New Roman', serif;
+          // font-family: 'Times New Roman', serif;
           max-width: 1300px;
           margin: 0 auto;
           padding: 2rem;
@@ -411,83 +447,111 @@ const Judgement = () => {
         /* Header Information */
         .judgment-header-info {
           text-align: center;
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
         }
 
         .main-citation-line {
-          font-size: 1.1rem;
-          margin-bottom: 0.5rem;
+          font-size: 1.17rem;
+          font-weight: 500;
+          margin-bottom: 0rem;
           color: #333;
         }
 
         .court-name-line {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
           font-weight: bold;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0rem;
           color: #333;
         }
 
         .equivalent-citations {
           font-size: 1.1rem;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0rem;
           color: #666;
         }
 
         .judges-line {
-          font-size: 0.95rem;
-          margin-bottom: 1rem;
-          color: #666;
-          font-style: italic;
+         font-size: 1.1rem;
+    margin-bottom: 0rem;
+    color: #000;
+    font-weight: 700;
         }
 
         .parties-section {
-          margin: 1rem 0;
+          margin: 0.25rem 0;
         }
 
         .appellant-name, .respondent-name {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
           font-weight: bold;
           margin: 0.3rem 0;
           color: #333;
         }
 
         .vs-text {
-          font-size: 1.1rem;
-          margin: 0.3rem 0;
-          font-style: italic;
-          color: #666;
+          font-size: 1.2rem;
+    font-weight: 500;
+    margin: 0.1rem 0;
+    color: #333;
         }
 
-        .case-details-line, .date-line {
-          font-size: 1.1rem;
-          margin: 0.3rem 0;
-          color: #666;
+        .case-details-line {
+          font-size: 1rem;
+          margin: 0rem 0;
+          color: #000;
         }
-
+ .date-line {
+          font-size: 1.25rem;
+          margin: 0rem 0;
+          font-weight:400;
+          color: #000;
+        }
         /* Content Sections */
         .judgment-content {
-          margin-top: 2rem;
+          margin-top: 1rem;
         }
 
         .content-section {
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
         }
 
         .section-heading {
-          font-size: 1.1rem;
-          font-weight: bold;
-          text-align: center;
-          margin-bottom: 1rem;
-          color: #333;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+              font-size: 1.25rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #000;
+    text-decoration: underline;
+    text-transform: uppercase;
+    letter-spacing: 0px;
         }
 
         .section-text {
-          font-size: 0.95rem;
+          font-size: 1.25rem;
           line-height: 1.7;
-          color: #333;
+          font-weight:400;
+          color: #000;
+          font-style:italic;
           text-align: justify;
+        }
+
+        .section-text-parties {
+          font-size: 1.25rem;
+          line-height: 1.7;
+          font-weight:400;
+          color: #000;
+          font-style:italic;
+          text-align: justify;
+        }
+          .section-text-lawpoint {
+          font-size: 1.25rem;
+          line-height: 1.7;
+          font-weight:400;
+        
+    margin-left: 75px;
+    margin-right: 75px;
+    color: green;
+            text-align: justify;
         }
 
         .law-point-item {
@@ -497,7 +561,9 @@ const Judgement = () => {
 
         .headnote-content {
           margin-bottom: 1rem;
-          font-size: 0.95rem;
+          font-size: 1.25rem;
+          font-weight:300 !important;
+          font-style:normal;
         }
 
         .held-content {
@@ -507,6 +573,7 @@ const Judgement = () => {
 
         .background-facts {
           margin-bottom: 1rem;
+          font-style:normal !important;
         }
 
         /* Case Notes Table */
@@ -606,6 +673,96 @@ const Judgement = () => {
             margin-bottom: 1.5rem;
           }
         }
+
+
+        .disposition-line {
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  line-height: 1.7;
+  font-weight: 400;
+  color: #000;
+  font-style: italic;
+  text-align: justify;
+}
+
+.case-notes-tabs-container {
+  margin-top: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  width:500px;
+}
+
+.case-notes-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  background-color: #f8f9fa;
+}
+
+.case-notes-tab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-right: 1px solid #ddd;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.case-notes-tab:last-child {
+  border-right: none;
+}
+
+.case-notes-tab:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.case-notes-tab.active {
+  background-color: #7e54e0;
+  color: white;
+  font-weight: 600;
+}
+
+.case-notes-content {
+  padding: 1rem;
+  background-color: white;
+  min-height: 80px;
+}
+
+.tab-content {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.tab-content div {
+  margin-bottom: 0.5rem;
+}
+
+.tab-content div:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive design for tabs */
+@media (max-width: 768px) {
+  .case-notes-tab {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .case-notes-content {
+    padding: 0.75rem;
+  }
+  
+  .tab-content {
+    font-size: 0.9rem;
+  }
+}
       `}</style>
     </div>
   );

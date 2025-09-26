@@ -437,37 +437,7 @@ const Citation = () => {
                 </div>
               </div>
 
-              <div className="citation-court-field">
-                <div className="citation-dropdown-wrapper full-width">
-                  <button
-                    className="citation-dropdown-btn"
-                    onClick={() => setIsCourtOpen(!isCourtOpen)}
-                  >
-                    {selectedCourt}
-                    <i className="bx bx-chevron-down"></i>
-                  </button>
-
-                  {isCourtOpen && (
-                    <>
-                      <div
-                        className="dropdown-backdrop"
-                        onClick={() => setIsCourtOpen(false)}
-                      />
-                      <div className="citation-dropdown">
-                        {courts.map((court) => (
-                          <button
-                            key={court}
-                            className="citation-option"
-                            onClick={() => handleCourtSelect(court)}
-                          >
-                            {court}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
+             
 
               <div className="citation-actions">
                 <div className="citation-buttons">

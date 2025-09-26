@@ -267,8 +267,8 @@ const AISearch = () => {
         }
 
         .hero-title {
-          font-size: clamp(2rem, 5vw, 3rem);
-          font-weight: 600;
+          font-size: clamp(2rem, 5vw, 2rem);
+          font-weight: 300;
           color: #333;
           line-height: 1.2;
           margin-bottom: 3rem;
@@ -293,6 +293,7 @@ const AISearch = () => {
           padding: 8px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
           display: flex;
+          border: 2px solid #8b5cf6;
           align-items: center;
           gap: 8px;
         }
@@ -345,7 +346,7 @@ const AISearch = () => {
           width: 48px;
           height: 48px;
           border: none;
-          background: #007bff;
+         
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -356,7 +357,6 @@ const AISearch = () => {
         }
 
         .search-btn:hover:not(:disabled) {
-          background: #0056b3;
           transform: scale(1.05);
         }
 
@@ -371,7 +371,7 @@ const AISearch = () => {
           width: 20px;
           height: 20px;
           object-fit: contain;
-          filter: brightness(0) invert(1); /* Makes image white */
+         
         }
 
         .related-section {
@@ -388,10 +388,11 @@ const AISearch = () => {
           max-width: 1000px;
           margin: 0 auto;
           font:14px;
+          margin-top:140px;
         }
 
         .description-title {
-          font-size: 28px;
+          font-size: 16px;
           font-weight: 600;
           color: #333;
          
@@ -399,14 +400,14 @@ const AISearch = () => {
         }
 
         .description-text {
-          font-size: 18px;
+          font-size: 10px;
           color: #6c757d;
          margin:0
         }
 
         .includes-text {
           color: #6c757d;
-          font-size: 0.95rem;
+          font-size: 12px;
           margin: 0;
         }
 
@@ -434,6 +435,7 @@ const AISearch = () => {
 
           .search-header {
             margin-bottom: 2rem;
+            margin-top:180px;
           }
 
           .search-hero {
@@ -491,7 +493,7 @@ const AISearch = () => {
      width: 40px;
      height: 40px;
      object-fit: contain;
-     filter: brightness(0) invert(1); /* Makes image white */
+     
    }
       `}</style>
     </div>

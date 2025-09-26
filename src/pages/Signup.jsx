@@ -359,27 +359,27 @@ const Signup = () => {
 
             <div className="login-right">
               <div className="brand-section">
-                <div className="brand-logo">
+                {/* <div className="brand-logo">
                   <h1 className="brand-title">Legal Eagle</h1>
                   <h2 className="brand-subtitle">is Now</h2>
                   <div className="ai-powered">
                     <span className="ai-text">AI-Powered.</span>
                     <div className="orbit-animation"></div>
                   </div>
-                </div>
+                </div> */}
                 
                 <div className="brand-footer">
-                  <div className="gojuris-logo">
+                  {/* <div className="gojuris-logo">
                     <img 
                       src="/logo.png" 
                       alt="GoJuris Logo" 
                       style={{ height: '24px', width: 'auto' }}
                     />
-                  </div>
-                  <div className="tagline">
+                  </div> */}
+                  {/* <div className="tagline">
                     &nbsp;&nbsp; AI Solutions for Legal Excellence
                     <i className="bx bx-right-arrow-alt"></i>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

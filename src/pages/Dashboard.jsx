@@ -47,7 +47,7 @@ const Dashboard = () => {
       <div className="dashboard-container-compact">
         <div className="dashboard-header-compact">
           <div className="dashboard-subtitle-compact">
-            <p>Offering a cutting-edge legal research AI tool. Accessible via web and app. Click for <br/> details. Empowering legal professionals with AI-driven insights.</p>
+            {/* <p>Offering a cutting-edge legal research AI tool. Accessible via web and app. Click for <br/> details. Empowering legal professionals with AI-driven insights.</p> */}
           </div>
         </div>
         
@@ -180,7 +180,7 @@ const Dashboard = () => {
         .service-card-compact:hover {
           transform: translateY(-3px);
           box-shadow: 0 10px 30px rgba(139, 92, 246, 0.35);
-          background: linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #5b21b6 100%) !important;
+          background: linear-gradient(135deg, #e4e1e9ff 0%, #efdcf2ff 50%, #d3c6eaff 100%) !important;
         }
 
         /* Service Icon with White Glassmorphism */
@@ -224,6 +224,7 @@ const Dashboard = () => {
           line-height: 1.3;
           overflow: hidden;
           text-overflow: ellipsis;
+          font-family: "Roboto Condensed", sans-serif;
         }
 
         .service-description-compact {

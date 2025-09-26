@@ -359,7 +359,7 @@ useEffect(() => {
             <div ref={contentionsRef} className="content-section">
               {/* <div className="section-heading">PARTIES CONTENTIONS</div> */}
               <div className="section-text-parties">
-               <em><strong>Parties Contentions:</strong></em> {judgmentData.partiesContentions || 'Not available'}
+               <em><strong>Parties Contentions:</strong></em> {judgmentData.partiesContentions || ''}
               </div>
             </div>
 
@@ -367,7 +367,7 @@ useEffect(() => {
             <div ref={dispositionRef} className="content-section">
               {/* <div className="section-heading">DISPOSITION</div> */}
               <div className="section-text">
-                 <em><strong>Disposition: </strong></em>{judgmentData.disposition || 'Appeal dismissed'}
+                 <em><strong>Disposition: </strong></em>{judgmentData.disposition || ''}
               </div>
             </div>
 
@@ -376,7 +376,7 @@ useEffect(() => {
   <div className="section-text">
     {/* Disposition line */}
     <div className="disposition-line">
-      <em><strong>Disposition: </strong></em>{judgmentData.disposition || 'The appeal is dismissed.'}
+      <em><strong>Case Notes: </strong></em>{judgmentData.headnotes || ''}
     </div>
     
     {/* Case Notes Tabs */}
@@ -543,7 +543,7 @@ useEffect(() => {
         }
 
         .appellant-name, .respondent-name {
-          font-size: 1.25rem;
+          font-size: 1.65rem;
           font-weight: bold;
           margin: 0.3rem 0;
           color: #333;
@@ -623,7 +623,7 @@ useEffect(() => {
         .headnote-content {
           margin-bottom: 1rem;
           font-size: 1.25rem;
-          font-weight:300 !important;
+          font-weight:400 !important;
           font-style:normal;
         }
 

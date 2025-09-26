@@ -363,17 +363,17 @@ useEffect(() => {
     return content.length > 400 ? content.substring(0, 400) + '...' : content;
   };
 
-  const formatResultTitle = (result) => {
-    if (result.appellant && result.respondent) {
-      return `${result.appellant} vs ${result.respondent}`;
-    }
-    
-    if (result.keycode) {
-      return `Case ${result.keycode}`;
-    }
-    
-    return 'Legal Case';
-  };
+const formatResultTitle = (result) => {
+  if (result.appellant && result.respondent) {
+    return `${result.appellant} vs ${result.respondent}`;
+  }
+  
+  if (result.keycode) {
+    return `Case ${result.keycode}`;
+  }
+  
+  return 'Legal Case';
+};
 
   const formatCourt = (result) => {
     return result.court || 'Court not specified';
@@ -610,17 +610,24 @@ useEffect(() => {
             displayedResults.map((result, index) => (
               <div key={result.keycode || index} className="result-item">
                 <div className="result-header">
-                  <h3 
-                    className="result-title"
-                    onClick={(e) => handleJudgementClick(result.keycode, e)}
-                    style={{ 
-                      cursor: result.keycode ? 'pointer' : 'default',
-                      color: result.keycode ? 'var(--gj-primary)' : 'inherit'
-                    }}
-                    title={result.keycode ? 'Click to view full judgement' : ''}
-                  >
-                    {((currentPage - 1) * resultsPerPage) + index + 1}. {formatResultTitle(result)}
-                  </h3>
+           <h3 
+  className="result-title" 
+  onClick={(e) => handleJudgementClick(result.keycode, e)} 
+  style={{ 
+    cursor: result.keycode ? 'pointer' : 'default',
+    color: result.keycode ? 'var(--gj-primary)' : 'inherit'
+  }}
+  title={result.keycode ? 'Click to view full judgement' : ''}
+>
+  <div className="result-title-with-accuracy">
+    <span>
+      {((currentPage - 1) * resultsPerPage) + index + 1}. {formatResultTitle(result)}
+    </span>
+    <span className="accuracy-badge">
+      Accuracy: {(result.accuracyPercentage || 0).toFixed(1)}%
+    </span>
+  </div>
+</h3>
                 </div>
 
                 <div className="result-meta">
@@ -761,6 +768,22 @@ useEffect(() => {
           align-items: center;
           flex-wrap: wrap;
         }
+          .result-title-with-accuracy {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.accuracy-badge {
+  font-size: 0.85rem;
+  color: #28a745;
+  font-weight: 600;
+  background: rgba(40, 167, 69, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
 
         .act-search-input {
           padding: 0.5rem 0.75rem;

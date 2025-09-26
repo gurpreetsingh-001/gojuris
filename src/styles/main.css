@@ -5100,4 +5100,68 @@ footer hr {
     padding: 0.75rem 0.5rem;
   }
 }
+
+/* Add this to your existing <style jsx> block */
+.google-translate-hardcoded {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1060;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  border: 1px solid #dee2e6;
+  min-width: 200px;
+}
+
+.translate-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.translate-label i {
+  margin-right: 5px;
+}
+
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .google-translate-hardcoded {
+    top: 70px;
+    right: 10px;
+    min-width: 180px;
+    padding: 10px;
+  }
+}
+.language-selector {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #495057;
+  background-color: white;
+  cursor: pointer;
+  outline: none;
+}
+
+.language-selector:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
+}
+
+.language-selector option {
+  padding: 5px;
+}
 /* End of CSS file */

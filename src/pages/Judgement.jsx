@@ -6,6 +6,8 @@ import Navbar from '../components/Navbar';
 import RightSidebar from '../components/RightSidebar';
 import ApiService from '../services/apiService';
 
+
+
 const Judgement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -41,6 +43,30 @@ const [activeNotesTab, setActiveNotesTab] = useState('advocates');
     }
   }, [id]);
 
+  // Add this useEffect in your Judgement component
+useEffect(() => {
+  const initGoogleTranslate = () => {
+    if (window.google && window.google.translate) {
+      try {
+        new window.google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'hi,bn,te,ta,gu,kn,ml,mr,pa,or,as,ur,ne,si,my,th,vi,zh,ja,ko,fr,de,es,it,pt,ru,ar',
+          layout: window.google.translate.TranslateElement.InlineLayout.DROPDOWN,
+          autoDisplay: false
+        }, 'google_translate_element');
+      } catch (error) {
+        console.log('Google Translate initialization error:', error);
+      }
+    }
+  };
+
+  // Try to initialize after a delay
+  const timer = setTimeout(() => {
+    initGoogleTranslate();
+  }, 2000);
+
+  return () => clearTimeout(timer);
+}, [judgmentData]); // Re-run when judgment data loads
   const fetchJudgmentDetails = async (keycode) => {
     try {
       setIsLoading(true);
@@ -69,6 +95,8 @@ const [activeNotesTab, setActiveNotesTab] = useState('advocates');
       setIsLoading(false);
     }
   };
+
+  // Add this useEffect after your existing useEffects
 
   const scrollToSection = (sectionRef, tabName) => {
     setActiveTab(tabName);
@@ -109,6 +137,9 @@ const [activeNotesTab, setActiveNotesTab] = useState('advocates');
         <Sidebar />
         <div className="gojuris-main">
           <Navbar />
+
+        
+
           <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
             <div className="text-center">
               <i className="bx bx-loader bx-spin" style={{ fontSize: '2rem', color: 'var(--gj-primary)' }}></i>
@@ -127,6 +158,7 @@ const [activeNotesTab, setActiveNotesTab] = useState('advocates');
         <Sidebar />
         <div className="gojuris-main">
           <Navbar />
+              
           <div className="container mt-5">
             <div className="alert alert-danger">
               <i className="bx bx-error-circle me-2"></i>
@@ -159,7 +191,36 @@ const [activeNotesTab, setActiveNotesTab] = useState('advocates');
 
       <div className="gojuris-main">
         <Navbar />
-
+<div className="google-translate-hardcoded">
+  <div className="translate-label">
+    <i className="bx bx-world"></i> Language:
+  </div>
+  <select 
+    className="language-selector"
+    onChange={(e) => {
+      if (e.target.value) {
+        const currentURL = window.location.href;
+        const translateURL = `https://translate.google.com/translate?sl=en&tl=${e.target.value}&u=${encodeURIComponent(currentURL)}`;
+        window.open(translateURL, '_blank');
+      }
+    }}
+    defaultValue=""
+  >
+    <option value="">Select Language</option>
+    <option value="hi">हिंदी (Hindi)</option>
+    <option value="bn">বাংলা (Bengali)</option>
+    <option value="te">తెలుగు (Telugu)</option>
+    <option value="ta">தமிழ் (Tamil)</option>
+    <option value="gu">ગુજરાતી (Gujarati)</option>
+    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+    <option value="ml">മലയാളം (Malayalam)</option>
+    <option value="mr">मराठी (Marathi)</option>
+    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+    <option value="ur">اردو (Urdu)</option>
+    <option value="or">ଓଡିଆ (Odia)</option>
+    <option value="as">অসমীয়া (Assamese)</option>
+  </select>
+</div>
         {/* Back Button */}
         <div className="back-button-container">
           <button className="btn btn-outline-primary btn-sm" onClick={handleBackToResults}>

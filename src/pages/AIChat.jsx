@@ -16,6 +16,8 @@ const AIChat = () => {
   const [userProfile, setUserProfile] = useState(null);
   const messagesEndRef = useRef(null);
 
+const [recognition, setRecognition] = useState(null);
+
   useEffect(() => {
     document.body.style.paddingTop = '0';
     loadUserProfile();
@@ -37,6 +39,71 @@ const AIChat = () => {
       console.error('❌ Failed to load user profile:', error);
     }
   };
+
+  useEffect(() => {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognitionInstance = new SpeechRecognition();
+    
+    recognitionInstance.continuous = true;
+    recognitionInstance.interimResults = true;
+    recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
+    
+    recognitionInstance.onstart = () => {
+      setIsListening(true);
+    };
+    
+    recognitionInstance.onresult = (event) => {
+      let finalTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      
+      if (finalTranscript) {
+        setMessage(prev => prev + finalTranscript);
+      }
+    };
+    
+    recognitionInstance.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      
+      // Show user-friendly error messages
+      if (event.error === 'not-allowed') {
+        setError('Microphone access denied. Please allow microphone access and try again.');
+      } else if (event.error === 'no-speech') {
+        setError('No speech detected. Please try speaking again.');
+      } else {
+        setError('Speech recognition error. Please try again.');
+      }
+    };
+    
+    recognitionInstance.onend = () => {
+      setIsListening(false);
+    };
+    
+    setRecognition(recognitionInstance);
+  } else {
+    console.warn('Speech recognition not supported in this browser');
+  }
+}, []);
+
+const toggleVoiceRecognition = () => {
+  if (!recognition) {
+    setError('Speech recognition is not supported in your browser. Please try Chrome, Safari, or Edge.');
+    return;
+  }
+  
+  if (isListening) {
+    recognition.stop();
+  } else {
+    setError(''); // Clear any previous errors
+    recognition.start();
+  }
+};
 
   const quickQuestions = [
     "Whether the parliament has the right to change fundamental rights?",
@@ -621,14 +688,26 @@ const AIChat = () => {
               />
               <div className="input-buttons">
                 <button
-                  type="button"
-                  className={`voice-btn ${isListening ? 'listening' : ''}`}
-                  onClick={handleVoiceSearch}
-                  disabled={isLoading}
-                  title="Voice input"
-                >
-                  <i className="bx bx-microphone"></i>
-                </button>
+  type="button"
+  className={`voice-btn ${isListening ? 'listening' : ''}`}
+  onClick={toggleVoiceRecognition}
+  disabled={isLoading}
+  title={isListening ? 'Stop recording' : 'Start voice input'}
+>
+  {isListening ? (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+      {/* Add a red recording indicator */}
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3"/>
+    </svg>
+  ) : (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+    </svg>
+  )}
+</button>
                 <button
                   type="submit"
                   className="send-btn"
@@ -893,6 +972,50 @@ const AIChat = () => {
       opacity: 1;
     }
   }
+
+  .voice-btn.listening {
+  color: #EF4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% { 
+    transform: scale(1.05); 
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.voice-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Add visual indicator when listening */
+.voice-btn.listening::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #EF4444;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
       `}</style>
     </div>
   );

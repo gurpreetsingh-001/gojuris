@@ -56,19 +56,21 @@ const Keyword = () => {
 
       // Store results in sessionStorage with embedding vector for pagination
       const resultsData = {
+     results: apiResponse.hits || [],
+        totalCount: apiResponse.total || 0,
         query: searchQuery,
-        results: searchResults,
-        totalCount: totalCount,
-        searchType: 'Keyword Search',
+        searchType: 'Keyword Search', 
         timestamp: new Date().toISOString(),
-        originalApiResponse: {
-          total: apiResponse.total,
-          hits: apiResponse.hits
+        courtsList: apiResponse.courtsList || [], // ✅ Include this
+        yearList: apiResponse.yearList || [],     // ✅ Include this
+        searchData: {
+          query: searchQuery
+          
         }
-      };
+    };
 
-      console.log('💾 Storing results in sessionStorage');
-      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+    console.log('💾 Storing results with API data:', resultsData);
+    sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
 
       // Navigate to Results page
       console.log('🚀 Navigating to results page...');

@@ -66,7 +66,37 @@ useEffect(() => {
   }, 2000);
 
   return () => clearTimeout(timer);
-}, [judgmentData]); // Re-run when judgment data loads
+}, [judgmentData]); 
+
+// In Judgement.jsx - Add keyboard navigation
+useEffect(() => {
+  const handleKeyPress = (event) => {
+    if (event.ctrlKey || event.metaKey) {
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          // Trigger previous judgement
+          const prevBtn = document.querySelector('[data-action="previous"]');
+          if (prevBtn && !prevBtn.disabled) {
+            prevBtn.click();
+          }
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          // Trigger next judgement
+          const nextBtn = document.querySelector('[data-action="next"]');
+          if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+          }
+          break;
+      }
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyPress);
+  return () => window.removeEventListener('keydown', handleKeyPress);
+}, []);
+
   const fetchJudgmentDetails = async (keycode) => {
     try {
       setIsLoading(true);

@@ -1,9 +1,109 @@
-// src/pages/Results.jsx - Complete working version with filters
+// src/pages/Results.jsx - Complete working version with searchable dropdowns
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ApiService from '../services/apiService';
+
+// Searchable Dropdown Component
+const SearchableDropdown = ({ 
+  items, 
+  selectedItem, 
+  onSelect, 
+  isOpen, 
+  onToggle, 
+  placeholder,
+  icon,
+  className = ""
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter items based on search term
+  const filteredItems = items.filter(item =>
+    item.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Clear search term when dropdown closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSearchTerm('');
+    }
+  }, [isOpen]);
+
+  const handleItemSelect = (item) => {
+    onSelect(item);
+    setSearchTerm('');
+    onToggle(false);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    e.stopPropagation();
+    
+    if (e.key === 'Enter' && filteredItems.length > 0) {
+      handleItemSelect(filteredItems[0]);
+    }
+  };
+
+  return (
+    <div className={`dropdown-container ${className}`}>
+      <button 
+        className="filter-btn dropdown-toggle"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle(!isOpen);
+        }}
+      >
+        {icon && <i className={`${icon} me-1`}></i>}
+        {selectedItem}
+      </button>
+      
+      {isOpen && (
+        <div className="dropdown-menu searchable-dropdown" style={{ display: 'block' }}>
+          {/* Search Input */}
+          <div className="dropdown-search-wrapper">
+            <input
+              type="text"
+              className="dropdown-search-input"
+              placeholder={`Search ${placeholder?.toLowerCase()}...`}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleSearchKeyDown}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+            />
+            <i className="bx bx-search dropdown-search-icon"></i>
+          </div>
+
+          {/* Filtered Options */}
+          <div className="dropdown-options-container">
+            {filteredItems.length === 0 ? (
+              <div className="no-results">No results found</div>
+            ) : (
+              filteredItems.map((item, index) => (
+                <button
+                  key={`${item}-${index}`}
+                  className={`dropdown-item ${item === selectedItem ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleItemSelect(item);
+                  }}
+                >
+                  {item}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Results = () => {
   const navigate = useNavigate();
@@ -27,10 +127,14 @@ const Results = () => {
   const [refineText, setRefineText] = useState('');
   const [selectedYear, setSelectedYear] = useState('All Years');
   const [selectedCourt, setSelectedCourt] = useState('All Courts');
-  const [availableYears, setAvailableYears] = useState([]);
-  const [availableCourts, setAvailableCourts] = useState([]);
+  const [availableYears, setAvailableYears] = useState(['All Years']);
+  const [availableCourts, setAvailableCourts] = useState(['All Courts']);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [showCourtDropdown, setShowCourtDropdown] = useState(false);
+
+  // API response data
+  const [apiCourtsList, setApiCourtsList] = useState([]);
+  const [apiYearsList, setApiYearsList] = useState([]);
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -57,8 +161,8 @@ const Results = () => {
         setEmbeddingVector(resultsData.embeddingVector || null);
         setSearchData(resultsData.searchData || null);
         
-        // Extract unique years and courts from results
-        extractFiltersFromResults(results);
+        // NEW: Extract filters from API response
+        extractFiltersFromApiResponse(resultsData);
         
       } catch (error) {
         console.error('Failed to parse search results:', error);
@@ -73,7 +177,82 @@ const Results = () => {
     setIsLoading(false);
   }, [navigate]);
 
-  // Extract unique years and courts with normalization
+  // NEW: Extract filter options from API response
+  // Updated extractFiltersFromApiResponse function in Results.jsx
+const extractFiltersFromApiResponse = (resultsData) => {
+  console.log('🔍 Extracting filters from API response:', resultsData);
+  
+  // Extract years from yearList (API response format)
+  if (resultsData.yearList && Array.isArray(resultsData.yearList)) {
+    const years = resultsData.yearList
+      .map(item => item.key)
+      .sort((a, b) => b - a); // Sort newest first
+    
+    setApiYearsList(resultsData.yearList);
+    setAvailableYears(['All Years', ...years]);
+    console.log('📅 Available years from API:', years);
+  } else {
+    // Fallback: extract from results
+    extractFiltersFromResults(resultsData.results || []);
+  }
+  
+  // Extract courts from courtsList (API response format)
+  if (resultsData.courtsList && Array.isArray(resultsData.courtsList)) {
+    // Enhanced court mapping with more comprehensive list
+    const courtMap = {
+      'SC': 'Supreme Court Of India',
+      'PHHC': 'Punjab And Haryana High Court',
+      'JK': 'Jammu And Kashmir High Court', 
+      'BOM': 'Bombay High Court',
+      'DEL': 'Delhi High Court',
+      'CAL': 'Calcutta High Court',
+      'MAD': 'Madras High Court',
+      'KAR': 'Karnataka High Court',
+      'AP': 'Andhra Pradesh High Court',
+      'TEL': 'Telangana High Court',
+      'GUJ': 'Gujarat High Court',
+      'RAJ': 'Rajasthan High Court',
+      'MP': 'Madhya Pradesh High Court',
+      'CHH': 'Chhattisgarh High Court',
+      'ORI': 'Orissa High Court',
+      'JHA': 'Jharkhand High Court',
+      'BIH': 'Patna High Court',
+      'ALL': 'Allahabad High Court',
+      'UK': 'Uttarakhand High Court',
+      'HP': 'Himachal Pradesh High Court',
+      'MAN': 'Manipur High Court',
+      'MEG': 'Meghalaya High Court',
+      'TRI': 'Tripura High Court',
+      'SIK': 'Sikkim High Court',
+      'GAU': 'Gauhati High Court',
+      'KER': 'Kerala High Court'
+    };
+    
+    const courts = resultsData.courtsList
+      .map(item => {
+        const courtName = courtMap[item.key] || item.key;
+        return {
+          key: item.key,
+          name: courtName,
+          count: item.count
+        };
+      })
+      .sort((a, b) => b.count - a.count); // Sort by count (highest first)
+    
+    setApiCourtsList(resultsData.courtsList);
+    
+    // Use only the court names for the dropdown
+    const courtNames = courts.map(court => court.name);
+    setAvailableCourts(['All Courts', ...courtNames]);
+    
+    console.log('🏛️ Available courts from API:', courts);
+  } else {
+    // Fallback: extract from results
+    extractFiltersFromResults(resultsData.results || []);
+  }
+};
+
+  // Extract unique years and courts with normalization (fallback)
   const extractFiltersFromResults = (results) => {
     const years = new Set();
     const courts = new Set();
@@ -122,111 +301,144 @@ const Results = () => {
   };
 
   // Apply filters with better logic
-  // FIXED: Apply filters with API pagination support
-// FIXED: Apply filters that work with API pagination
-useEffect(() => {
-  const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
-  
-  if (hasFilters) {
-    // When filters are applied, we need to go back to page 1 and search the full dataset
-    // This is because we can't filter API results locally - we only have 25 results at a time
+  useEffect(() => {
+    const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
     
-    if (currentPage > 1) {
-      console.log('Filter applied on page > 1, resetting to page 1');
-      setCurrentPage(1);
-      return; // Let the page change handle the filtering
-    }
-    
-    // Apply filters to page 1 results
-    let filtered = [...allResults];
+    if (hasFilters) {
+      // When filters are applied, we need to go back to page 1 and search the full dataset
+      // This is because we can't filter API results locally - we only have 25 results at a time
+      
+      if (currentPage > 1) {
+        console.log('Filter applied on page > 1, resetting to page 1');
+        setCurrentPage(1);
+        return; // Let the page change handle the filtering
+      }
+      
+      // Apply filters to page 1 results
+      let filtered = [...allResults];
 
-    // Apply refine text filter
-    if (refineText && refineText.trim()) {
-      const searchTerm = refineText.trim().toLowerCase();
-      filtered = filtered.filter(result => {
-        const title = formatResultTitle(result).toLowerCase();
-        const court = (result.court || '').toLowerCase();
-        const content = formatResultContent(result).toLowerCase();
-        const date = formatDate(result).toLowerCase();
-        
-        return title.includes(searchTerm) || 
-               court.includes(searchTerm) || 
-               content.includes(searchTerm) ||
-               date.includes(searchTerm);
-      });
-    }
-
-    // Apply year filter
-    if (selectedYear && selectedYear !== 'All Years') {
-      filtered = filtered.filter(result => {
-        if (!result.date) return false;
-        
-        try {
-          const dateStr = result.date.toString();
-          let resultYear = null;
+      // Apply refine text filter
+      if (refineText && refineText.trim()) {
+        const searchTerm = refineText.trim().toLowerCase();
+        filtered = filtered.filter(result => {
+          const title = formatResultTitle(result).toLowerCase();
+          const court = (result.court || '').toLowerCase();
+          const content = formatResultContent(result).toLowerCase();
+          const date = formatDate(result).toLowerCase();
           
-          if (dateStr.length === 8) {
-            resultYear = dateStr.substring(0, 4);
-          } else if (dateStr.includes('/')) {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-              resultYear = parts[2];
+          return title.includes(searchTerm) || 
+                 court.includes(searchTerm) || 
+                 content.includes(searchTerm) ||
+                 date.includes(searchTerm);
+        });
+      }
+
+      // Apply year filter
+      if (selectedYear && selectedYear !== 'All Years') {
+        filtered = filtered.filter(result => {
+          if (!result.date) return false;
+          
+          try {
+            const dateStr = result.date.toString();
+            let resultYear = null;
+            
+            if (dateStr.length === 8) {
+              resultYear = dateStr.substring(0, 4);
+            } else if (dateStr.includes('/')) {
+              const parts = dateStr.split('/');
+              if (parts.length === 3) {
+                resultYear = parts[2];
+              }
+            } else if (dateStr.includes('-')) {
+              resultYear = dateStr.split('-')[0];
             }
-          } else if (dateStr.includes('-')) {
-            resultYear = dateStr.split('-')[0];
+            
+            return resultYear === selectedYear;
+          } catch (error) {
+            return false;
           }
-          
-          return resultYear === selectedYear;
-        } catch (error) {
-          return false;
-        }
-      });
-    }
+        });
+      }
 
-    // Apply court filter with normalization
-    if (selectedCourt && selectedCourt !== 'All Courts') {
-      filtered = filtered.filter(result => {
-        if (!result.court) return false;
-        
-        const resultCourt = result.court.trim().toLowerCase()
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-        return resultCourt === selectedCourt;
-      });
-    }
-
-    console.log(`Filters applied: ${filtered.length} results from ${allResults.length} total`);
-    setFilteredResults(filtered);
-  } else {
-    // No filters - use all results
-    setFilteredResults(allResults);
-  }
-}, [refineText, selectedYear, selectedCourt, allResults, currentPage]);
-
-// FIXED: Update pagination to handle filter resets
-useEffect(() => {
-  const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
-  
-  if (hasFilters) {
-    // Use filtered results for pagination (local only)
-    const total = Math.ceil(filteredResults.length / resultsPerPage);
-    setTotalPages(total);
+      // Apply court filter with normalization
+      // In pages/Results.jsx - Update the court filtering logic in the useEffect
+// Apply court filter with API court mapping
+if (selectedCourt && selectedCourt !== 'All Courts') {
+  filtered = filtered.filter(result => {
+    if (!result.court) return false;
     
-    const startIndex = (currentPage - 1) * resultsPerPage;
-    const endIndex = startIndex + resultsPerPage;
-    setDisplayedResults(filteredResults.slice(startIndex, endIndex));
-  } else {
-    // Use total API results for pagination
-    const total = Math.ceil(totalResults / resultsPerPage);
-    setTotalPages(total);
+    // Create reverse mapping from display names to API abbreviations
+    const displayToApiMap = {
+      'Supreme Court Of India': ['SC', 'SUPREME COURT OF INDIA'],
+      'Bombay High Court': ['BOM', 'BOMBAY HIGH COURT'],
+      'Punjab And Haryana High Court': ['PHHC', 'PUNJAB AND HARYANA HIGH COURT', 'PUNJAB & HARYANA HIGH COURT'],
+      'Jammu And Kashmir High Court': ['JK', 'JAMMU AND KASHMIR HIGH COURT', 'JAMMU & KASHMIR HIGH COURT'],
+      'Delhi High Court': ['DEL', 'DELHI HIGH COURT'],
+      'Calcutta High Court': ['CAL', 'CALCUTTA HIGH COURT'],
+      'Madras High Court': ['MAD', 'MADRAS HIGH COURT'],
+      'Karnataka High Court': ['KAR', 'KARNATAKA HIGH COURT'],
+      'Andhra Pradesh High Court': ['AP', 'ANDHRA PRADESH HIGH COURT'],
+      'Telangana High Court': ['TEL', 'TELANGANA HIGH COURT'],
+      'Gujarat High Court': ['GUJ', 'GUJARAT HIGH COURT'],
+      'Rajasthan High Court': ['RAJ', 'RAJASTHAN HIGH COURT'],
+      'Madhya Pradesh High Court': ['MP', 'MADHYA PRADESH HIGH COURT'],
+      'Chhattisgarh High Court': ['CHH', 'CHHATTISGARH HIGH COURT'],
+      'Orissa High Court': ['ORI', 'ORISSA HIGH COURT'],
+      'Jharkhand High Court': ['JHA', 'JHARKHAND HIGH COURT'],
+      'Patna High Court': ['BIH', 'PATNA HIGH COURT'],
+      'Allahabad High Court': ['ALL', 'ALLAHABAD HIGH COURT'],
+      'Uttarakhand High Court': ['UK', 'UTTARAKHAND HIGH COURT'],
+      'Himachal Pradesh High Court': ['HP', 'HIMACHAL PRADESH HIGH COURT'],
+      'Manipur High Court': ['MAN', 'MANIPUR HIGH COURT'],
+      'Meghalaya High Court': ['MEG', 'MEGHALAYA HIGH COURT'],
+      'Tripura High Court': ['TRI', 'TRIPURA HIGH COURT'],
+      'Sikkim High Court': ['SIK', 'SIKKIM HIGH COURT'],
+      'Gauhati High Court': ['GAU', 'GAUHATI HIGH COURT'],
+      'Kerala High Court': ['KER', 'KERALA HIGH COURT']
+    };
     
-    // Only update displayedResults if we're on page 1 or if we just cleared filters
-    if (currentPage === 1 && allResults.length > 0) {
-      setDisplayedResults(allResults);
+    const resultCourtUpper = result.court.toUpperCase().trim();
+    const possibleMatches = displayToApiMap[selectedCourt] || [selectedCourt.toUpperCase()];
+    
+    // Check if result court matches any of the possible variations
+    return possibleMatches.some(match => 
+      resultCourtUpper.includes(match) || match.includes(resultCourtUpper)
+    );
+  });
+}
+
+      console.log(`Filters applied: ${filtered.length} results from ${allResults.length} total`);
+      setFilteredResults(filtered);
+    } else {
+      // No filters - use all results
+      setFilteredResults(allResults);
     }
-  }
-}, [filteredResults, currentPage, resultsPerPage, totalResults]);
+  }, [refineText, selectedYear, selectedCourt, allResults, currentPage]);
+
+  // Update pagination to handle filter resets
+  useEffect(() => {
+    const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
+    
+    if (hasFilters) {
+      // Use filtered results for pagination (local only)
+      const total = Math.ceil(filteredResults.length / resultsPerPage);
+      setTotalPages(total);
+      
+      const startIndex = (currentPage - 1) * resultsPerPage;
+      const endIndex = startIndex + resultsPerPage;
+      setDisplayedResults(filteredResults.slice(startIndex, endIndex));
+    } else {
+      // Use total API results for pagination
+      const total = Math.ceil(totalResults / resultsPerPage);
+      setTotalPages(total);
+      
+      // Only update displayedResults if we're on page 1 or if we just cleared filters
+      if (currentPage === 1 && allResults.length > 0) {
+        setDisplayedResults(allResults);
+      }
+    }
+  }, [filteredResults, currentPage, resultsPerPage, totalResults]);
+
   // Handle pagination with API calls
   const handlePageChange = async (page) => {
     if (page >= 1 && page <= totalPages && !isLoading) {
@@ -363,17 +575,17 @@ useEffect(() => {
     return content.length > 400 ? content.substring(0, 400) + '...' : content;
   };
 
-const formatResultTitle = (result) => {
-  if (result.appellant && result.respondent) {
-    return `${result.appellant} vs ${result.respondent}`;
-  }
-  
-  if (result.keycode) {
-    return `Case ${result.keycode}`;
-  }
-  
-  return 'Legal Case';
-};
+  const formatResultTitle = (result) => {
+    if (result.appellant && result.respondent) {
+      return `${result.appellant} vs ${result.respondent}`;
+    }
+    
+    if (result.keycode) {
+      return `Case ${result.keycode}`;
+    }
+    
+    return 'Legal Case';
+  };
 
   const formatCourt = (result) => {
     return result.court || 'Court not specified';
@@ -397,16 +609,33 @@ const formatResultTitle = (result) => {
     return 'Date not available';
   };
 
-  const handleJudgementClick = (keycode, event) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
+  // In Results.jsx - Update the handleJudgementClick function
+const handleJudgementClick = (keycode, event) => {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
+  if (keycode) {
+    // Store navigation data for judgement page
+    const currentIndex = displayedResults.findIndex(result => result.keycode === keycode);
+    const navigationData = {
+      currentIndex: currentIndex,
+      results: displayedResults.map(result => ({
+        keycode: result.keycode,
+        title: formatResultTitle(result),
+        court: result.court,
+        date: result.date
+      })),
+      searchQuery: searchQuery,
+      totalResults: totalResults,
+      currentPage: currentPage
+    };
     
-    if (keycode) {
-      navigate(`/judgement/${keycode}`);
-    }
-  };
+    sessionStorage.setItem('judgementNavigation', JSON.stringify(navigationData));
+    navigate(`/judgement/${keycode}`);
+  }
+};
 
   const highlightText = (text, query) => {
     if (!text || !query) return { __html: text };
@@ -507,77 +736,41 @@ const formatResultTitle = (result) => {
               Refine
             </button>
             
-          {/* WORKING Year Dropdown */}
-<div className="dropdown-container">
-  <button 
-    className="filter-btn dropdown-toggle"
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Year dropdown clicked, current state:', showYearDropdown);
-      setShowYearDropdown(!showYearDropdown);
-      setShowCourtDropdown(false);
-    }}
-  >
-    <i className="bx bx-calendar me-1"></i>
-    {selectedYear}
-  </button>
-  {showYearDropdown && (
-    <div className="dropdown-menu" style={{ display: 'block' }}>
-      {availableYears.map((year, index) => (
-        <button
-          key={`year-${index}`}
-          className={`dropdown-item ${year === selectedYear ? 'active' : ''}`}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Year selected:', year);
-            setSelectedYear(year);
-            setShowYearDropdown(false);
-          }}
-        >
-          {year}
-        </button>
-      ))}
-    </div>
-  )}
-</div>
+            {/* NEW: Searchable Year Dropdown */}
+            <SearchableDropdown
+              items={availableYears}
+              selectedItem={selectedYear}
+              onSelect={(year) => {
+                console.log('Year selected:', year);
+                setSelectedYear(year);
+                setShowCourtDropdown(false);
+              }}
+              isOpen={showYearDropdown}
+              onToggle={(isOpen) => {
+                setShowYearDropdown(isOpen);
+                if (isOpen) setShowCourtDropdown(false);
+              }}
+              placeholder="years"
+              icon="bx bx-calendar"
+            />
 
-{/* WORKING Court Dropdown */}
-<div className="dropdown-container">
-  <button 
-    className="filter-btn dropdown-toggle"
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Court dropdown clicked, current state:', showCourtDropdown);
-      setShowCourtDropdown(!showCourtDropdown);
-      setShowYearDropdown(false);
-    }}
-  >
-    <i className="bx bx-building me-1"></i>
-    {selectedCourt}
-  </button>
-  {showCourtDropdown && (
-    <div className="dropdown-menu" style={{ display: 'block' }}>
-      {availableCourts.map((court, index) => (
-        <button
-          key={`court-${index}`}
-          className={`dropdown-item ${court === selectedCourt ? 'active' : ''}`}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Court selected:', court);
-            setSelectedCourt(court);
-            setShowCourtDropdown(false);
-          }}
-        >
-          {court}
-        </button>
-      ))}
-    </div>
-  )}
-</div>
+            {/* NEW: Searchable Court Dropdown */}
+            <SearchableDropdown
+              items={availableCourts}
+              selectedItem={selectedCourt}
+              onSelect={(court) => {
+                console.log('Court selected:', court);
+                setSelectedCourt(court);
+                setShowYearDropdown(false);
+              }}
+              isOpen={showCourtDropdown}
+              onToggle={(isOpen) => {
+                setShowCourtDropdown(isOpen);
+                if (isOpen) setShowYearDropdown(false);
+              }}
+              placeholder="courts"
+              icon="bx bx-building"
+            />
             
             <button className="filter-btn">
               <i className="bx bx-history me-1"></i>
@@ -610,24 +803,24 @@ const formatResultTitle = (result) => {
             displayedResults.map((result, index) => (
               <div key={result.keycode || index} className="result-item">
                 <div className="result-header">
-           <h3 
-  className="result-title" 
-  onClick={(e) => handleJudgementClick(result.keycode, e)} 
-  style={{ 
-    cursor: result.keycode ? 'pointer' : 'default',
-    color: result.keycode ? 'var(--gj-primary)' : 'inherit'
-  }}
-  title={result.keycode ? 'Click to view full judgement' : ''}
->
-  <div className="result-title-with-accuracy">
-    <span>
-      {((currentPage - 1) * resultsPerPage) + index + 1}. {formatResultTitle(result)}
-    </span>
-    <span className="accuracy-badge">
-      Accuracy: {(result.accuracyPercentage || 0).toFixed(1)}%
-    </span>
-  </div>
-</h3>
+                  <h3 
+                    className="result-title" 
+                    onClick={(e) => handleJudgementClick(result.keycode, e)} 
+                    style={{ 
+                      cursor: result.keycode ? 'pointer' : 'default',
+                      color: result.keycode ? 'var(--gj-primary)' : 'inherit'
+                    }}
+                    title={result.keycode ? 'Click to view full judgement' : ''}
+                  >
+                    <div className="result-title-with-accuracy">
+                      <span>
+                        {((currentPage - 1) * resultsPerPage) + index + 1}. {formatResultTitle(result)}
+                      </span>
+                      <span className="accuracy-badge">
+                        Accuracy: {(result.accuracyPercentage || 0).toFixed(1)}%
+                      </span>
+                    </div>
+                  </h3>
                 </div>
 
                 <div className="result-meta">
@@ -768,22 +961,23 @@ const formatResultTitle = (result) => {
           align-items: center;
           flex-wrap: wrap;
         }
-          .result-title-with-accuracy {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
 
-.accuracy-badge {
-  font-size: 0.85rem;
-  color: #28a745;
-  font-weight: 600;
-  background: rgba(40, 167, 69, 0.1);
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
+        .result-title-with-accuracy {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+
+        .accuracy-badge {
+          font-size: 0.85rem;
+          color: #28a745;
+          font-weight: 600;
+          background: rgba(40, 167, 69, 0.1);
+          padding: 0.2rem 0.6rem;
+          border-radius: 12px;
+          flex-shrink: 0;
+        }
 
         .act-search-input {
           padding: 0.5rem 0.75rem;
@@ -852,6 +1046,59 @@ const formatResultTitle = (result) => {
           overflow-y: auto;
         }
 
+        /* NEW: Searchable dropdown styles */
+        .searchable-dropdown {
+          padding: 0;
+          min-width: 250px;
+        }
+
+        .dropdown-search-wrapper {
+          position: relative;
+          padding: 8px;
+          border-bottom: 1px solid #dee2e6;
+          background: #f8f9fa;
+        }
+
+        .dropdown-search-input {
+          width: 100%;
+          padding: 6px 10px 6px 28px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 13px;
+          outline: none;
+          background: white;
+          transition: border-color 0.2s ease;
+        }
+
+        .dropdown-search-input:focus {
+          border-color: var(--gj-primary);
+          box-shadow: 0 0 0 2px rgba(var(--gj-primary-rgb), 0.1);
+        }
+
+        .dropdown-search-icon {
+          position: absolute;
+          left: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #6c757d;
+          font-size: 14px;
+          pointer-events: none;
+        }
+
+        .dropdown-options-container {
+          max-height: 200px;
+          overflow-y: auto;
+          padding: 4px 0;
+        }
+
+        .no-results {
+          padding: 10px 12px;
+          color: #6c757d;
+          font-style: italic;
+          text-align: center;
+          font-size: 13px;
+        }
+
         .dropdown-item {
           width: 100%;
           padding: 0.5rem 0.75rem;
@@ -861,6 +1108,7 @@ const formatResultTitle = (result) => {
           cursor: pointer;
           font-size: 0.875rem;
           transition: background 0.2s ease;
+          border-bottom: 1px solid #f0f0f0;
         }
 
         .dropdown-item:hover {
@@ -957,8 +1205,38 @@ const formatResultTitle = (result) => {
 
         .read-judgement:hover {
           background: #8b5cf6;
-          color:#fff;
+          color: #fff;
           transform: translateY(-1px);
+        }
+
+        /* Dark mode support */
+        [data-theme="dark"] .dropdown-search-wrapper {
+          background: var(--si-secondary);
+          border-bottom-color: #334155;
+        }
+
+        [data-theme="dark"] .dropdown-search-input {
+          background: var(--si-secondary);
+          border-color: #334155;
+          color: var(--si-dark);
+        }
+
+        [data-theme="dark"] .dropdown-search-input:focus {
+          border-color: var(--gj-primary);
+        }
+
+        [data-theme="dark"] .dropdown-item {
+          background: var(--si-secondary);
+          color: var(--si-dark);
+          border-bottom-color: #334155;
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+          background: #334155;
+        }
+
+        [data-theme="dark"] .no-results {
+          color: #94a3b8;
         }
 
         @media (max-width: 768px) {
@@ -1008,6 +1286,10 @@ const formatResultTitle = (result) => {
             transform: translate(-50%, -50%);
             width: 90%;
             max-width: 300px;
+          }
+
+          .searchable-dropdown {
+            min-width: 200px;
           }
         }
       `}</style>

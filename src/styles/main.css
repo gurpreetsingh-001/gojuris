@@ -5170,3 +5170,287 @@ body {
   padding: 5px;
 }
 /* End of CSS file */
+
+/* Add this to your styles/main.css file */
+
+/* Searchable Dropdown Styles */
+.searchable-dropdown {
+  padding: 0;
+  overflow: visible;
+}
+
+.dropdown-search-wrapper {
+  position: relative;
+  padding: 8px;
+  border-bottom: 1px solid var(--gj-border);
+  background: #f8f9fa;
+}
+
+.dropdown-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid var(--gj-border);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.dropdown-search-input:focus {
+  border-color: var(--gj-primary);
+  box-shadow: 0 0 0 2px rgba(var(--gj-primary-rgb), 0.1);
+}
+
+.dropdown-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gj-gray);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.dropdown-options-container {
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.no-results {
+  padding: 12px 16px;
+  color: var(--gj-gray);
+  font-style: italic;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Enhance existing citation dropdown styles */
+.citation-dropdown {
+  max-height: 240px; /* Increased to accommodate search input */
+}
+
+/* Dark mode support */
+[data-theme="dark"] .dropdown-search-wrapper {
+  background: var(--si-secondary);
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .dropdown-search-input {
+  background: var(--si-secondary);
+  border-color: #334155;
+  color: var(--si-dark);
+}
+
+[data-theme="dark"] .dropdown-search-input:focus {
+  border-color: var(--gj-primary);
+}
+
+[data-theme="dark"] .no-results {
+  color: #94a3b8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dropdown-search-input {
+    padding: 6px 10px 6px 28px;
+    font-size: 13px;
+  }
+  
+  .dropdown-search-icon {
+    left: 14px;
+    font-size: 14px;
+  }
+  
+  .dropdown-options-container {
+    max-height: 140px;
+  }
+}
+/* Add these styles to your existing CSS file */
+
+/* Searchable Dropdown Styles */
+.searchable-dropdown {
+  padding: 0;
+  overflow: visible;
+}
+
+.dropdown-search-wrapper {
+  position: relative;
+  padding: 8px;
+  border-bottom: 1px solid var(--gj-border);
+  background: #f8f9fa;
+}
+
+.dropdown-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid var(--gj-border);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.dropdown-search-input:focus {
+  border-color: var(--gj-primary);
+  box-shadow: 0 0 0 2px rgba(var(--gj-primary-rgb), 0.1);
+}
+
+.dropdown-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gj-gray);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.dropdown-options-container {
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.no-results {
+  padding: 12px 16px;
+  color: var(--gj-gray);
+  font-style: italic;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Enhance existing citation dropdown styles */
+.citation-dropdown {
+  max-height: 240px; /* Increased to accommodate search input */
+}
+
+/* Dark mode support */
+[data-theme="dark"] .dropdown-search-wrapper {
+  background: var(--si-secondary);
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .dropdown-search-input {
+  background: var(--si-secondary);
+  border-color: #334155;
+  color: var(--si-dark);
+}
+
+[data-theme="dark"] .dropdown-search-input:focus {
+  border-color: var(--gj-primary);
+}
+
+[data-theme="dark"] .no-results {
+  color: #94a3b8;
+}
+
+
+
+
+/*RESULT PAGE DROPDOWN*/
+
+/* Add this to your styles/main.css */
+
+/* Searchable Results Dropdown Styles */
+.searchable-results-dropdown {
+  padding: 0 !important;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.searchable-results-dropdown .dropdown-search-wrapper {
+  position: relative;
+  padding: 8px;
+  border-bottom: 1px solid #e1e5e9;
+  background: #f8f9fa;
+}
+
+.searchable-results-dropdown .dropdown-search-input {
+  width: 100%;
+  padding: 6px 10px 6px 28px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.searchable-results-dropdown .dropdown-search-input:focus {
+  border-color: var(--gj-primary);
+  box-shadow: 0 0 0 2px rgba(var(--gj-primary-rgb), 0.1);
+}
+
+.searchable-results-dropdown .dropdown-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.searchable-results-dropdown .dropdown-options-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.searchable-results-dropdown .no-results {
+  padding: 10px 12px;
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+  font-size: 13px;
+}
+
+.searchable-results-dropdown .dropdown-item {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.searchable-results-dropdown .dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.searchable-results-dropdown .dropdown-item.active {
+  background: var(--gj-primary);
+  color: white;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .searchable-results-dropdown .dropdown-search-wrapper {
+  background: var(--si-secondary);
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .searchable-results-dropdown .dropdown-search-input {
+  background: var(--si-secondary);
+  border-color: #334155;
+  color: var(--si-dark);
+}
+
+[data-theme="dark"] .searchable-results-dropdown .dropdown-search-input:focus {
+  border-color: var(--gj-primary);
+}
+
+[data-theme="dark"] .searchable-results-dropdown .dropdown-item {
+  background: var(--si-secondary);
+  color: var(--si-dark);
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .searchable-results-dropdown .dropdown-item:hover {
+  background: #334155;
+}

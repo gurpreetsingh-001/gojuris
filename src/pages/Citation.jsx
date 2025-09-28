@@ -1,8 +1,9 @@
-// src/pages/Citation.jsx
+// pages/Citation.jsx - Updated to keep ALL existing API functionality
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import SearchableDropdown from '../components/SearchableDropdown';
 import ApiService from '../services/apiService';
 
 const Citation = () => {
@@ -232,94 +233,68 @@ const Citation = () => {
     setIsCourtOpen(false);
   };
 
-  const handleSearch = async (type) => {
-    console.log('Search type:', type);
+ // In pages/Citation.jsx - Update the handleSearch function
+const handleSearch = async (type) => {
+  console.log('Search type:', type);
 
-    // Validate required fields
-    if (selectedJournal === 'Select a option') {
-      alert('Please select a journal');
-      return;
-    }
+  // Validate required fields
+  if (selectedJournal === 'Select a option') {
+    alert('Please select a journal');
+    return;
+  }
 
-    // Collect search data
-    const searchData = {
-      journal: selectedJournal,
-      year: selectedYear !== 'Select a option' ? selectedYear : null,
-      volume: selectedVolume !== 'Select a option' ? selectedVolume : null,
-      page: selectedPage !== 'Select a option' ? selectedPage : null,
-      court: selectedCourt !== 'All Courts Selected' ? selectedCourt : null,
-      searchType: type
+  // Collect search data
+  const searchData = {
+    journal: selectedJournal,
+    year: selectedYear !== 'Select a option' ? selectedYear : null,
+    volume: selectedVolume !== 'Select a option' ? selectedVolume : null,
+    page: selectedPage !== 'Select a option' ? selectedPage : null,
+    court: selectedCourt !== 'All Courts Selected' ? selectedCourt : null,
+    searchType: type
+  };
+
+  console.log('🔍 Citation search data:', searchData);
+
+  try {
+    setIsLoading(true);
+
+    // Use the citation search API endpoint: /Judgement/Search
+    const apiResponse = await ApiService.searchCitation(searchData);
+
+    console.log('✅ Citation Search Results:', apiResponse);
+
+    // Handle the exact API structure
+    const searchResults = apiResponse.hits || [];
+    const totalCount = apiResponse.total || 0;
+    const courtsList = apiResponse.courtsList || [];
+    const yearList = apiResponse.yearList || [];
+
+    // ✅ Store results with COMPLETE API response data
+    const resultsData = {
+      results: searchResults,
+      totalCount: totalCount,
+      query: `${searchData.journal} ${searchData.year || ''} ${searchData.volume || ''} ${searchData.page || ''}`.trim(),
+      searchType: 'Citation Search',
+      timestamp: new Date().toISOString(),
+      // ✅ IMPORTANT: Include API filter data
+      courtsList: courtsList,
+      yearList: yearList,
+      searchData: searchData
     };
 
-    console.log('🔍 Citation search data:', searchData);
+    console.log('💾 Storing citation results with API filter data:', resultsData);
+    sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
 
-    try {
-      setIsLoading(true);
+    // Navigate to results page
+    navigate('/results');
 
-      // Use the new citation search API (NO EMBEDDINGS)
-      const results = await ApiService.searchCitation(searchData);
-
-      console.log('✅ Citation Search Results:', results);
-
-      // Store results in sessionStorage (same format as other searches)
-      const resultsData = {
-        results: results.hits || [],
-        totalCount: results.total || 0,
-        query: `${searchData.journal} ${searchData.year || ''} ${searchData.volume || ''} ${searchData.page || ''}`.trim(),
-        searchType: 'Citation Search',
-        timestamp: new Date().toISOString(),
-        searchData: searchData
-      };
-
-      console.log('💾 Storing citation results in sessionStorage:', resultsData);
-      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
-
-      // Navigate to results page
-      navigate('/results');
-
-    } catch (error) {
-      console.error('Citation search failed:', error);
-      alert(`Citation search failed: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const renderDropdown = (isOpen, items, onSelect, isLoading, error, loadingText) => {
-    if (isLoading) {
-      return (
-        <div className="citation-dropdown">
-          <div className="citation-loading">{loadingText}</div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="citation-dropdown">
-          <div className="citation-error">Error: {error}</div>
-        </div>
-      );
-    }
-
-    if (!isOpen || items.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="citation-dropdown">
-        {items.map((item) => (
-          <button
-            key={item}
-            className="citation-option"
-            onClick={() => onSelect(item)}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
-    );
-  };
+  } catch (error) {
+    console.error('Citation search failed:', error);
+    alert(`Citation search failed: ${error.message}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="gojuris-layout">
@@ -334,6 +309,7 @@ const Citation = () => {
 
             <div className="citation-form">
               <div className="citation-row">
+                {/* Journal Name Dropdown */}
                 <div className="citation-field">
                   <label className="citation-label">Journal Name</label>
                   <div className="citation-dropdown-wrapper">
@@ -352,13 +328,24 @@ const Citation = () => {
                           className="dropdown-backdrop"
                           onClick={() => setIsJournalOpen(false)}
                         />
-                        {renderDropdown(isJournalOpen, journals, handleJournalSelect, isLoadingJournals, journalsError, 'Loading journals...')}
+                        <SearchableDropdown
+                          items={journals}
+                          selectedItem={selectedJournal}
+                          onSelect={handleJournalSelect}
+                          isOpen={isJournalOpen}
+                          onToggle={setIsJournalOpen}
+                          isLoading={isLoadingJournals}
+                          error={journalsError}
+                          loadingText="Loading journals..."
+                          placeholder="journals"
+                        />
                       </>
                     )}
                   </div>
                   {journalsError && <div className="citation-error">{journalsError}</div>}
                 </div>
 
+                {/* Year Dropdown */}
                 <div className="citation-field">
                   <label className="citation-label">Year</label>
                   <div className="citation-dropdown-wrapper">
@@ -377,7 +364,17 @@ const Citation = () => {
                           className="dropdown-backdrop"
                           onClick={() => setIsYearOpen(false)}
                         />
-                        {renderDropdown(isYearOpen, years, handleYearSelect, isLoadingYears, yearsError, 'Loading years...')}
+                        <SearchableDropdown
+                          items={years}
+                          selectedItem={selectedYear}
+                          onSelect={handleYearSelect}
+                          isOpen={isYearOpen}
+                          onToggle={setIsYearOpen}
+                          isLoading={isLoadingYears}
+                          error={yearsError}
+                          loadingText="Loading years..."
+                          placeholder="years"
+                        />
                       </>
                     )}
                   </div>
@@ -386,6 +383,7 @@ const Citation = () => {
               </div>
 
               <div className="citation-row">
+                {/* Volume Dropdown */}
                 <div className="citation-field">
                   <label className="citation-label">Volume</label>
                   <div className="citation-dropdown-wrapper">
@@ -404,13 +402,24 @@ const Citation = () => {
                           className="dropdown-backdrop"
                           onClick={() => setIsVolumeOpen(false)}
                         />
-                        {renderDropdown(isVolumeOpen, volumes, handleVolumeSelect, isLoadingVolumes, volumesError, 'Loading volumes...')}
+                        <SearchableDropdown
+                          items={volumes}
+                          selectedItem={selectedVolume}
+                          onSelect={handleVolumeSelect}
+                          isOpen={isVolumeOpen}
+                          onToggle={setIsVolumeOpen}
+                          isLoading={isLoadingVolumes}
+                          error={volumesError}
+                          loadingText="Loading volumes..."
+                          placeholder="volumes"
+                        />
                       </>
                     )}
                   </div>
                   {volumesError && <div className="citation-error">{volumesError}</div>}
                 </div>
 
+                {/* Page Dropdown */}
                 <div className="citation-field">
                   <label className="citation-label">Page</label>
                   <div className="citation-dropdown-wrapper">
@@ -429,15 +438,23 @@ const Citation = () => {
                           className="dropdown-backdrop"
                           onClick={() => setIsPageOpen(false)}
                         />
-                        {renderDropdown(isPageOpen, pages, handlePageSelect, isLoadingPages, pagesError, 'Loading pages...')}
+                        <SearchableDropdown
+                          items={pages}
+                          selectedItem={selectedPage}
+                          onSelect={handlePageSelect}
+                          isOpen={isPageOpen}
+                          onToggle={setIsPageOpen}
+                          isLoading={isLoadingPages}
+                          error={pagesError}
+                          loadingText="Loading pages..."
+                          placeholder="pages"
+                        />
                       </>
                     )}
                   </div>
                   {pagesError && <div className="citation-error">{pagesError}</div>}
                 </div>
               </div>
-
-             
 
               <div className="citation-actions">
                 <div className="citation-buttons">

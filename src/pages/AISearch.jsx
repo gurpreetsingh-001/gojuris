@@ -68,20 +68,22 @@ const AISearch = () => {
 
       // Store results in sessionStorage with embedding vector for pagination
       const resultsData = {
-        query: searchQuery,
-        results: searchResults,
-        totalCount: totalCount,
-        searchType: 'AI Search',
-        embeddingVector: embeddingVector,
-        timestamp: new Date().toISOString(),
-        originalApiResponse: {
-          total: apiResponse.total,
-          hits: apiResponse.hits
-        }
+         results: apiResponse.hits || [],
+      totalCount: apiResponse.total || 0,
+      query: searchQuery,
+      searchType: 'AI Search',
+      timestamp: new Date().toISOString(),
+      courtsList: apiResponse.courtsList || [], // ✅ Include this
+      yearList: apiResponse.yearList || [],     // ✅ Include this
+      embeddingVector: embeddingVector,
+      searchData: {
+  query: searchQuery,
+  embeddingVector: embeddingVector
+}
       };
 
-      console.log('💾 Storing results in sessionStorage');
-      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+       console.log('💾 Storing results with API data:', resultsData);
+    sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
 
       // Navigate to Results page
       console.log('🚀 Navigating to results page...');

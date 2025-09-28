@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/apiService';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -127,7 +128,7 @@ const Navbar = () => {
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom position-relative">
         <div className="container-fluid px-3">
           {/* Brand - moved to start */}
-          <div className="navbar-brand p-0">
+            <Link to="/dashboard" className="navbar-brand p-0">
             <img 
               src="/logo.png" 
               alt="GoJuris Logo" 
@@ -141,7 +142,7 @@ const Navbar = () => {
                 `;
               }}
             />
-          </div>
+          </Link>
 
           {/* Right side buttons */}
           <div className="d-flex align-items-center gap-2">

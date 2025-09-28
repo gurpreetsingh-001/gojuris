@@ -298,18 +298,15 @@ const Header = () => {
     setShowAccountDropdown(false);
   };
 
-  const handleContactClick = (e) => {
-    e.preventDefault();
-    if (location.pathname === '/search') {
-      navigate('/');
-      setTimeout(() => {
-        scrollToSection('contact');
-      }, 100);
-    } else {
-      scrollToSection('contact');
-    }
-  };
-
+ const handleContactClick = (e) => {
+  e.preventDefault();
+  navigate('/pricing');
+  closeOffcanvas();
+};
+const navigateToSubscriptions = () => {
+  navigate('/pricing');
+  closeOffcanvas();
+};
   const handleLogoClick = (e) => {
     e.preventDefault();
     navigateToHome();
@@ -561,7 +558,7 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className="nav-link btn btn-link" 
-                  onClick={handleContactClick}
+                  onClick={navigateToSubscriptions}
                 >
                   SUBSCRIPTIONS
                 </button>
@@ -635,7 +632,7 @@ const Header = () => {
             <li className="nav-item">
               <button 
                 className="nav-link btn btn-link w-100 text-start" 
-                onClick={handleContactClick}
+                onClick={navigateToSubscriptions}
               >
                 <i className="bx bx-credit-card me-2"></i>
                 Subscriptions

@@ -7,37 +7,49 @@ const Dashboard = () => {
     {
       title: 'AI Chat',
       description: 'Instantly search and analyze case law with AI-powered precision. Save hours of manual research.',
-      icon: '/i-ai-chat-02.png', // Make sure this file exists in public folder
+      icon: '/i-ai-chat-02.png', 
       link: '/ai-chat'
     },
     {
       title: 'AI Search', 
       description: 'Effortlessly find and understand statutes, rules, and legal provisions using intelligent AI search.',
-      icon: '/i-ai-search-03.png', // Make sure this file exists in public folder
+      icon: '/i-ai-search-03.png', 
       link: '/ai-search'
     },
     {
       title: 'Case Law Research',
       description: 'Quickly locate and interpret statutes, rules, and regulations with AI-driven search capabilities.',
-      icon: '/i-case-law-research-04.png', // Make sure this file exists in public folder
+      icon: '/i-case-law-research-04.png', 
       link: '#case-law-research'
     },
     {
       title: 'Citation Search',
       description: 'Quickly find Indian case laws using journal name, year, volume, and page. Supports all courts.',
-      icon: '/i-Citation Search-05.png', // Make sure this file exists in public folder
+      icon: '/i-Citation Search-05.png', 
       link: '/citation'
     },
     {
       title: 'Advance Case Law Search',
       description: 'Find case laws by keywords, party names, judges, or case numbers across all courts.',
-      icon: '/i-Advance Case Law Search-06.png', // Make sure this file exists in public folder
+      icon: '/i-Advance Case Law Search-06.png', 
       link: '/search'
     },
     {
       title: 'Virtual Legal Assistant',
       description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
-      icon: '/i-Virtual Legal Assistant-07.png', // Make sure this file exists in public folder
+      icon: '/i-Virtual Legal Assistant-07.png', 
+      link: '#virtual-legal-assistant'
+    },
+    {
+      title: 'Latest in LAW',
+      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
+      icon: '/i-law.png', 
+      link: '#virtual-legal-assistant'
+    },
+    {
+      title: 'Database',
+      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
+      icon: '/i-database.png', 
       link: '#virtual-legal-assistant'
     }
   ];

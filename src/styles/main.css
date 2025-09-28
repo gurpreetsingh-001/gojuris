@@ -2590,8 +2590,8 @@ footer hr {
 }
 
 .sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--gj-border);
+  padding: 0rem;
+  border-bottom: 0px solid var(--gj-border);
 }
 
 .sidebar-content {
@@ -3217,9 +3217,9 @@ footer hr {
   z-index: 999;
 }
 
-.ai-chat-layout-with-nav .sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--gj-border);
+ .sidebar-header {
+  padding: 0rem;
+  border-bottom: 0px solid var(--gj-border);
   flex-shrink: 0;
 }
 
@@ -3467,7 +3467,7 @@ footer hr {
 .ai-chat-layout-with-nav .chat-input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--gj-border);
+  border: 2px solid var(--gj-primary);
   border-radius: 12px;
   background: #f8f9fa;
   resize: none;
@@ -4257,12 +4257,12 @@ footer hr {
   }
   
   .ai-chat-layout-with-nav .ai-chat-sidebar {
-    width: 300px;
+    width: 250px;
   }
   
   .ai-chat-layout-with-nav .ai-chat-main {
-    margin-left: 370px;
-    width: calc(100% - 370px);
+    margin-left: 310px;
+    width: calc(100% - 310px);
   }
   
   .services-grid-compact {

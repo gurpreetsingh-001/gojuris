@@ -1,4 +1,4 @@
-// src/pages/AISearch.jsx - With image instead of search icon
+// src/pages/Keyword.jsx - Corrected version
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -11,10 +11,15 @@ const Keyword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isListening, setIsListening] = useState(false);
+  
+  // New state for radio button options
+  const [searchType, setSearchType] = useState('exact-phrase'); // exact-phrase, all-words, near-words, magic-search
+  const [nearWordsDistance, setNearWordsDistance] = useState('5'); // for Near-Input text-Words option
+  const [sortOrder, setSortOrder] = useState('most-relevant'); // most-relevant, most-recent, most-referred, oldest
+  const [searchIn, setSearchIn] = useState('both'); // head-notes, full-judgement, both
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
-
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -31,18 +36,27 @@ const Keyword = () => {
     try {
       console.log('Starting Search process...');
       console.log('Query:', searchQuery);
+      console.log('Search Type:', searchType);
+      console.log('Sort Order:', sortOrder);
+      console.log('Search In:', searchIn);
 
-      // Step 1: Search
-      const apiResponse = await ApiService.searchKeyword(searchQuery, {
+      // Prepare search options with new radio button values
+      const searchOptions = {
         pageSize: 25,
         page: 1,
-        sortBy: "relevance",
-        sortOrder: "desc"
-      });
+        sortBy: sortOrder === 'most-relevant' ? 'relevance' : 
+                sortOrder === 'most-recent' ? 'date' :
+                sortOrder === 'most-referred' ? 'references' : 'date',
+        sortOrder: sortOrder === 'oldest' ? 'asc' : 'desc',
+        searchType: searchType,
+        searchIn: searchIn,
+        nearWordsDistance: searchType === 'near-words' ? parseInt(nearWordsDistance) : undefined
+      };
+
+      const apiResponse = await ApiService.searchKeyword(searchQuery, searchOptions);
 
       console.log('✅ Search API Response:', apiResponse);
 
-      // Handle the exact API structure: { total: number, hits: array }
       const searchResults = apiResponse.hits || [];
       const totalCount = apiResponse.total || 0;
 
@@ -54,31 +68,32 @@ const Keyword = () => {
         return;
       }
 
-      // Store results in sessionStorage with embedding vector for pagination
       const resultsData = {
-     results: apiResponse.hits || [],
+        results: apiResponse.hits || [],
         totalCount: apiResponse.total || 0,
         query: searchQuery,
         searchType: 'Keyword Search', 
         timestamp: new Date().toISOString(),
-        courtsList: apiResponse.courtsList || [], // ✅ Include this
-        yearList: apiResponse.yearList || [],     // ✅ Include this
+        courtsList: apiResponse.courtsList || [],
+        yearList: apiResponse.yearList || [],
         searchData: {
-          query: searchQuery
-          
+          query: searchQuery,
+          searchType,
+          sortOrder,
+          searchIn,
+          nearWordsDistance
         }
-    };
+      };
 
-    console.log('💾 Storing results with API data:', resultsData);
-    sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+      console.log('💾 Storing results with API data:', resultsData);
+      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
 
-      // Navigate to Results page
       console.log('🚀 Navigating to results page...');
       navigate('/results');
 
     } catch (error) {
-      console.error('❌ AI Search failed:', error);
-      setError(error.message || 'AI Search failed. Please try again.');
+      console.error('❌ Keyword Search failed:', error);
+      setError(error.message || 'Keyword Search failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -121,8 +136,66 @@ const Keyword = () => {
             {/* Main Hero Section */}
             <div className="search-hero">
               <h1 className="hero-title">
-                Discover patterns, context, and legal logic—faster than ever.
-              </h1>
+Find exactly what you need- fast and precise with powerful keyword search              </h1>
+
+              {/* Search Type Options - Above Search Box */}
+              <div className="search-options-above">
+                <div className="radio-group">
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchType" 
+                      value="exact-phrase"
+                      checked={searchType === 'exact-phrase'}
+                      onChange={(e) => setSearchType(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Exact Phrase
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchType" 
+                      value="all-words"
+                      checked={searchType === 'all-words'}
+                      onChange={(e) => setSearchType(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    All Words
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchType" 
+                      value="near-words"
+                      checked={searchType === 'near-words'}
+                      onChange={(e) => setSearchType(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Near
+                    <input 
+                      type="text" 
+                      className="near-words-input"
+                      value={nearWordsDistance}
+                      onChange={(e) => setNearWordsDistance(e.target.value)}
+                      placeholder="5"
+                      disabled={searchType !== 'near-words'}
+                    />
+                    Words
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchType" 
+                      value="magic-search"
+                      checked={searchType === 'magic-search'}
+                      onChange={(e) => setSearchType(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Magic Search
+                  </label>
+                </div>
+              </div>
 
               {/* Search Box */}
               <div className="search-container">
@@ -164,26 +237,112 @@ const Keyword = () => {
                   </div>
                 </form>
               </div>
+
+              {/* Search Options - Below Search Box */}
+              <div className="search-options-below">
+                {/* Sort Order Options */}
+                <div className="radio-group">
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="sortOrder" 
+                      value="most-relevant"
+                      checked={sortOrder === 'most-relevant'}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Most Relevant
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="sortOrder" 
+                      value="most-recent"
+                      checked={sortOrder === 'most-recent'}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Most Recent
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="sortOrder" 
+                      value="most-referred"
+                      checked={sortOrder === 'most-referred'}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Most Referred
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="sortOrder" 
+                      value="oldest"
+                      checked={sortOrder === 'oldest'}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Oldest
+                  </label>
+                </div>
+
+                {/* Search In Options */}
+                <div className="radio-group search-in-group">
+                  <span className="group-label">Search in:</span>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchIn" 
+                      value="head-notes"
+                      checked={searchIn === 'head-notes'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Head Notes
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchIn" 
+                      value="full-judgement"
+                      checked={searchIn === 'full-judgement'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Full Judgement
+                  </label>
+                  <label className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="searchIn" 
+                      value="both"
+                      checked={searchIn === 'both'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Both
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Related Queries Section */}
-            <div className="related-section">
+            {/* <div className="related-section">
               <p className="related-title">Related Queries</p>
-            </div>
+            </div> */}
 
-            {/* Description Section */}
-            <div className="description-section">
+            {/* Description Section - Simplified without legal content */}
+            {/* <div className="description-section">
               <h2 className="description-title">
-                Making legal search easy for you or Simplifying legal search for you
+                Simplifying search for you
               </h2>
               <p className="description-text">
-                Tailored for legal professionals, our advanced search options simplify legal research. Effortlessly access    <br />
-                judgments, statutes, and citations, saving time and enhancing your workflow efficiency.
+                Advanced search options to help you find exactly what you're looking for. 
+                Use our flexible search types and filtering options to get precise results quickly.
               </p>
-              <p className="includes-text">
-                <strong>Includes:</strong> Case Law | Codes, Rules & Constitutions | Practical Guidance | Treatises
-              </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -279,6 +438,7 @@ const Keyword = () => {
           position: relative;
           background: white;
           border-radius: 50px;
+          border: 2px solid #8b5cf6;
           padding: 8px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
           display: flex;
@@ -334,7 +494,7 @@ const Keyword = () => {
           width: 48px;
           height: 48px;
           border: none;
-          background: #007bff;
+          // background: #007bff;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -345,7 +505,7 @@ const Keyword = () => {
         }
 
         .search-btn:hover:not(:disabled) {
-          background: #0056b3;
+          // background: #0056b3;
           transform: scale(1.05);
         }
 
@@ -355,12 +515,12 @@ const Keyword = () => {
           transform: none;
         }
 
-        /* Image styling for search button */
+        /* Fixed search icon image styling */
         .search-icon-img {
-          width: 20px;
-          height: 20px;
+          width: 50px;
+          height: 50px;
           object-fit: contain;
-          filter: brightness(0) invert(1); /* Makes image white */
+          // filter: brightness(0) invert(1);
         }
 
         .related-section {
@@ -373,34 +533,26 @@ const Keyword = () => {
           margin: 0;
         }
 
+        /* Fixed description section styling */
         .description-section {
-          max-width: 1000px;
+          max-width: 800px;
           margin: 0 auto;
-          font:14px;
+          text-align: center;
         }
 
         .description-title {
-          font-size: 28px;
+          font-size: 24px;
           font-weight: 600;
           color: #333;
-         
+          margin-bottom: 1rem;
           line-height: 1.3;
         }
 
         .description-text {
-          font-size: 18px;
+          font-size: 16px;
           color: #6c757d;
-         margin:0
-        }
-
-        .includes-text {
-          color: #6c757d;
-          font-size: 0.95rem;
           margin: 0;
-        }
-
-        .includes-text strong {
-          color: #333;
+          line-height: 1.5;
         }
 
         @keyframes pulse {
@@ -413,6 +565,115 @@ const Keyword = () => {
           100% {
             transform: scale(1);
           }
+        }
+
+        /* Radio button options styling */
+        .search-options-above,
+        .search-options-below {
+          margin: 1rem 0;
+        }
+
+        .radio-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          justify-content: center;
+          align-items: center;
+          margin: 0.5rem 0;
+        }
+
+        .search-in-group {
+          border-top: 1px solid #e5e7eb;
+          padding-top: 1rem;
+          margin-top: 1rem;
+        }
+
+        .group-label {
+          font-weight: 600;
+          color: #374151;
+          margin-right: 1rem;
+        }
+
+        .radio-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          color: #374151;
+          user-select: none;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.375rem;
+          transition: background-color 0.2s ease;
+        }
+
+        .radio-label:hover {
+          background-color: #f9fafb;
+        }
+
+        .radio-label input[type="radio"] {
+          width: 18px;
+          height: 18px;
+          margin: 0;
+          opacity: 0;
+          position: absolute;
+          z-index: -1;
+        }
+
+        .radio-mark {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #d1d5db;
+          border-radius: 50%;
+          background: white;
+          transition: all 0.2s ease;
+          position: relative;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+
+        .radio-label:hover .radio-mark {
+          border-color: var(--gj-primary);
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-mark {
+          border-color: var(--gj-primary);
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-mark::after {
+          content: '';
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background: var(--gj-primary);
+          border-radius: 50%;
+          top: 3px;
+          left: 3px;
+        }
+
+        .radio-label input[type="radio"]:focus + .radio-mark {
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .near-words-input {
+          width: 50px;
+          padding: 0.25rem 0.5rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.25rem;
+          font-size: 0.875rem;
+          text-align: center;
+          margin: 0 0.25rem;
+        }
+
+        .near-words-input:disabled {
+          background-color: #f3f4f6;
+          color: #9ca3af;
+        }
+
+        .near-words-input:focus {
+          outline: none;
+          border-color: var(--gj-primary);
+          box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
         }
 
         /* Responsive Design */
@@ -460,6 +721,17 @@ const Keyword = () => {
             width: 18px;
             height: 18px;
           }
+
+          .radio-group {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+
+          .group-label {
+            margin-right: 0;
+            margin-bottom: 0.5rem;
+          }
         }
 
         @media (max-width: 575.98px) {
@@ -476,12 +748,6 @@ const Keyword = () => {
             max-width: 100%;
           }
         }
-          .search-icon-img {
-     width: 40px;
-     height: 40px;
-     object-fit: contain;
-     filter: brightness(0) invert(1); /* Makes image white */
-   }
       `}</style>
     </div>
   );

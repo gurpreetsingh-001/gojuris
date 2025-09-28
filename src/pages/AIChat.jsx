@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import ApiService from '../services/apiService';
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { Link } from 'react-router-dom';
 
 const AIChat = () => {
   const [message, setMessage] = useState('');
@@ -353,15 +354,7 @@ const toggleVoiceRecognition = () => {
 
       {/* Chat Sidebar */}
       <div className="ai-chat-sidebar">
-        <div className="sidebar-header">
-          <div className="gojuris-logo">
-            <img
-              src="/logo.png"
-              alt="GoJuris Logo"
-              style={{ height: '64px', width: 'auto' }}
-            />
-          </div>
-        </div>
+       
 
         <div className="sidebar-content">
           <div className="sidebar-section">
@@ -391,13 +384,15 @@ const toggleVoiceRecognition = () => {
       {/* Main Chat Area */}
       <div className="ai-chat-main">
         <div className="chat-header">
-          <div className="chat-title">
-            <span>Welcome, </span>
-            <span className="username">
-              {userProfile?.username || userProfile?.name || userProfile?.email || 'Legal Expert'}
-            </span>
-            <span> — Your AI Assistant For Legal Research.</span>
-          </div>
+          <div className="sidebar-header">
+          <Link to="/dashboard" className="gojuris-logo">
+            <img
+              src="/logo.png"
+              alt="GoJuris Logo"
+              style={{ height: '40px', width: 'auto' }}
+            />
+          </Link>
+        </div>
 
           {/* Account Dropdown */}
           <div className="d-flex align-items-center gap-2">
@@ -460,8 +455,12 @@ const toggleVoiceRecognition = () => {
             </div>
           </div>
         </div>
+       
 
         <div className="chat-content">
+          <div className="chat-tagline-container">
+    <h2 className="chat-tagline">Which legal task can AI accelerate for you?</h2>
+  </div>
           <div className="chat-messages">
             {chatHistory.length === 0 ? (
               <div
@@ -632,7 +631,7 @@ const toggleVoiceRecognition = () => {
                         <span></span>
                         <span></span>
                       </div>
-                      <small className="text-muted">Processing with AI APIs...</small>
+                      <small className="text-muted">Processing with AI...</small>
                     </div>
                   </div>
                 )}
@@ -842,7 +841,7 @@ const toggleVoiceRecognition = () => {
         .chat-input {
           flex: 1;
           padding-right: 80px;
-          border: 1px solid #8b5cf6;
+          border: 2px solid #8b5cf6;
           border-radius: 25px;
           padding: 12px 20px;
           font-size: 14px;
@@ -1016,6 +1015,42 @@ const toggleVoiceRecognition = () => {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
+  /* Add this to your existing style jsx block */
+
+/* Tagline styling */
+.chat-tagline-container {
+  text-align: left;
+  padding: 0rem 0.5rem 0rem 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.chat-tagline {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--gj-dark);
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+
+/* Responsive tagline */
+@media (max-width: 768px) {
+  .chat-tagline {
+    font-size: 1.4rem;
+  }
+  
+  .chat-tagline-container {
+    padding: 1.5rem 1rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-tagline {
+    font-size: 1.2rem;
+  }
+}
+
+
       `}</style>
     </div>
   );

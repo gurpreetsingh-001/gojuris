@@ -1,4 +1,4 @@
-// src/pages/Database.jsx - Complete with data filtering functionality
+// src/pages/Database.jsx - New Design Based on Reference
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -7,223 +7,128 @@ import ApiService from '../services/apiService';
 
 const Database = () => {
   const navigate = useNavigate();
+  
+  // State management
+  const [courts, setCourts] = useState([]);
+  const [selectedCourt, setSelectedCourt] = useState(null);
+  const [isLoadingCourts, setIsLoadingCourts] = useState(true);
+  const [courtsError, setCourtsError] = useState('');
+  
+  const [judgements, setJudgements] = useState([]);
+  const [isLoadingJudgements, setIsLoadingJudgements] = useState(false);
+  const [totalJudgements, setTotalJudgements] = useState(0);
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchResults, setSearchResults] = useState([]);
-  const [filteredResults, setFilteredResults] = useState([]); // NEW: Filtered results
-  const [allResults, setAllResults] = useState([]); // NEW: Store all results
-  const [totalResults, setTotalResults] = useState(57801);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filterText, setFilterText] = useState('');
-  const [sortBy, setSortBy] = useState('Most Relevance');
-  const [sortByYear, setSortByYear] = useState('By Year');
-  const [sortByCourt, setSortByCourt] = useState('By Courts');
-  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
-  const [isCourtDropdownOpen, setIsCourtDropdownOpen] = useState(false);
-  const [isRelevanceDropdownOpen, setIsRelevanceDropdownOpen] = useState(false);
-
-  const resultsPerPage = 25;
+  const [selectedYear, setSelectedYear] = useState('2025');
+  const [years] = useState(['2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016']);
+  
+  const resultsPerPage = 50;
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
+    loadCourts();
+    
     return () => {
       document.body.style.paddingTop = '';
     };
   }, []);
 
-  useEffect(() => {
-    loadDatabaseResults();
-  }, []);
-
-  // NEW: Apply filters whenever filter criteria changes
-  useEffect(() => {
-    applyFilters();
-  }, [allResults, sortByYear, sortByCourt, sortBy, filterText]);
-
-  const loadDatabaseResults = async () => {
-    setIsLoading(true);
+  // Load courts from getUserPermissions API
+  const loadCourts = async () => {
     try {
-      const mockResults = generateAllMockResults(); // Generate more data
-      setAllResults(mockResults);
-      setFilteredResults(mockResults);
-      setSearchResults(mockResults.slice(0, resultsPerPage));
+      setIsLoadingCourts(true);
+      setCourtsError('');
+      console.log('🏛️ Loading courts from API...');
+
+      const permissionsData = await ApiService.getUserPermissions();
+      const courtsData = permissionsData.courts || [];
+      
+      console.log('✅ Courts loaded:', courtsData);
+      setCourts(courtsData);
+      
+      // Auto-select first court
+      if (courtsData.length > 0) {
+        setSelectedCourt(courtsData[0].key);
+        loadJudgements(courtsData[0].key, currentPage, selectedYear);
+      }
+      
     } catch (error) {
-      console.error('Error loading database results:', error);
+      console.error('❌ Error loading courts:', error);
+      setCourtsError(error.message || 'Failed to load courts');
     } finally {
-      setIsLoading(false);
+      setIsLoadingCourts(false);
     }
   };
 
-  // NEW: Generate results with different years and courts
-  const generateAllMockResults = () => {
-    const results = [];
-    const years = ['2025', '2024', '2023', '2022', '2021'];
-    const courts = ['SUPREME COURT OF INDIA', 'HIGH COURT OF DELHI', 'HIGH COURT OF MUMBAI', 'DISTRICT COURT'];
-    const acts = ['Central Excise Act', 'Income Tax Act', 'Criminal Procedure Code', 'Evidence Act', 'Contract Act'];
-    
-    for (let i = 0; i < 200; i++) { // Generate 200 results
-      const randomYear = years[Math.floor(Math.random() * years.length)];
-      const randomCourt = courts[Math.floor(Math.random() * courts.length)];
-      const randomAct = acts[Math.floor(Math.random() * acts.length)];
+  // Load judgements for selected court
+  const loadJudgements = async (courtKey, page, year) => {
+    try {
+      setIsLoadingJudgements(true);
+      console.log(`📊 Loading judgements for ${courtKey}, Page: ${page}, Year: ${year}`);
       
-      results.push({
-        id: i + 1,
-        title: `${randomAct} -- Price as Sole Consideration`,
-        case: `Case ${i + 1} vs. Commissioner ${randomYear} Legal Eagle`,
-        content: `For Section 4(1)(a) to apply, price must be the sole consideration, which was not the case in the MOU transactions -- Extended Limitation Cannot be invoked without concrete evidence of suppression or fra...`,
-        date: `20 Jan ${randomYear}`,
-        court: randomCourt,
-        year: randomYear,
-        act: randomAct,
-        keycode: `SC${1000 + i}`,
-        relevanceScore: Math.random() * 100 // For sorting
+      // TODO: Replace with actual API call when available
+      // For now using mock data
+      const mockData = generateMockJudgements(courtKey, page, year);
+      
+      setJudgements(mockData.judgements);
+      setTotalJudgements(mockData.total);
+      
+    } catch (error) {
+      console.error('❌ Error loading judgements:', error);
+    } finally {
+      setIsLoadingJudgements(false);
+    }
+  };
+
+  // Generate mock data (replace with actual API call)
+  const generateMockJudgements = (courtKey, page, year) => {
+    const total = 18718666; // Example total from reference image
+    const mockJudgements = [];
+    
+    for (let i = 0; i < resultsPerPage; i++) {
+      const index = (page - 1) * resultsPerPage + i + 1;
+      mockJudgements.push({
+        id: index,
+        appellant: `Appellant Name ${index}`,
+        respondent: `Respondent Name ${index}`,
+        date: `${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}/09/${year}`,
+        court: courtKey.toUpperCase()
       });
     }
-    return results;
+    
+    return {
+      judgements: mockJudgements,
+      total: total
+    };
   };
 
-  // NEW: Apply all filters and sorting
-  const applyFilters = () => {
-    let filtered = [...allResults];
-
-    // Filter by year
-    if (sortByYear !== 'By Year') {
-      filtered = filtered.filter(result => result.year === sortByYear);
-      console.log(`Filtered by year ${sortByYear}:`, filtered.length, 'results');
-    }
-
-    // Filter by court
-    if (sortByCourt !== 'By Courts') {
-      filtered = filtered.filter(result => result.court.includes(sortByCourt.toUpperCase()));
-      console.log(`Filtered by court ${sortByCourt}:`, filtered.length, 'results');
-    }
-
-    // Filter by text
-    if (filterText.trim()) {
-      filtered = filtered.filter(result => 
-        result.title.toLowerCase().includes(filterText.toLowerCase()) ||
-        result.act.toLowerCase().includes(filterText.toLowerCase()) ||
-        result.case.toLowerCase().includes(filterText.toLowerCase())
-      );
-      console.log(`Filtered by text "${filterText}":`, filtered.length, 'results');
-    }
-
-    // Sort results
-    switch (sortBy) {
-      case 'Most Recent':
-        filtered.sort((a, b) => parseInt(b.year) - parseInt(a.year));
-        break;
-      case 'Oldest First':
-        filtered.sort((a, b) => parseInt(a.year) - parseInt(b.year));
-        break;
-      case 'Most Relevance':
-      default:
-        filtered.sort((a, b) => b.relevanceScore - a.relevanceScore);
-        break;
-    }
-
-    setFilteredResults(filtered);
-    setTotalResults(filtered.length);
-    setCurrentPage(1); // Reset to first page
-    
-    // Update displayed results for current page
-    const startIndex = 0;
-    const endIndex = Math.min(resultsPerPage, filtered.length);
-    setSearchResults(filtered.slice(startIndex, endIndex));
-    
-    console.log('Final filtered results:', filtered.length);
+  const handleCourtSelect = (courtKey) => {
+    setSelectedCourt(courtKey);
+    setCurrentPage(1);
+    loadJudgements(courtKey, 1, selectedYear);
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    const startIndex = (page - 1) * resultsPerPage;
-    const endIndex = Math.min(startIndex + resultsPerPage, filteredResults.length);
-    setSearchResults(filteredResults.slice(startIndex, endIndex));
+    loadJudgements(selectedCourt, page, selectedYear);
     window.scrollTo(0, 0);
   };
 
-  const handleJudgementClick = (keycode) => {
-    navigate(`/judgement/${keycode}`);
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+    setCurrentPage(1);
+    loadJudgements(selectedCourt, 1, year);
   };
 
-  // WORKING HANDLERS WITH DATA FILTERING
-  const toggleYearDropdown = () => {
-    setIsYearDropdownOpen(!isYearDropdownOpen);
-    setIsCourtDropdownOpen(false);
-    setIsRelevanceDropdownOpen(false);
+  const handleJudgementClick = (judgement) => {
+    console.log('Judgement clicked:', judgement);
+    // Navigate to judgement detail page
+    // navigate(`/judgement/${judgement.id}`);
   };
 
-  const selectYear = (year) => {
-    console.log('Year selected:', year);
-    setSortByYear(year);
-    setIsYearDropdownOpen(false);
-    // applyFilters will be called automatically by useEffect
-  };
-
-  const toggleCourtDropdown = () => {
-    setIsCourtDropdownOpen(!isCourtDropdownOpen);
-    setIsYearDropdownOpen(false);
-    setIsRelevanceDropdownOpen(false);
-  };
-
-  const selectCourt = (court) => {
-    console.log('Court selected:', court);
-    setSortByCourt(court);
-    setIsCourtDropdownOpen(false);
-  };
-
-  const toggleRelevanceDropdown = () => {
-    setIsRelevanceDropdownOpen(!isRelevanceDropdownOpen);
-    setIsYearDropdownOpen(false);
-    setIsCourtDropdownOpen(false);
-  };
-
-  const selectRelevance = (option) => {
-    console.log('Relevance selected:', option);
-    setSortBy(option);
-    setIsRelevanceDropdownOpen(false);
-  };
-
-  // NEW: Refine handler
-  const handleRefine = () => {
-    console.log('Refining with text:', filterText);
-    applyFilters(); // Force reapply filters
-  };
-
-  const totalPages = Math.ceil(totalResults / resultsPerPage);
-
-  const generatePaginationButtons = () => {
-    const buttons = [];
-    const maxButtons = 5;
-    
-    for (let i = 1; i <= Math.min(maxButtons, totalPages); i++) {
-      buttons.push(
-        <button
-          key={i}
-          className={`page-btn ${currentPage === i ? 'active' : ''}`}
-          onClick={() => handlePageChange(i)}
-        >
-          {i}
-        </button>
-      );
-    }
-    
-    return buttons;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="gojuris-layout">
-        <Sidebar />
-        <div className="gojuris-main">
-          <Navbar />
-          <div className="loading-container">
-            <i className="bx bx-loader bx-spin"></i>
-            <p>Loading database...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const totalPages = Math.ceil(totalJudgements / resultsPerPage);
+  const startResult = (currentPage - 1) * resultsPerPage + 1;
+  const endResult = Math.min(currentPage * resultsPerPage, totalJudgements);
 
   return (
     <div className="gojuris-layout">
@@ -231,713 +136,438 @@ const Database = () => {
       
       <div className="gojuris-main">
         <Navbar />
+        
+        <div className="database-container">
+          {/* Tabs */}
+          
 
-        <div className="database-page">
-          {/* Header Section */}
-          <div className="database-header">
-            <div className="header-content">
-              <div className="search-badge">
-                <i className="bx bx-search-alt"></i>
-                <span>Searches</span>
-              </div>
-              <h1 className="page-title">Landmark Cases on criminal Law</h1>
-              <div className="breadcrumb">
-                <span>Home</span>
-                <i className="bx bx-chevron-right"></i>
-                <span>Search Result</span>
-              </div>
-            </div>
-            <div className="results-count">
-              Showing {((currentPage - 1) * resultsPerPage) + 1} - {Math.min(currentPage * resultsPerPage, totalResults)} of {totalResults} Cases Found
-            </div>
-          </div>
-
-          {/* ACTIVE FILTERS DISPLAY */}
-          {(sortByYear !== 'By Year' || sortByCourt !== 'By Courts' || filterText) && (
-            <div className="active-filters">
-              <span className="filter-label">Active Filters:</span>
-              {sortByYear !== 'By Year' && (
-                <span className="filter-tag">
-                  Year: {sortByYear}
-                  <button onClick={() => setSortByYear('By Year')}>×</button>
-                </span>
-              )}
-              {sortByCourt !== 'By Courts' && (
-                <span className="filter-tag">
-                  Court: {sortByCourt}
-                  <button onClick={() => setSortByCourt('By Courts')}>×</button>
-                </span>
-              )}
-              {filterText && (
-                <span className="filter-tag">
-                  Text: "{filterText}"
-                  <button onClick={() => setFilterText('')}>×</button>
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Controls Section */}
-          <div className="controls-section">
-            {/* Left side - Pagination */}
-            <div className="left-controls">
-              <div className="pagination-controls">
-                {generatePaginationButtons()}
-                {totalPages > 5 && (
-                  <button 
-                    className="page-btn"
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    Last
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Right side - Filters */}
-            <div className="right-controls">
-              <div className="filter-row">
-                <input
-                  type="text"
-                  placeholder="Type Act for serching in list"
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                  className="filter-input"
-                />
-                <button className="refine-btn" onClick={handleRefine}>
-                  Refine
-                </button>
-                
-                {/* Dropdown Controls */}
-                <div className="dropdown-group">
-                  {/* Year Dropdown */}
-                  <div className="simple-dropdown">
-                    <button 
-                      className="dropdown-button"
-                      onClick={toggleYearDropdown}
-                      type="button"
+          <div className="content-wrapper">
+            {/* Left Sidebar - Courts List */}
+            <div className="courts-sidebar">
+              <div className="courts-header">Select Court</div>
+              
+              {isLoadingCourts ? (
+                <div className="loading-state">Loading courts...</div>
+              ) : courtsError ? (
+                <div className="error-state">{courtsError}</div>
+              ) : (
+                <div className="courts-list">
+                  {courts.map((court) => (
+                    <div
+                      key={court.key}
+                      className={`court-item ${selectedCourt === court.key ? 'active' : ''}`}
+                      onClick={() => handleCourtSelect(court.key)}
                     >
-                      <i className="bx bx-chevron-down"></i>
-                      {sortByYear}
-                    </button>
-                    {isYearDropdownOpen && (
-                      <div className="dropdown-list">
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectYear('By Year')}
-                          type="button"
-                        >
-                          All Years
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectYear('2025')}
-                          type="button"
-                        >
-                          2025
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectYear('2024')}
-                          type="button"
-                        >
-                          2024
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectYear('2023')}
-                          type="button"
-                        >
-                          2023
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectYear('2022')}
-                          type="button"
-                        >
-                          2022
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectYear('2021')}
-                          type="button"
-                        >
-                          2021
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Court Dropdown */}
-                  <div className="simple-dropdown">
-                    <button 
-                      className="dropdown-button"
-                      onClick={toggleCourtDropdown}
-                      type="button"
-                    >
-                      <i className="bx bx-chevron-down"></i>
-                      {sortByCourt}
-                    </button>
-                    {isCourtDropdownOpen && (
-                      <div className="dropdown-list">
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectCourt('By Courts')}
-                          type="button"
-                        >
-                          All Courts
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectCourt('Supreme Court')}
-                          type="button"
-                        >
-                          Supreme Court
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectCourt('High Court')}
-                          type="button"
-                        >
-                          High Court
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectCourt('District Court')}
-                          type="button"
-                        >
-                          District Court
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <button className="history-btn">
-                    <i className="bx bx-history"></i>
-                    Search History
-                  </button>
-
-                  {/* Relevance Dropdown */}
-                  <div className="simple-dropdown">
-                    <button 
-                      className="dropdown-button"
-                      onClick={toggleRelevanceDropdown}
-                      type="button"
-                    >
-                      <i className="bx bx-chevron-down"></i>
-                      {sortBy}
-                    </button>
-                    {isRelevanceDropdownOpen && (
-                      <div className="dropdown-list">
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectRelevance('Most Relevance')}
-                          type="button"
-                        >
-                          Most Relevance
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectRelevance('Most Recent')}
-                          type="button"
-                        >
-                          Most Recent
-                        </button>
-                        <button 
-                          className="dropdown-option" 
-                          onClick={() => selectRelevance('Oldest First')}
-                          type="button"
-                        >
-                          Oldest First
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Results Section */}
-          <div className="results-section">
-            {searchResults.length === 0 ? (
-              <div className="no-results">
-                <h3>No results found</h3>
-                <p>Try adjusting your filters or search terms.</p>
-              </div>
-            ) : (
-              searchResults.map((result, index) => (
-                <div key={result.id} className="result-card">
-                  <div className="result-header">
-                    <h3 
-                      className="result-title"
-                      onClick={() => handleJudgementClick(result.keycode)}
-                    >
-                      {result.title}
-                    </h3>
-                  </div>
-                  
-                  <div className="result-case-info">
-                    <em>{result.case}</em>
-                  </div>
-                  
-                  <div className="result-content">
-                    {result.content}
-                  </div>
-                  
-                  <div 
-                    className="read-more-link"
-                    onClick={() => handleJudgementClick(result.keycode)}
-                  >
-                    Read More.
-                  </div>
-                  
-                  <div className="result-footer">
-                    <div className="result-meta">
-                      <span className="meta-item">
-                        <i className="bx bx-calendar"></i>
-                        Date of Decision {result.date}
-                      </span>
-                      <span className="meta-item">
-                        <i className="bx bx-building"></i>
-                        {result.court}
-                      </span>
+                      {court.value}
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))
-            )}
+              )}
+            </div>
+
+            {/* Right Content - Judgements Table */}
+            <div className="judgements-content">
+              {/* Top Controls */}
+              <div className="top-controls">
+                <div className="page-selector">
+                  <label>Select Page:</label>
+                  <select 
+                    value={currentPage} 
+                    onChange={(e) => handlePageChange(Number(e.target.value))}
+                    className="page-select"
+                  >
+                    {[...Array(Math.min(10, totalPages))].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>{i + 1}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="results-info">
+                  Showing {startResult} to {endResult} out of {totalJudgements.toLocaleString()}
+                </div>
+
+                <div className="total-info">
+                  Total Judgements = <strong>{totalJudgements.toLocaleString()}</strong>
+                </div>
+
+                <div className="year-selector">
+                  <label>Select Year</label>
+                  <select 
+                    value={selectedYear} 
+                    onChange={(e) => handleYearChange(e.target.value)}
+                    className="year-select"
+                  >
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Judgements Table */}
+              {isLoadingJudgements ? (
+                <div className="loading-table">
+                  <i className="bx bx-loader-alt bx-spin"></i>
+                  <p>Loading judgements...</p>
+                </div>
+              ) : (
+                <div className="table-container">
+                  <table className="judgements-table">
+                    <thead>
+                      <tr>
+                        <th className="col-number">
+                          <i className="bx bx-sort"></i>
+                        </th>
+                        <th className="col-appellant">Appellant</th>
+                        <th className="col-respondent">Respondent</th>
+                        <th className="col-date">Date</th>
+                        <th className="col-court">Court</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {judgements.map((judgement, index) => (
+                        <tr 
+                          key={judgement.id}
+                          onClick={() => handleJudgementClick(judgement)}
+                          className="judgement-row"
+                        >
+                          <td className="col-number">
+                            <i className="bx bx-chevron-right"></i>
+                          </td>
+                          <td className="col-appellant">{judgement.appellant}</td>
+                          <td className="col-respondent">{judgement.respondent}</td>
+                          <td className="col-date">{judgement.date}</td>
+                          <td className="col-court">{judgement.court}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <style jsx>{`
-        .gojuris-layout {
+      <style>{`
+        .database-container {
+          padding: 0;
+          background: #f5f5f5;
+          min-height: calc(100vh - 80px);
+        }
+
+        .tabs-section {
+          background: white;
+          border-bottom: 1px solid #e0e0e0;
+          padding: 0 20px;
           display: flex;
-          min-height: 100vh;
+          gap: 10px;
         }
 
-        .gojuris-main {
-          flex: 1;
-          margin-left: 70px;
-          width: calc(100% - 70px);
+        .tab-btn {
+          padding: 12px 24px;
+          border: none;
+          background: transparent;
+          color: #666;
+          font-size: 14px;
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+          color: #333;
+          border-bottom-color: #7C3AED;
+          font-weight: 600;
+        }
+
+        .content-wrapper {
+          display: flex;
+          gap: 0;
+          height: calc(100vh - 140px);
+        }
+
+        /* Left Sidebar Styles */
+        .courts-sidebar {
+          width: 320px;
+          background: white;
+          border-right: 1px solid #e0e0e0;
+          overflow-y: auto;
+          flex-shrink: 0;
+        }
+
+        .courts-header {
+          padding: 15px 20px;
           background: #f8f9fa;
-          min-height: 100vh;
+          border-bottom: 2px solid #e0e0e0;
+          font-weight: 600;
+          font-size: 16px;
+          color: #333;
+          position: sticky;
+          top: 0;
+          z-index: 10;
         }
 
-        .database-page {
+        .courts-list {
+          padding: 10px 0;
+        }
+
+        .court-item {
+          padding: 12px 20px;
+          cursor: pointer;
+          transition: all 0.2s;
+          border-left: 3px solid transparent;
+          font-size: 14px;
+          color: #333;
+        }
+
+        .court-item:hover {
+          background: #f8f9fa;
+        }
+
+        .court-item.active {
+          background: #7C3AED;
+          color: white;
+          border-left-color: #0056b3;
+        }
+
+        .loading-state, .error-state {
           padding: 20px;
-          max-width: 1400px;
-          margin: 0 auto;
+          text-align: center;
+          color: #666;
         }
 
-        .loading-container {
+        /* Right Content Styles */
+        .judgements-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          background: white;
+          overflow: hidden;
+        }
+
+        .top-controls {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          padding: 15px 20px;
+          background: #f8f9fa;
+          border-bottom: 1px solid #e0e0e0;
+          flex-wrap: wrap;
+        }
+
+        .page-selector, .year-selector {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .page-selector label, .year-selector label {
+          font-size: 14px;
+          font-weight: 500;
+          color: #333;
+        }
+
+        .page-select, .year-select {
+          padding: 6px 30px 6px 12px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 14px;
+          background: white;
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 8px center;
+        }
+
+        .results-info {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .total-info {
+          font-size: 14px;
+          color: #7C3AED;
+          margin-left: auto;
+        }
+
+        .total-info strong {
+          font-weight: 700;
+        }
+
+        /* Table Styles */
+        .table-container {
+          flex: 1;
+          overflow: auto;
+        }
+
+        .judgements-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .judgements-table thead {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          background: #e8e8f7;
+        }
+
+        .judgements-table th {
+          padding: 12px 15px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 14px;
+          color: #333;
+          border-bottom: 2px solid #d0d0d0;
+        }
+
+        .judgements-table th i {
+          margin-right: 5px;
+          vertical-align: middle;
+        }
+
+        .col-number {
+          width: 50px;
+          text-align: center !important;
+        }
+
+        .col-appellant {
+          width: 35%;
+        }
+
+        .col-respondent {
+          width: 35%;
+        }
+
+        .col-date {
+          width: 15%;
+        }
+
+        .col-court {
+          width: 15%;
+        }
+
+        .judgement-row {
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .judgement-row:hover {
+          background: #f8f9fa;
+        }
+
+        .judgement-row:nth-child(even) {
+          background: #fafafa;
+        }
+
+        .judgement-row:nth-child(even):hover {
+          background: #f0f0f0;
+        }
+
+        .judgements-table td {
+          padding: 12px 15px;
+          font-size: 13px;
+          color: #333;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .col-number i {
+          font-size: 16px;
+          color: #666;
+        }
+
+        .loading-table {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          height: 60vh;
-          font-size: 2rem;
-          color: #007bff;
+          height: 400px;
+          gap: 15px;
         }
 
-        .database-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 20px;
-          padding-bottom: 15px;
-          border-bottom: 1px solid #e9ecef;
+        .loading-table i {
+          font-size: 48px;
+          color: #7C3AED;
         }
 
-        .header-content {
-          flex: 1;
-        }
-
-        .search-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          background: white;
-          border: 1px solid #e9ecef;
-          border-radius: 20px;
-          color: #007bff;
-          font-size: 14px;
-          font-weight: 500;
-          margin-bottom: 10px;
-        }
-
-        .page-title {
-          font-size: 32px;
-          font-weight: 600;
-          color: #333;
-          margin: 10px 0;
-          line-height: 1.2;
-        }
-
-        .breadcrumb {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: #6c757d;
-          font-size: 14px;
-        }
-
-        .breadcrumb i {
-          font-size: 12px;
-        }
-
-        .results-count {
-          background: #f8f9fa;
-          padding: 8px 16px;
-          border-radius: 6px;
-          font-size: 14px;
-          color: #495057;
-          font-weight: 500;
-          flex-shrink: 0;
-        }
-
-        /* NEW: Active Filters Display */
-        .active-filters {
-          margin-bottom: 15px;
-          padding: 10px;
-          background: #e8f4f8;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .filter-label {
-          font-weight: 600;
-          color: #495057;
-          font-size: 14px;
-        }
-
-        .filter-tag {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          background: #007bff;
-          color: white;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-        }
-
-        .filter-tag button {
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
+        .loading-table p {
           font-size: 16px;
-          padding: 0;
-          margin-left: 5px;
+          color: #666;
         }
 
-        .controls-section {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 25px;
-          padding: 15px 0;
-          border-bottom: 1px solid #e9ecef;
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
-        .left-controls {
-          flex-shrink: 0;
+        .bx-spin {
+          animation: spin 1s linear infinite;
         }
 
-        .pagination-controls {
-          display: flex;
-          gap: 8px;
-          align-items: center;
+        /* Scrollbar Styles */
+        .courts-sidebar::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
         }
 
-        .page-btn {
-          padding: 8px 12px;
-          border: 1px solid #dee2e6;
-          background: white;
-          color: #495057;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-          transition: all 0.2s ease;
+        .courts-sidebar::-webkit-scrollbar-track,
+        .table-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
         }
 
-        .page-btn:hover {
-          background: #e9ecef;
-        }
-
-        .page-btn.active {
-          background: #007bff;
-          color: white;
-          border-color: #007bff;
-        }
-
-        .right-controls {
-          flex: 1;
-          display: flex;
-          justify-content: flex-end;
-        }
-
-        .filter-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .filter-input {
-          padding: 8px 12px;
-          border: 1px solid #ced4da;
-          border-radius: 4px;
-          font-size: 14px;
-          width: 250px;
-          background: #f8f9fa;
-        }
-
-        .refine-btn {
-          padding: 8px 16px;
-          background: #007bff;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .dropdown-group {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .simple-dropdown {
-          position: relative;
-          display: inline-block;
-        }
-
-        .dropdown-button {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 12px;
-          border: 1px solid #2196f3;
-          border-radius: 4px;
-          background: #e3f2fd;
-          font-size: 14px;
-          cursor: pointer;
-          color: #1976d2;
-          white-space: nowrap;
-          min-width: 120px;
-          justify-content: space-between;
-        }
-
-        .dropdown-button:hover {
-          background: #bbdefb;
-        }
-
-        .dropdown-list {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: white;
-          border: 1px solid #ced4da;
-          border-radius: 4px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          z-index: 1000;
-          margin-top: 2px;
-          min-width: 150px;
-        }
-
-        .dropdown-option {
-          display: block;
-          width: 100%;
-          padding: 8px 12px;
-          border: none;
-          background: none;
-          text-align: left;
-          cursor: pointer;
-          font-size: 14px;
-          border-bottom: 1px solid #f8f9fa;
-          transition: background-color 0.2s ease;
-        }
-
-        .dropdown-option:hover {
-          background: #f8f9fa;
-        }
-
-        .dropdown-option:last-child {
-          border-bottom: none;
-        }
-
-        .history-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 12px;
-          border: 1px solid #ced4da;
-          background: white;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-          color: #495057;
-          white-space: nowrap;
-        }
-
-        .history-btn:hover {
-          background: #f8f9fa;
-        }
-
-        .results-section {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .no-results {
-          text-align: center;
-          padding: 40px;
-          background: white;
-          border-radius: 8px;
-          border: 1px solid #e9ecef;
-        }
-
-        .result-card {
-          background: white;
-          border: 1px solid #e9ecef;
-          border-radius: 8px;
-          padding: 20px;
-          transition: box-shadow 0.2s ease;
-        }
-
-        .result-card:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .result-title {
-          font-size: 18px;
-          font-weight: 600;
-          color: #17a2b8;
-          margin: 0 0 10px 0;
-          cursor: pointer;
-          line-height: 1.3;
-        }
-
-        .result-title:hover {
-          text-decoration: underline;
-        }
-
-        .result-case-info {
-          font-size: 14px;
-          color: #6c757d;
-          font-style: italic;
-          margin-bottom: 12px;
-          line-height: 1.4;
-        }
-
-        .result-content {
-          font-size: 14px;
-          color: #495057;
-          line-height: 1.6;
-          margin-bottom: 12px;
-        }
-
-        .read-more-link {
-          color: #17a2b8;
-          font-size: 14px;
-          cursor: pointer;
-          font-weight: 500;
-          margin-bottom: 15px;
-        }
-
-        .read-more-link:hover {
-          text-decoration: underline;
-        }
-
-        .result-footer {
-          border-top: 1px solid #f1f3f4;
-          padding-top: 12px;
-        }
-
-        .result-meta {
-          display: flex;
-          gap: 20px;
-          flex-wrap: wrap;
-        }
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          color: #6c757d;
-          background: #f8f9fa;
-          padding: 4px 8px;
+        .courts-sidebar::-webkit-scrollbar-thumb,
+        .table-container::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
           border-radius: 4px;
         }
 
-        .meta-item i {
-          font-size: 14px;
+        .courts-sidebar::-webkit-scrollbar-thumb:hover,
+        .table-container::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
         }
 
-        @media (max-width: 1200px) {
-          .controls-section {
-            flex-direction: column;
-            gap: 15px;
-            align-items: stretch;
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+          .courts-sidebar {
+            width: 250px;
           }
-
-          .left-controls,
-          .right-controls {
-            justify-content: center;
-          }
-
-          .filter-row {
-            justify-content: center;
-            flex-wrap: wrap;
-          }
-
-          .dropdown-group {
-            flex-wrap: wrap;
-            justify-content: center;
+          
+          .col-appellant, .col-respondent {
+            width: 30%;
           }
         }
 
         @media (max-width: 768px) {
-          .database-page {
-            padding: 10px;
-          }
-
-          .database-header {
+          .content-wrapper {
             flex-direction: column;
-            gap: 15px;
+            height: auto;
           }
 
-          .page-title {
-            font-size: 24px;
+          .courts-sidebar {
+            width: 100%;
+            max-height: 300px;
           }
 
-          .filter-input {
-            width: 200px;
-          }
-
-          .result-meta {
+          .top-controls {
             flex-direction: column;
-            gap: 8px;
+            align-items: flex-start;
+            gap: 10px;
           }
 
-          .pagination-controls {
-            flex-wrap: wrap;
-            justify-content: center;
+          .total-info {
+            margin-left: 0;
           }
 
-          .dropdown-button {
-            min-width: 100px;
+          .judgements-table {
+            font-size: 12px;
+          }
+
+          .judgements-table th,
+          .judgements-table td {
+            padding: 8px 10px;
           }
         }
 
@@ -945,14 +575,6 @@ const Database = () => {
           .gojuris-main {
             margin-left: 60px;
             width: calc(100% - 60px);
-          }
-
-          .database-page {
-            padding: 5px;
-          }
-
-          .result-card {
-            padding: 15px;
           }
         }
       `}</style>

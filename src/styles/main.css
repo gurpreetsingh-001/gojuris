@@ -2247,7 +2247,7 @@ footer hr {
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
   background-image: url('/back.jpg');
   background-size: cover;
-  background-position: center;
+  background-position: top;
   background-repeat: no-repeat;
   display: flex;
   align-items: center;

@@ -218,21 +218,22 @@ Find exactly what you need- fast and precise with powerful keyword search       
                       >
                         <i className="bx bx-microphone"></i>
                       </button>
-                      <button
-                        type="submit"
-                        className="search-btn"
-                        disabled={isLoading || !searchQuery.trim()}
-                      >
-                        {isLoading ? (
-                          <i className="bx bx-loader bx-spin"></i>
-                        ) : (
-                          <img
-                            src="/i-ai-search-03.png"
-                            alt="Search"
-                            className="search-icon-img"
-                          />
-                        )}
-                      </button>
+                    <button
+  type="submit"
+  className="search-btn"
+  disabled={isLoading || !searchQuery.trim()}
+  style={{ background: '#ffffff' }}
+>
+  {isLoading ? (
+    <i className="bx bx-loader bx-spin" style={{ color: '#8b5cf6', fontSize: '24px' }}></i>
+  ) : (
+    <img
+      src="/i-case-law-research-04.png"
+      alt="Search"
+      className="search-icon-img"
+    />
+  )}
+</button>
                     </div>
                   </div>
                 </form>

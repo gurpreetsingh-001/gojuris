@@ -1,11 +1,12 @@
-// src/components/Navbar.jsx - Fixed dropdown positioning
+// src/components/Navbar.jsx - Added Back to Dashboard button
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ApiService from '../services/apiService';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -123,26 +124,43 @@ const Navbar = () => {
     return userProfile?.email || 'user@gojuris.com';
   };
 
+  // Check if we're on dashboard page
+  const isOnDashboard = location.pathname === '/dashboard';
+
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom position-relative">
         <div className="container-fluid px-3">
-          {/* Brand - moved to start */}
-            <Link to="/dashboard" className="navbar-brand p-0">
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
-              style={{ height: '64px', width: 'auto' }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = `
-                  <span style="color: var(--gj-primary); font-size: 1.5rem; font-weight: 700;">
-                    GoJuris<span style="color: var(--gj-secondary);">AI</span>
-                  </span>
-                `;
-              }}
-            />
-          </Link>
+          {/* Left side - Logo and Back to Dashboard button */}
+          <div className="d-flex align-items-center gap-3">
+            <Link to="/dashboard" className="navbar-brand p-0 m-0">
+              <img 
+                src="/logo.png" 
+                alt="GoJuris Logo" 
+                style={{ height: '64px', width: 'auto' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = `
+                    <span style="color: var(--gj-primary); font-size: 1.5rem; font-weight: 700;">
+                      GoJuris<span style="color: var(--gj-secondary);">AI</span>
+                    </span>
+                  `;
+                }}
+              />
+            </Link>
+
+            {/* Back to Dashboard button - only show when NOT on dashboard */}
+            {!isOnDashboard && (
+              <button
+                className="btn btn-outline-primary d-flex align-items-center gap-2 px-3"
+                type="button"
+                onClick={() => navigate('/dashboard')}
+              >
+                <i className="bx bx-home-alt"></i>
+                <span>Back to Dashboard</span>
+              </button>
+            )}
+          </div>
 
           {/* Right side buttons */}
           <div className="d-flex align-items-center gap-2">

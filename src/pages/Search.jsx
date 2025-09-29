@@ -12,9 +12,15 @@ const Search = () => {
   const [error, setError] = useState('');
 
   const [isJournalOpen, setIsJournalOpen] = useState(false);
+  const [courtSearchTerm, setCourtSearchTerm] = useState('');
+
 const [isYearOpen, setIsYearOpen] = useState(false);
 const [isVolumeOpen, setIsVolumeOpen] = useState(false);
 const [isPageOpen, setIsPageOpen] = useState(false);
+const [courts, setCourts] = useState([]);
+const [isLoadingCourts, setIsLoadingCourts] = useState(true);
+const [courtsError, setCourtsError] = useState('');
+const [selectedCourts, setSelectedCourts] = useState({});
 
 // API data states
 const [journals, setJournals] = useState([]);
@@ -65,6 +71,63 @@ const makeAuthenticatedRequest = async (url) => {
 
   return response.json();
 };
+
+useEffect(() => {
+  document.body.style.paddingTop = '0';
+  loadCourts(); // Load courts from API
+  
+  return () => {
+    document.body.style.paddingTop = '';
+  };
+}, []);
+
+const loadCourts = async () => {
+  try {
+    setIsLoadingCourts(true);
+    setCourtsError('');
+    console.log('🏛️ Loading courts from API...');
+
+    const permissionsData = await ApiService.getUserPermissions();
+    
+    // Extract courts array from API response
+    const courtsData = permissionsData.courts || [];
+    
+    console.log('✅ Courts loaded:', courtsData);
+    setCourts(courtsData);
+    
+    // Initialize all courts as unchecked
+    const initialSelection = {};
+    courtsData.forEach(court => {
+      initialSelection[court.key] = false;
+    });
+    setSelectedCourts(initialSelection);
+    
+  } catch (error) {
+    console.error('❌ Error loading courts:', error);
+    setCourtsError(error.message || 'Failed to load courts');
+  } finally {
+    setIsLoadingCourts(false);
+  }
+};
+
+const handleCourtToggle = (courtKey) => {
+  setSelectedCourts(prev => ({
+    ...prev,
+    [courtKey]: !prev[courtKey]
+  }));
+};
+
+// Add function to select all courts
+const handleSelectAllCourts = () => {
+  const allSelected = {};
+  courts.forEach(court => {
+    allSelected[court.key] = true;
+  });
+  setSelectedCourts(allSelected);
+};
+
+// Add function to unselect all courts
+
 
 const loadJournals = async () => {
   try {
@@ -301,18 +364,13 @@ useEffect(() => {
     }));
   };
 
-  const handleUnselectAllCourts = () => {
-    setFormData(prev => ({
-      ...prev,
-      selectedCourts: {
-        all: false,
-        supremeCourt: false,
-        privyCouncil: false,
-        allahabad: false,
-        apHigh: false
-      }
-    }));
-  };
+ const handleUnselectAllCourts = () => {
+  const allUnselected = {};
+  courts.forEach(court => {
+    allUnselected[court.key] = false;
+  });
+  setSelectedCourts(allUnselected);
+};
 
   const handleSearch = async (searchType) => {
     setIsLoading(true);
@@ -415,7 +473,6 @@ useEffect(() => {
           {/* Page Header */}
           <div className="page-header">
             <h1 className="page-title">Advanced Search</h1>
-            <p className="page-subtitle">Search through comprehensive legal database with advanced filters</p>
           </div>
 
           {error && (
@@ -858,78 +915,116 @@ useEffect(() => {
     </div>
 
                   {/* Courts Selection */}
-                  <div className="courts-section">
-                    <div className="courts-header">
-                      <button
-                        className="unselect-all-btn"
-                        onClick={handleUnselectAllCourts}
-                        type="button"
-                      >
-                        Unselect All Courts
-                      </button>
-                    </div>
-                    <div className="courts-list">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formData.selectedCourts.all}
-                          onChange={(e) => handleCourtChange('all', e.target.checked)}
-                        />
-                        <span className="checkmark"></span>
-                        All Courts
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formData.selectedCourts.supremeCourt}
-                          onChange={(e) => handleCourtChange('supremeCourt', e.target.checked)}
-                        />
-                        <span className="checkmark"></span>
-                        Supreme Court (Since 1950)
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formData.selectedCourts.privyCouncil}
-                          onChange={(e) => handleCourtChange('privyCouncil', e.target.checked)}
-                        />
-                        <span className="checkmark"></span>
-                        Privy Council (Since 1872)
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formData.selectedCourts.allahabad}
-                          onChange={(e) => handleCourtChange('allahabad', e.target.checked)}
-                        />
-                        <span className="checkmark"></span>
-                        Allahabad High Court (Since 1874)
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={formData.selectedCourts.apHigh}
-                          onChange={(e) => handleCourtChange('apHigh', e.target.checked)}
-                        />
-                        <span className="checkmark"></span>
-                        A.P. High Court (Since 1914)
-                      </label>
-                    </div>
+                  {/* Courts Selection - Updated Layout */}
+<div className="courts-and-actions-container">
+  {/* Left: Courts Section */}
+  <div className="courts-section-compact">
+    {/* Court Search Input */}
+    <div className="court-search-wrapper">
+      <input
+        type="text"
+        className="court-search-input"
+        placeholder="Search courts..."
+        value={courtSearchTerm}
+        onChange={(e) => setCourtSearchTerm(e.target.value)}
+      />
+      <i className="bx bx-search court-search-icon"></i>
+    </div>
 
-                    <div className="bench-section">
-                      <label className="form-label">Bench</label>
-                      <select
-                        className="form-select"
-                        value={formData.bench}
-                        onChange={(e) => handleInputChange('bench', e.target.value)}
-                      >
-                        <option value="All">All</option>
-                        <option value="Constitutional">Constitutional</option>
-                        <option value="Criminal">Criminal</option>
-                        <option value="Civil">Civil</option>
-                      </select>
-                    </div>
-                  </div>
+    {/* Unselect Button */}
+    <div className="court-header-actions">
+      <button 
+        className="btn-unselect-compact"
+        onClick={handleUnselectAllCourts}
+        disabled={isLoadingCourts}
+      >
+        UNSELECT ALL COURTS
+      </button>
+    </div>
+
+    {/* Loading State */}
+    {isLoadingCourts && (
+      <div className="loading-state-compact">
+        <i className="bx bx-loader-alt bx-spin"></i>
+        <p>Loading courts...</p>
+      </div>
+    )}
+
+    {/* Error State */}
+    {courtsError && (
+      <div className="error-state-compact">
+        <p>{courtsError}</p>
+        <button onClick={loadCourts}>Retry</button>
+      </div>
+    )}
+
+    {/* Courts List - Filtered */}
+    {!isLoadingCourts && !courtsError && (
+      <div className="courts-list-compact">
+        {courts
+          .filter(court => 
+            court.value.toLowerCase().includes(courtSearchTerm.toLowerCase())
+          )
+          .map((court) => (
+            <div key={court.key} className="court-item-compact">
+              <input
+                type="checkbox"
+                id={`court-${court.key}`}
+                checked={selectedCourts[court.key] || false}
+                onChange={(e) => handleCourtToggle(court.key)}
+              />
+              <label htmlFor={`court-${court.key}`}>
+                {court.value}
+              </label>
+            </div>
+          ))}
+        {courts.filter(court => 
+          court.value.toLowerCase().includes(courtSearchTerm.toLowerCase())
+        ).length === 0 && (
+          <div className="no-courts-found">
+            No courts found matching "{courtSearchTerm}"
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+
+  {/* Right: Action Buttons */}
+  <div className="action-buttons-vertical">
+    <button
+      className="search-btn-vertical search-sc-btn"
+      onClick={() => handleSearch('sc')}
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <i className="bx bx-loader bx-spin"></i>
+      ) : (
+        <i className="bx bx-search"></i>
+      )}
+      Search Supreme Court
+    </button>
+    <button
+      className="search-btn-vertical search-all-btn"
+      onClick={() => handleSearch('all')}
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <i className="bx bx-loader bx-spin"></i>
+      ) : (
+        <i className="bx bx-search"></i>
+      )}
+      Search All Courts
+    </button>
+    <button
+      className="clear-btn-vertical"
+      onClick={handleClear}
+      type="button"
+    >
+      <i className="bx bx-refresh"></i>
+      Clear All
+    </button>
+  </div>
+</div>
                 </div>
               </div>
 
@@ -1212,7 +1307,8 @@ useEffect(() => {
 
         .form-textarea {
           resize: vertical;
-          min-height: 80px; /* Reduced from 100px */
+         height:40px;
+          min-height: 30px; /* Reduced from 100px */
         }
 
         /* Checkbox and Radio Styles - Compact */
@@ -1754,6 +1850,405 @@ useEffect(() => {
 .card-content,
 .form-group {
   overflow: visible !important;
+}
+  .court-section {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.court-section h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.bench-selector {
+  margin-bottom: 15px;
+}
+
+.bench-selector label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.bench-selector input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.court-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-unselect,
+.btn-select {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.btn-unselect {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-unselect:hover {
+  background-color: #5a6268;
+}
+
+.btn-select {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-select:hover {
+  background-color: #0056b3;
+}
+
+.btn-unselect:disabled,
+.btn-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.courts-list {
+  max-height: 60px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  background: white;
+}
+
+.court-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.court-item:last-child {
+  border-bottom: none;
+}
+
+.court-item input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.court-item label {
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 20px;
+}
+
+.error-state button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-state button:hover {
+  background-color: #0056b3;
+}
+
+/* Courts and Actions Container */
+.courts-and-actions-container {
+  display: flex;
+  gap: 15px;
+  margin: 1rem 0;
+  align-items: flex-start;
+}
+
+/* Compact Courts Section */
+.courts-section-compact {
+  flex: 0 0 350px; /* Fixed width, reduced from full width */
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+}
+
+/* Court Search Input */
+.court-search-wrapper {
+  position: relative;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8f9fa;
+}
+
+.court-search-input {
+  width: 100%;
+  padding: 8px 35px 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.court-search-input:focus {
+  border-color: var(--gj-primary, #8b5cf6);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+}
+
+.court-search-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* Court Header Actions */
+.court-header-actions {
+  padding: 8px 10px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.btn-unselect-compact {
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #6c757d;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-unselect-compact:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.btn-unselect-compact:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Compact Courts List */
+.courts-list-compact {
+  max-height: 100px;
+  overflow-y: auto;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.court-item-compact {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.75rem; /* Reduced font size */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.court-item-compact:last-child {
+  border-bottom: none;
+}
+
+.court-item-compact input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.court-item-compact label {
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+  color: #374151;
+  line-height: 1.3;
+}
+
+.court-item-compact input[type="checkbox"]:checked + label {
+  color: var(--gj-primary, #8b5cf6);
+  font-weight: 500;
+}
+
+.no-courts-found {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.loading-state-compact,
+.error-state-compact {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.75rem;
+}
+
+.loading-state-compact i {
+  font-size: 24px;
+  color: var(--gj-primary, #8b5cf6);
+  margin-bottom: 8px;
+}
+
+.error-state-compact {
+  color: #dc3545;
+}
+
+.error-state-compact button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+/* Vertical Action Buttons */
+.action-buttons-vertical {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 20px;
+}
+
+.search-btn-vertical,
+.clear-btn-vertical {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+}
+
+.search-sc-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.search-sc-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.search-all-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  color: white;
+}
+
+.search-all-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.clear-btn-vertical {
+  background: #f3f4f6;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+}
+
+.clear-btn-vertical:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.search-btn-vertical:disabled,
+.clear-btn-vertical:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.search-btn-vertical i,
+.clear-btn-vertical i {
+  font-size: 18px;
+}
+
+/* Scrollbar for compact courts list */
+.courts-list-compact::-webkit-scrollbar {
+  width: 5px;
+}
+
+.courts-list-compact::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.courts-list-compact::-webkit-scrollbar-thumb {
+  background: var(--gj-primary, #8b5cf6);
+  border-radius: 3px;
+}
+
+.courts-list-compact::-webkit-scrollbar-thumb:hover {
+  background: var(--gj-secondary, #a855f7);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .courts-and-actions-container {
+    flex-direction: column;
+  }
+
+  .courts-section-compact {
+    flex: 1;
+    width: 100%;
+  }
+
+  .action-buttons-vertical {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .courts-section-compact {
+    flex: 0 0 100%;
+  }
+
+  .search-btn-vertical,
+  .clear-btn-vertical {
+    padding: 10px 20px;
+    font-size: 0.8rem;
+  }
 }
       `}</style>
     </div>

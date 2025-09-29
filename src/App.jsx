@@ -10,6 +10,8 @@ import Results from './pages/Results';
 import Judgement from './pages/Judgement';
 import Login from './pages/Login';
 import Citation from './pages/Citation';
+import Virtual from './pages/Virtual';
+
 import AIChat from './pages/AIChat';
 import AISearch from './pages/AISearch';
 import Dashboard from './pages/Dashboard';
@@ -103,6 +105,16 @@ function App() {
               <Database />
             </ProtectedRoute>
           } />
+
+          <Route path="/virtual"
+           element={
+            <ProtectedRoute>
+              <Virtual />
+            </ProtectedRoute>
+            } />
+
+
+
   <Route path="/pricing" element={<PricingPlans />} />
 
         </Routes>

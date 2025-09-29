@@ -1172,6 +1172,22 @@ class ApiService {
     return this.executeSearch("citation", citationData, options);
   }
 
+  // ================ USER PERMISSIONS API ================
+async getUserPermissions() {
+  try {
+    console.log('🔐 Fetching user permissions (courts, acts, others)');
+    
+    const data = await this.makeRequest('/User/GetUserPermissions', {
+      method: 'GET'
+    });
+    
+    console.log('✅ User permissions loaded:', data);
+    return data;
+  } catch (error) {
+    console.error('❌ Failed to fetch user permissions:', error);
+    throw error;
+  }
+}
 }
 
 // Create singleton instance

@@ -5,7 +5,7 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import RightSidebar from '../components/RightSidebar';
 import ApiService from '../services/apiService';
-import GoogleTranslate from "../components/GoogleTranslatenew";
+import GoogleTranslate from "../components/GoogleTranslate";
 
 
 const Judgement = () => {

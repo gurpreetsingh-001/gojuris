@@ -845,17 +845,128 @@ const handleJudgementClick = (keycode, event) => {
                   dangerouslySetInnerHTML={{__html: formatResultContent(result)}}
                 />
 
-                {result.keycode && (
-                  <div className="result-actions">
-                    <button 
-                      className="read-judgement"
-                      onClick={(e) => handleJudgementClick(result.keycode, e)}
-                    >
-                      <i className="bx bx-book-open"></i>
-                      Read Full Judgement
-                    </button>
-                  </div>
-                )}
+               {result.keycode && (
+  <div className="result-actions" style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: '1rem'
+  }}>
+    {/* Left Side - Read Full Judgement Button */}
+    <button 
+      className="read-judgement"
+      onClick={(e) => handleJudgementClick(result.keycode, e)}
+    >
+      <i className="bx bx-book-open"></i>
+      Read Full Judgement
+    </button>
+
+    {/* Right Side - Action Buttons */}
+    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      {/* Bookmark Button */}
+      <button
+        className="action-btn bookmark-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          // Bookmark functionality - you can customize this
+          const bookmarked = localStorage.getItem(`bookmark_${result.keycode}`);
+          if (bookmarked) {
+            localStorage.removeItem(`bookmark_${result.keycode}`);
+            e.target.closest('button').classList.remove('bookmarked');
+            alert('Bookmark removed!');
+          } else {
+            localStorage.setItem(`bookmark_${result.keycode}`, JSON.stringify({
+              keycode: result.keycode,
+              title: formatResultTitle(result),
+              court: result.court,
+              date: result.date
+            }));
+            e.target.closest('button').classList.add('bookmarked');
+            alert('Bookmarked successfully!');
+          }
+        }}
+        title="Bookmark"
+      >
+        <img 
+          src="/bookmarkresults.png" 
+          alt="Bookmark" 
+          style={{ width: '40px', height: '40px' }}
+        />
+      </button>
+
+      {/* Print Button */}
+      <button
+        className="action-btn print-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          // Print functionality
+          const printContent = `
+            <html>
+              <head>
+                <title>${formatResultTitle(result)}</title>
+                <style>
+                  body { font-family: Arial, sans-serif; padding: 20px; }
+                  h1 { color: #8b5cf6; }
+                  .meta { color: #666; margin: 10px 0; }
+                </style>
+              </head>
+              <body>
+                <h1>${formatResultTitle(result)}</h1>
+                <div class="meta">
+                  <p><strong>Court:</strong> ${formatCourt(result)}</p>
+                  <p><strong>Date:</strong> ${formatDate(result)}</p>
+                  <p><strong>Keycode:</strong> ${result.keycode}</p>
+                </div>
+                <div class="content">
+                  ${formatResultContent(result)}
+                </div>
+              </body>
+            </html>
+          `;
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write(printContent);
+          printWindow.document.close();
+          printWindow.print();
+        }}
+        title="Print"
+      >
+        <i className="bx bx-printer" style={{ fontSize: '20px' }}></i>
+      </button>
+
+      {/* Share Button */}
+      <button
+        className="action-btn share-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          // Share functionality
+          const shareData = {
+            title: formatResultTitle(result),
+            text: `Check out this case: ${formatResultTitle(result)}`,
+            url: `${window.location.origin}/judgement/${result.keycode}`
+          };
+
+          if (navigator.share) {
+            // Use native share if available
+            navigator.share(shareData)
+              .catch((error) => console.log('Share cancelled'));
+          } else {
+            // Fallback - copy to clipboard
+            const textToCopy = `${shareData.title}\n${shareData.url}`;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              alert('Link copied to clipboard!');
+            }).catch(() => {
+              // Final fallback - show URL in alert
+              prompt('Copy this link:', shareData.url);
+            });
+          }
+        }}
+        title="Share"
+      >
+        <i className="bx bx-share-alt" style={{ fontSize: '20px' }}></i>
+      </button>
+    </div>
+  </div>
+)}
               </div>
             ))
           )}
@@ -1292,6 +1403,60 @@ const handleJudgementClick = (keycode, event) => {
             min-width: 200px;
           }
         }
+.action-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Bookmark button */
+.bookmark-btn img {
+  width: 40px;
+  height: 40px;
+  transition: opacity 0.2s ease;
+}
+
+.bookmark-btn:hover img {
+  opacity: 0.7;
+}
+
+.bookmark-btn.bookmarked img {
+  filter: brightness(0.8);
+}
+
+/* Print and Share buttons - perfect circular background */
+.print-btn i,
+.share-btn i {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.print-btn:hover i,
+.share-btn:hover i {
+  border-color: var(--gj-primary);
+  color: var(--gj-primary);
+  background: #f9fafb;
+}
       `}</style>
     </div>
   );

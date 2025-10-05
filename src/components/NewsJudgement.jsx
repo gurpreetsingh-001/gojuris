@@ -33,7 +33,7 @@ const  NewsJudgement = () => {
   ];
 
   return (
-    <section className="container mb-md-3 pt-4">
+    <section id="llp" className="container mb-md-3 pt-4">
       <div className="d-md-flex align-items-center justify-content-between text-center text-md-start mb-5">
         <div>
           <h2 className="h1 mb-md-0">Latest Law Points </h2>

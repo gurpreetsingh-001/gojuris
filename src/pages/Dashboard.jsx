@@ -42,7 +42,7 @@ const Dashboard = () => {
     },
     {
       title: 'Latest in LAW',
-      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
+      description: ' Stay updated with the Latest in Law — Fresh judgments, Amendments, Legal Daily News and other legal developments on daily basis.',
       icon: '/i-law.png', 
       link: '#virtual-legal-assistant'
     },
@@ -51,7 +51,32 @@ const Dashboard = () => {
       description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
       icon: '/i-database.png', 
       link: '#virtual-legal-assistant'
+    },
+     {
+      title: 'Legal Dictionary',
+      description: 'Comprehensive Legal Terminology at your fingertips for precise legal research.',
+      icon: '/legaldictionary.png', 
+      link: '#virtual-legal-assistant'
+    },
+     {
+      title: 'Reports',
+      description: 'Covers Law Commission Reports, Constituent Assembly Debates and other Important Legal Reports.',
+      icon: '/reports.png', 
+      link: '#virtual-legal-assistant'
+    },
+    {
+      title: 'Central Laws ',
+      description: 'A comprehensive library of all Central Statutes and regulations, providing quick access to authoritative legal texts in one place.',
+      icon: '/centrallaws.png', 
+      link: '#virtual-legal-assistant'
+    },
+     {
+      title: 'State Laws',
+      description: 'A dedicated collection of state-specific statutes and regulations, enabling quick reference to region-wise legal provisions.',
+      icon: '/statelaw.png', 
+      link: '#virtual-legal-assistant'
     }
+   
   ];
 
   return (
@@ -246,6 +271,7 @@ const Dashboard = () => {
           font-size: 0.875rem;
           overflow: hidden;
           display: -webkit-box;
+          font-family: "Roboto Condensed", sans-serif;
           -webkit-line-clamp: 3; /* Maximum 3 lines */
           -webkit-box-orient: vertical;
         }

@@ -191,32 +191,46 @@ const CallToAction = () => {
   }
 
   return (
-    <section className="container mb-md-3 pt-5">
+    <section id="cta" className="container mb-md-3 pt-5">
       <div className="row align-items-center">
         {/* Left Column - Illustration */}
-        <div className="col-lg-6 mb-4 mb-lg-0">
-          <div 
-            className="rounded-3 bg-light d-flex align-items-center justify-content-center position-relative overflow-hidden"
-            style={{ height: '400px' }}
-          >
-            <div className="text-center text-muted">
-              <i className="bx bx-laptop display-1 mb-3"></i>
-              <h4 className="mb-0">Start Your Legal Research Journey</h4>
-              <div className="position-absolute top-0 start-0 m-4">
-                <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
-                     style={{ width: '60px', height: '60px' }}>
-                  <i className="bx bx-search text-white fs-4"></i>
-                </div>
-              </div>
-              <div className="position-absolute bottom-0 end-0 m-4">
-                <div className="bg-success rounded-circle d-flex align-items-center justify-content-center" 
-                     style={{ width: '50px', height: '50px' }}>
-                  <i className="bx bx-bot text-white fs-5"></i>
-                </div>
-              </div>
-            </div>
+        
+
+{/* Left Column - Image */}
+<div className="col-lg-6 mb-4 mb-lg-0">
+  <div 
+    className="rounded-3 overflow-hidden"
+    style={{ height: '100%', minHeight: '400px' }}
+  >
+    <img
+      src="/free-trial.jpg"
+      alt="Free Trial"
+      className="img-fluid w-100 h-100"
+      style={{ 
+        objectFit: 'cover',
+        borderRadius: '12px'
+      }}
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.parentElement.innerHTML = `
+          <div style="
+            background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            height: 100%;
+            min-height: 400px;
+          ">
+            <i class="bx bx-image"></i>
           </div>
-        </div>
+        `;
+      }}
+    />
+  </div>
+</div>
         
         {/* Right Column - Signup Form */}
         <div className="col-lg-6 ps-lg-5">

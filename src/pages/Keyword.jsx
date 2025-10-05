@@ -374,6 +374,7 @@ Find exactly what you need- fast and precise with powerful keyword search       
         .ai-search-container {
           max-width: 1200px;
           width: 100%;
+          margin-top:-100px;
           text-align: center;
         }
 
@@ -416,12 +417,12 @@ Find exactly what you need- fast and precise with powerful keyword search       
         }
 
         .hero-title {
-          font-size: clamp(2rem, 5vw, 3rem);
-          font-weight: 600;
+          font-size: clamp(2rem, 5vw, 2rem);
+          font-weight: 300;
           color: #333;
           line-height: 1.2;
-          margin-bottom: 3rem;
-          max-width: 800px;
+          margin-bottom: 1rem;
+          max-width: 1100px;
           margin-left: auto;
           margin-right: auto;
         }

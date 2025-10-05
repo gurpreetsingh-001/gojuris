@@ -4,10 +4,11 @@ import React, { useEffect, useRef, useState } from 'react';
 const Services = () => {
   const servicesRef = useRef(null);
   const [activeModal, setActiveModal] = useState(null);
+  const [showAllServicesModal, setShowAllServicesModal] = useState(false);
 
   const services = [
     {
-      icon: '/Articles-01.png', // Using single image for all services
+      icon: '/Articles-01.png',
       title: 'Case Law Repository',
       subtitle: 'Comprehensive collection of judgments from Supreme Court, High Courts, and Tribunals across India',
       description: 'Access to extensive case law database covering all major courts and judicial decisions.',
@@ -88,54 +89,78 @@ const Services = () => {
       }
     },
     {
-      icon: '/Case Law Repository-02.png', // Using single image for all services
+      icon: '/Case Law Repository-02.png',
       title: 'Cross-Citation of More than 300 Journals',
       subtitle: 'Extensive cross-referencing across major legal publications and journals for comprehensive research',
       description: 'Comprehensive citation network connecting legal precedents across multiple journals.',
       hasDetailedContent: false
     },
     {
-      icon: '/Central Laws-03.png', // Using single image for all services
+      icon: '/Central Laws-03.png',
       title: 'Central & State Statutes',
       subtitle: 'Complete collection of central and state legislation with historical and current versions',
       description: 'Access to all current and historical statutes from central and state governments.',
       hasDetailedContent: false
     },
     {
-      icon: '/Cross Citations-04.png', // Using single image for all services
+      icon: '/Cross Citations-04.png',
       title: 'Scholarly Articles & Blogs',
       subtitle: 'Expert analysis and commentary from legal scholars and practitioners across various domains',
       description: 'Curated collection of academic articles and professional insights.',
       hasDetailedContent: false
     },
     {
-      icon: '/Drafting-05.png', // Using single image for all services
+      icon: '/Drafting-05.png',
       title: 'Latest Amendments & Updates',
       subtitle: 'Real-time updates on legal changes and amendments to keep you informed and compliant',
       description: 'Stay current with the latest changes in law and legal procedures.',
       hasDetailedContent: false
     },
     {
-      icon: '/Latest Amendments-06.png', // Using single image for all services
+      icon: '/Latest Amendments-06.png',
       title: 'Legal News & Insights',
       subtitle: 'Current legal developments and market insights from trusted sources and expert analysis',
       description: 'Breaking legal news and expert analysis of current legal trends.',
       hasDetailedContent: false
     },
     {
-      icon: '/News-07.png', // Using single image for all services
+      icon: '/News-07.png',
       title: 'Drafting Templates & Materials',
       subtitle: 'Ready-to-use legal document templates and drafting resources for efficient legal practice',
       description: 'Professional templates and materials for efficient legal document preparation.',
       hasDetailedContent: false
     },
     {
-      icon: '/Reports-08.png', // Using single image for all services
+      icon: '/Reports-08.png',
       title: 'Commission & Committee Reports',
       subtitle: 'Official reports from legal commissions and committees with detailed analysis and recommendations',
       description: 'Access to important reports and recommendations from legal bodies.',
       hasDetailedContent: false
     }
+  ];
+
+  const allServicesList = [
+    'Indian and International Case Law & Judgments Database',
+    'Access to a large repository of judgments (Supreme Court of India, High Courts of India, Tribunals of India etc. etc.).',
+    'Searchable by criterias like subject, topic, citation, party, judge, duration, statute, provisions etc.',
+    'Enhanced Search Features (Magic Search): Users have reported features such as "Magic Search". Likely involves smart autocomplete, suggestion of related topics, clustering of result',
+    'Access to Citations of More than 300 Journals/Law Reports of India',
+    'AI Chat',
+    'AI Searches',
+    'AI Legal Assistant',
+    'Feature to "listen to any judgment"',
+    'Access to Central Bare Acts & State Statutes',
+    'Access to Latest Amendments',
+    'Updates about recent legislations or amendments.',
+    'Legal News & Articles / Law-Points / Blogs',
+    'News items related to court decisions etc.',
+    'Articles, blogs, Law-Points that summarize or comment on law topics.',
+    'Forms, Drafts, Deeds, Agreements',
+    'Legal Dictionary, Maxims & Phrases',
+    'Multiple Platform Versions',
+    'All Databases on Offline Versions also',
+    'Case management /Digital case Diary tool.',
+    'Text-to-Speech for Judgments'
   ];
 
   useEffect(() => {
@@ -169,15 +194,25 @@ const Services = () => {
     setActiveModal(null);
   };
 
+  const openAllServicesModal = (e) => {
+    e.preventDefault();
+    setShowAllServicesModal(true);
+  };
+
+  const closeAllServicesModal = () => {
+    setShowAllServicesModal(false);
+  };
+
   // Close modal on ESC key
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         closeModal();
+        closeAllServicesModal();
       }
     };
 
-    if (activeModal !== null) {
+    if (activeModal !== null || showAllServicesModal) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
@@ -186,7 +221,7 @@ const Services = () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [activeModal]);
+  }, [activeModal, showAllServicesModal]);
 
   return (
     <>
@@ -201,7 +236,12 @@ const Services = () => {
               with instant access to relevant case law, statutes, and legal insights, revolutionizing 
               the way legal research is conducted.
             </p>
-            <a href="#" className="btn btn-primary shadow-primary btn-lg">All services</a>
+            <button 
+              onClick={openAllServicesModal} 
+              className="btn btn-primary shadow-primary btn-lg"
+            >
+              All services
+            </button>
           </div>
           
           <div className="col-xl-7 col-lg-8 offset-xl-1">
@@ -247,7 +287,68 @@ const Services = () => {
         </div>
       </section>
 
-      {/* Modal */}
+      {/* All Services Modal */}
+      {showAllServicesModal && (
+        <>
+          <div 
+            className="modal fade show d-block" 
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: '9999' }}
+            onClick={closeAllServicesModal}
+          >
+            <div 
+  className="modal-dialog modal-lg modal-dialog-scrollable" 
+  onClick={(e) => e.stopPropagation()}
+  style={{ 
+    maxHeight: 'calc(100vh - 120px)',
+    marginTop: '120px'
+  }}
+>
+              <div className="modal-content" style={{ borderRadius: '16px' }}>
+                <div className="modal-header border-0">
+                  <h4 className="modal-title" style={{
+                    fontWeight: '700',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #6366f1 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    All Services & Features
+                  </h4>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={closeAllServicesModal}
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                  <div className="row">
+                    {allServicesList.map((service, index) => (
+                      <div key={index} className="col-12 mb-3">
+                        <div className="d-flex align-items-start">
+                          <i className="bx bx-check-circle text-success me-3 mt-1 flex-shrink-0" style={{ fontSize: '20px' }}></i>
+                          <span style={{ fontSize: '15px', lineHeight: '1.6' }}>{service}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="modal-footer border-0">
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={closeAllServicesModal}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Individual Service Modal */}
       {activeModal !== null && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: '9999' }}>
           <div className="modal-dialog modal-lg modal-dialog-scrollable" style={{ marginTop: '100px', maxHeight: 'calc(100vh - 120px)' }}>

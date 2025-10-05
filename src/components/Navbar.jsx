@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx - Added Back to Dashboard button
+// src/components/Navbar.jsx - Icon buttons for dashboard and bookmark
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ApiService from '../services/apiService';
@@ -9,6 +9,7 @@ const Navbar = () => {
   const location = useLocation();
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
@@ -20,13 +21,11 @@ const Navbar = () => {
     try {
       setIsLoadingProfile(true);
       
-      // First, try to get user data from localStorage
       const userEmail = localStorage.getItem('userEmail');
       const storedUserData = localStorage.getItem('userData');
       
       let profileData = null;
 
-      // Try to parse stored user data
       if (storedUserData) {
         try {
           profileData = JSON.parse(storedUserData);
@@ -35,40 +34,34 @@ const Navbar = () => {
         }
       }
 
-      // If we have basic info from localStorage, use it as fallback
       if (userEmail && !profileData) {
         profileData = {
           email: userEmail,
-          username: userEmail.split('@')[0], // Extract username from email
+          username: userEmail.split('@')[0],
           name: userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1)
         };
       }
 
-      // Try to fetch fresh profile from API
       try {
         const apiProfile = await ApiService.getUserInfo();
         if (apiProfile) {
           profileData = {
             ...profileData,
             ...apiProfile,
-            // Ensure we have display name
             displayName: apiProfile.name || apiProfile.fullName || apiProfile.firstName 
               ? `${apiProfile.firstName || ''} ${apiProfile.lastName || ''}`.trim()
               : apiProfile.username || profileData?.username || 'Legal User'
           };
           
-          // Store updated profile data
           localStorage.setItem('userData', JSON.stringify(profileData));
         }
       } catch (apiError) {
         console.warn('Failed to fetch user profile from API:', apiError.message);
-        // Continue with localStorage data
       }
 
       setUserProfile(profileData);
     } catch (error) {
       console.error('Failed to load user profile:', error);
-      // Set default fallback
       setUserProfile({
         email: 'user@gojuris.com',
         displayName: 'Legal User',
@@ -82,18 +75,15 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await ApiService.logout();
-      // Clear all local storage
       localStorage.clear();
       navigate('/login');
     } catch (error) {
       console.error('Sign out error:', error);
-      // Force logout even if API call fails
       localStorage.clear();
       navigate('/login');
     }
   };
 
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (!userProfile) return 'U';
     
@@ -109,7 +99,6 @@ const Navbar = () => {
     return userProfile.email ? userProfile.email[0].toUpperCase() : 'U';
   };
 
-  // Format display name
   const getDisplayName = () => {
     if (!userProfile) return 'Loading...';
     
@@ -119,62 +108,75 @@ const Navbar = () => {
            (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
   };
 
-  // Get email
   const getEmail = () => {
     return userProfile?.email || 'user@gojuris.com';
   };
-
-  // Check if we're on dashboard page
-  const isOnDashboard = location.pathname === '/dashboard';
 
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom position-relative">
         <div className="container-fluid px-3">
-          {/* Left side - Logo and Back to Dashboard button */}
-          <div className="d-flex align-items-center gap-3">
-            <Link to="/dashboard" className="navbar-brand p-0 m-0">
-              <img 
-                src="/logo.png" 
-                alt="GoJuris Logo" 
-                style={{ height: '64px', width: 'auto' }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = `
-                    <span style="color: var(--gj-primary); font-size: 1.5rem; font-weight: 700;">
-                      GoJuris<span style="color: var(--gj-secondary);">AI</span>
-                    </span>
-                  `;
-                }}
-              />
-            </Link>
+          {/* Left side - Logo */}
+          <Link to="/dashboard" className="navbar-brand p-0 m-0">
+            <img 
+              src="/logo.png" 
+              alt="GoJuris Logo" 
+              style={{ height: '64px', width: 'auto' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <span style="color: var(--gj-primary); font-size: 1.5rem; font-weight: 700;">
+                    GoJuris<span style="color: var(--gj-secondary);">AI</span>
+                  </span>
+                `;
+              }}
+            />
+          </Link>
 
-            {/* Back to Dashboard button - only show when NOT on dashboard */}
-            {!isOnDashboard && (
-              <button
-                className="btn btn-outline-primary d-flex align-items-center gap-2 px-3"
-                type="button"
-                onClick={() => navigate('/dashboard')}
-              >
-                <i className="bx bx-home-alt"></i>
-                <span>Back to Dashboard</span>
-              </button>
-            )}
-          </div>
+      {/* Right side buttons */}
+<div className="d-flex align-items-center gap-2">
+  {/* Dashboard Icon Button - Plain */}
+  <button
+    className="btn btn-link p-0"
+    type="button"
+    onClick={() => navigate('/dashboard')}
+    style={{ border: 'none', background: 'transparent' }}
+    title="Dashboard"
+  >
+    <img 
+      src="/dashboard.png" 
+      alt="Dashboard" 
+      style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+    />
+  </button>
 
-          {/* Right side buttons */}
-          <div className="d-flex align-items-center gap-2">
-            {/* Settings Button - opens modal */}
-            <button
-              className="btn btn-outline-secondary btn-sm rounded-circle p-2"
-              type="button"
-              onClick={() => setShowSettingsModal(true)}
-              style={{ width: '40px', height: '40px' }}
-            >
-              <i className="bx bx-cog"></i>
-            </button>
+  {/* Bookmark Icon Button - Plain */}
+  <button
+    className="btn btn-link p-0"
+    type="button"
+    onClick={() => setShowBookmarksModal(true)}
+    style={{ border: 'none', background: 'transparent' }}
+    title="Bookmarks"
+  >
+    <img 
+      src="/bookmark.png" 
+      alt="Bookmarks" 
+      style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+    />
+  </button>
 
-            {/* My Account Dropdown - Fixed positioning */}
+  {/* Settings Button - Keep circular */}
+  <button
+    className="btn btn-outline-secondary btn-sm rounded-circle p-2"
+    type="button"
+    onClick={() => setShowSettingsModal(true)}
+    style={{ width: '40px', height: '40px' }}
+    title="Settings"
+  >
+    <i className="bx bx-cog"></i>
+  </button>
+
+            {/* My Account Dropdown */}
             <div className="position-relative">
               <button
                 className="btn btn-primary d-flex align-items-center gap-2 px-3"
@@ -196,7 +198,6 @@ const Navbar = () => {
                 <i className="bx bx-chevron-down"></i>
               </button>
               
-              {/* Fixed Dropdown with proper positioning */}
               {showAccountDropdown && !isLoadingProfile && (
                 <div 
                   className="position-absolute bg-white border rounded shadow"
@@ -211,7 +212,6 @@ const Navbar = () => {
                     overflowY: 'auto'
                   }}
                 >
-                  {/* User Info Header */}
                   <div className="px-3 py-3 border-bottom bg-light">
                     <div className="d-flex align-items-center">
                       <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 text-white fw-bold flex-shrink-0" 
@@ -233,7 +233,6 @@ const Navbar = () => {
                     </div>
                   </div>
                   
-                  {/* Menu Items */}
                   <div className="py-1">
                     <button 
                       className="dropdown-item px-3 py-2 border-0 bg-transparent w-100 text-start d-flex align-items-center"
@@ -291,7 +290,6 @@ const Navbar = () => {
                     </button>
                   </div>
                   
-                  {/* Divider and Sign Out */}
                   <div className="border-top">
                     <button 
                       className="dropdown-item px-3 py-2 border-0 bg-transparent w-100 text-start d-flex align-items-center text-danger"
@@ -307,7 +305,6 @@ const Navbar = () => {
           </div>
         </div>
         
-        {/* Click outside handler for account dropdown */}
         {showAccountDropdown && (
           <div 
             className="position-fixed top-0 start-0 w-100 h-100"
@@ -316,6 +313,65 @@ const Navbar = () => {
           ></div>
         )}
       </nav>
+
+      {/* Bookmarks Modal */}
+      {showBookmarksModal && (
+        <>
+          <div 
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{ zIndex: 1055, backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={() => setShowBookmarksModal(false)}
+          ></div>
+          <div 
+            className="modal fade show d-block" 
+            style={{ zIndex: 1060 }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header border-0">
+                  <div className="d-flex align-items-center">
+                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style={{ width: '40px', height: '40px' }}>
+                      <img 
+                        src="/bookmark.png" 
+                        alt="Bookmarks" 
+                        style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                      />
+                    </div>
+                    <h4 className="modal-title mb-0">Bookmarks</h4>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setShowBookmarksModal(false)}
+                    aria-label="Close"
+                  ></button>
+                </div>
+                
+                <div className="modal-body text-center py-5">
+                  <div className="mb-4">
+                    <i className="bx bx-bookmark text-muted" style={{ fontSize: '4rem' }}></i>
+                  </div>
+                  <h3 className="text-muted mb-3">No Bookmarks Yet</h3>
+                  <p className="text-muted mb-0">
+                    Save important cases and documents here for quick access later.
+                  </p>
+                </div>
+                
+                <div className="modal-footer border-0 justify-content-center">
+                  <button 
+                    type="button" 
+                    className="btn btn-primary px-4"
+                    onClick={() => setShowBookmarksModal(false)}
+                  >
+                    Got it
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Settings Modal */}
       {showSettingsModal && (

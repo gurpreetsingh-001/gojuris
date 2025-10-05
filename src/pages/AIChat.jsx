@@ -2,12 +2,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import ApiService from '../services/apiService';
+import { Link, useNavigate } from 'react-router-dom';
+
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import { Link } from 'react-router-dom';
 
 const AIChat = () => {
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+
   const [chatHistory, setChatHistory] = useState([]);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -16,8 +19,11 @@ const AIChat = () => {
   const [error, setError] = useState('');
   const [userProfile, setUserProfile] = useState(null);
   const messagesEndRef = useRef(null);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this line
 
-const [recognition, setRecognition] = useState(null);
+
+  const [recognition, setRecognition] = useState(null);
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -42,75 +48,74 @@ const [recognition, setRecognition] = useState(null);
   };
 
   useEffect(() => {
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognitionInstance = new SpeechRecognition();
-    
-    recognitionInstance.continuous = true;
-    recognitionInstance.interimResults = true;
-    recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
-    
-    recognitionInstance.onstart = () => {
-      setIsListening(true);
-    };
-    
-    recognitionInstance.onresult = (event) => {
-      let finalTranscript = '';
-      
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        }
-      }
-      
-      if (finalTranscript) {
-        setMessage(prev => prev + finalTranscript);
-      }
-    };
-    
-    recognitionInstance.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-      
-      // Show user-friendly error messages
-      if (event.error === 'not-allowed') {
-        setError('Microphone access denied. Please allow microphone access and try again.');
-      } else if (event.error === 'no-speech') {
-        setError('No speech detected. Please try speaking again.');
-      } else {
-        setError('Speech recognition error. Please try again.');
-      }
-    };
-    
-    recognitionInstance.onend = () => {
-      setIsListening(false);
-    };
-    
-    setRecognition(recognitionInstance);
-  } else {
-    console.warn('Speech recognition not supported in this browser');
-  }
-}, []);
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
 
-const toggleVoiceRecognition = () => {
-  if (!recognition) {
-    setError('Speech recognition is not supported in your browser. Please try Chrome, Safari, or Edge.');
-    return;
-  }
-  
-  if (isListening) {
-    recognition.stop();
-  } else {
-    setError(''); // Clear any previous errors
-    recognition.start();
-  }
-};
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
+
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionInstance.onresult = (event) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setMessage(prev => prev + finalTranscript);
+        }
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+
+        // Show user-friendly error messages
+        if (event.error === 'not-allowed') {
+          setError('Microphone access denied. Please allow microphone access and try again.');
+        } else if (event.error === 'no-speech') {
+          setError('No speech detected. Please try speaking again.');
+        } else {
+          setError('Speech recognition error. Please try again.');
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recognitionInstance);
+    } else {
+      console.warn('Speech recognition not supported in this browser');
+    }
+  }, []);
+
+  const toggleVoiceRecognition = () => {
+    if (!recognition) {
+      setError('Speech recognition is not supported in your browser. Please try Chrome, Safari, or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      setError(''); // Clear any previous errors
+      recognition.start();
+    }
+  };
 
   const quickQuestions = [
-    "Whether the parliament has the right to change fundamental rights?",
-    "Maneka Gandhi Case",
-    "Give me a sample Lease Agreement in Hindi",
-    "I want details on section 156(3) CPC"
+    "Right to travel abroad is a fundamental right.",
+    "Whether anticipatory bail is maintainable in ndps cases?",
+    "CPC, Order 9 Rule 7"
   ];
 
   // Handle message sending - ONLY API responses
@@ -354,7 +359,7 @@ const toggleVoiceRecognition = () => {
 
       {/* Chat Sidebar */}
       <div className="ai-chat-sidebar">
-       
+
 
         <div className="sidebar-content">
           <div className="sidebar-section">
@@ -385,188 +390,312 @@ const toggleVoiceRecognition = () => {
       <div className="ai-chat-main">
         <div className="chat-header">
           <div className="sidebar-header">
-          <Link to="/dashboard" className="gojuris-logo">
-            <img
-              src="/logo.png"
-              alt="GoJuris Logo"
-              style={{ height: '40px', width: 'auto' }}
-            />
-          </Link>
-        </div>
+            <Link to="/dashboard" className="gojuris-logo">
+              <img
+                src="/logo.png"
+                alt="GoJuris Logo"
+                style={{ height: '40px', width: 'auto' }}
+              />
+            </Link>
+          </div>
 
           {/* Account Dropdown */}
-          <div className="d-flex align-items-center gap-2">
-            <button
-              className="btn btn-outline-secondary btn-sm rounded-circle p-2"
-              type="button"
-              onClick={() => setShowSettingsModal(true)}
-              style={{ width: '40px', height: '40px' }}
-            >
-              <i className="bx bx-cog"></i>
-            </button>
+         {/* Account Dropdown */}
+<div className="d-flex align-items-center gap-2">
+  {/* Dashboard Icon Button - Plain */}
+  <button
+    className="btn btn-link p-0"
+    type="button"
+    onClick={() => navigate('/dashboard')}
+    style={{ border: 'none', background: 'transparent' }}
+    title="Dashboard"
+  >
+    <img 
+      src="/dashboard.png" 
+      alt="Dashboard" 
+      style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+    />
+  </button>
 
-            <div className="dropdown">
-              <button
-                className="btn btn-primary d-flex align-items-center gap-2 px-3"
-                type="button"
-                onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-              >
-                <i className="bx bx-user"></i>
-                <span>My Account</span>
-                <i className="bx bx-chevron-down"></i>
-              </button>
+  {/* Bookmark Icon Button - Plain */}
+  <button
+    className="btn btn-link p-0"
+    type="button"
+    onClick={() => setShowBookmarksModal(true)}
+    style={{ border: 'none', background: 'transparent' }}
+    title="Bookmarks"
+  >
+    <img 
+      src="/bookmark.png" 
+      alt="Bookmarks" 
+      style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+    />
+  </button>
 
-              {showAccountDropdown && (
-                <div className="dropdown-menu dropdown-menu-end show" style={{ minWidth: '220px' }}>
-                  <div className="dropdown-header">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-                        style={{ width: '32px', height: '32px' }}>
-                        <i className="bx bx-user text-white"></i>
-                      </div>
-                      <div>
-                        <div className="fw-semibold">
-                          {userProfile?.username || userProfile?.name || 'Legal User'}
-                        </div>
-                        <small className="text-muted">
-                          {userProfile?.email || 'user@gojuris.com'}
-                        </small>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="dropdown-divider"></div>
+  {/* Settings Button */}
+  <button
+    className="btn btn-outline-secondary btn-sm rounded-circle p-2"
+    type="button"
+    onClick={() => setShowSettingsModal(true)}
+    style={{ width: '40px', height: '40px' }}
+  >
+    <i className="bx bx-cog"></i>
+  </button>
 
-                  <a className="dropdown-item" href="#">
-                    <i className="bx bx-user-circle me-2"></i>View Profile
-                  </a>
-                  <a className="dropdown-item" href="#">
-                    <i className="bx bx-credit-card me-2"></i>Billing & Plans
-                  </a>
-                  <a className="dropdown-item" href="#">
-                    <i className="bx bx-history me-2"></i>Search History
-                  </a>
-                  <div className="dropdown-divider"></div>
+  <div className="dropdown">
+    <button
+      className="btn btn-primary d-flex align-items-center gap-2 px-3"
+      type="button"
+      onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+    >
+      <i className="bx bx-user"></i>
+      <span>My Account</span>
+      <i className="bx bx-chevron-down"></i>
+    </button>
 
-                  <button className="dropdown-item text-danger" onClick={handleSignOut}>
-                    <i className="bx bx-log-out me-2"></i>Sign Out
-                  </button>
-                </div>
-              )}
+    {showAccountDropdown && (
+      <div className="dropdown-menu dropdown-menu-end show" style={{ minWidth: '220px' }}>
+        <div className="dropdown-header">
+          <div className="d-flex align-items-center">
+            <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+              style={{ width: '32px', height: '32px' }}>
+              <i className="bx bx-user text-white"></i>
+            </div>
+            <div>
+              <div className="fw-semibold">
+                {userProfile?.username || userProfile?.name || 'Legal User'}
+              </div>
+              <small className="text-muted">
+                {userProfile?.email || 'user@gojuris.com'}
+              </small>
             </div>
           </div>
         </div>
-       
+        <div className="dropdown-divider"></div>
+
+        <a className="dropdown-item" href="#">
+          <i className="bx bx-user-circle me-2"></i>View Profile
+        </a>
+        <a className="dropdown-item" href="#">
+          <i className="bx bx-credit-card me-2"></i>Billing & Plans
+        </a>
+        <a className="dropdown-item" href="#">
+          <i className="bx bx-history me-2"></i>Search History
+        </a>
+        <div className="dropdown-divider"></div>
+
+        <button className="dropdown-item text-danger" onClick={handleSignOut}>
+          <i className="bx bx-log-out me-2"></i>Sign Out
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+        </div>
+
 
         <div className="chat-content">
           <div className="chat-tagline-container">
-    <h2 className="chat-tagline">Which legal task can AI accelerate for you?</h2>
-  </div>
+            <h2 className="chat-tagline"> Which legal task can we help you accelerate?</h2>
+          </div>
           <div className="chat-messages">
             {chatHistory.length === 0 ? (
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "12px",
-                  padding: "16px",
-                }}
-              >
-                <button
-                  style={{
-                    flex: "1 1 auto",
-                    minWidth: "150px",
-                    padding: "10px 15px",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    justifyContent: "center",
-                    background: "linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)",
-                    color: "white",
-                    border: "none",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease"
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-                >
-                  <i className="bx bx-chat" style={{ fontSize: "18px" }}></i>
-                  Ask a question to find cases
-                </button>
 
-                <button
+              <>
+                <div
                   style={{
-                    flex: "1 1 auto",
-                    minWidth: "150px",
-                    padding: "10px 15px",
-                    borderRadius: "10px",
                     display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    justifyContent: "center",
-                    background: "linear-gradient(135deg, #7C3AED 0%, #C084FC 100%)",
-                    color: "white",
-                    border: "none",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease"
+                    gap: "12px",
+                    padding: "16px",
+                    justifyContent: "flex-start",
+                    flexWrap: "nowrap",
+                    overflowX: "auto"
                   }}
-                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
                 >
-                  <i className="bx bx-envelope" style={{ fontSize: "18px" }}></i>
-                  Generate a Draft
-                </button>
+                  {/* Ask a question - Purple button */}
+                  <button
+                    style={{
+                      padding: "12px 20px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      background: "#7C3AED",
+                      color: "white",
+                      border: "none",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      whiteSpace: "nowrap"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#6D28D9";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "#7C3AED";
+                    }}
+                  >
+                    <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
+                    <span>Ask a question</span>
+                  </button>
 
-                <button
-                  style={{
-                    flex: "1 1 auto",
-                    minWidth: "150px",
-                    padding: "10px 15px",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    justifyContent: "center",
-                    background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
-                    color: "white",
-                    border: "none",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease"
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-                >
-                  <i className="bx bx-receipt" style={{ fontSize: "18px" }}></i>
-                  Summarize a Case
-                </button>
+                  {/* Generate a draft - Coming Soon */}
+                  <button
+                    onClick={() => setShowComingSoonModal(true)}
+                    style={{
+                      padding: "12px 20px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      background: "transparent",
+                      color: "#6b7280",
+                      border: "1px solid #d1d5db",
+                      fontWeight: "400",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      whiteSpace: "nowrap"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = "#8B5CF6";
+                      e.target.style.color = "#8B5CF6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = "#d1d5db";
+                      e.target.style.color = "#6b7280";
+                    }}
+                  >
+                    <i className="bx bx-envelope" style={{ fontSize: "20px" }}></i>
+                    <span>Generate a Draft</span>
+                  </button>
 
-                <button
-                  style={{
-                    flex: "1 1 auto",
-                    minWidth: "150px",
-                    padding: "10px 15px",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    justifyContent: "center",
-                    background: "linear-gradient(135deg, #EC4899 0%, #F97316 100%)",
-                    color: "white",
-                    border: "none",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease"
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = "translateY(-1px)"}
-                  onMouseLeave={(e) => e.target.style.transform = "translateY(0px)"}
-                >
-                  <i className="bx bx-upload" style={{ fontSize: "18px" }}></i>
-                  Upload to summarize
-                </button>
-              </div>
+                  {/* Summarize a case - Coming Soon */}
+                  <button
+                    onClick={() => setShowComingSoonModal(true)}
+                    style={{
+                      padding: "12px 20px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      background: "transparent",
+                      color: "#6b7280",
+                      border: "1px solid #d1d5db",
+                      fontWeight: "400",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      whiteSpace: "nowrap"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = "#8B5CF6";
+                      e.target.style.color = "#8B5CF6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = "#d1d5db";
+                      e.target.style.color = "#6b7280";
+                    }}
+                  >
+                    <i className="bx bx-receipt" style={{ fontSize: "20px" }}></i>
+                    <span>Summarize a Case</span>
+                  </button>
+
+                  {/* Upload to summarize - Coming Soon */}
+                  <button
+                    onClick={() => setShowComingSoonModal(true)}
+                    style={{
+                      padding: "12px 20px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      background: "transparent",
+                      color: "#6b7280",
+                      border: "1px solid #d1d5db",
+                      fontWeight: "400",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      whiteSpace: "nowrap"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = "#8B5CF6";
+                      e.target.style.color = "#8B5CF6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = "#d1d5db";
+                      e.target.style.color = "#6b7280";
+                    }}
+                  >
+                    <i className="bx bx-upload" style={{ fontSize: "20px" }}></i>
+                    <span>Upload to Summarize or Ask Questions</span>
+                  </button>
+                </div>
+
+                {/* Coming Soon Modal */}
+                {showComingSoonModal && (
+                  <div
+                    className="modal fade show d-block"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                    onClick={() => setShowComingSoonModal(false)}
+                  >
+                    <div
+                      className="modal-dialog modal-dialog-centered"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="modal-content" style={{
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+                      }}>
+                        <div className="modal-header border-0">
+                          <h5 className="modal-title" style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#1a1a1a'
+                          }}>
+                            Coming Soon
+                          </h5>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setShowComingSoonModal(false)}
+                          ></button>
+                        </div>
+                        <div className="modal-body text-center py-4">
+                          <div style={{
+                            fontSize: '48px',
+                            color: '#7C3AED',
+                            marginBottom: '16px'
+                          }}>
+                            <i className="bx bx-time-five"></i>
+                          </div>
+                          <p style={{ fontSize: '16px', color: '#6b7280', marginBottom: '0' }}>
+                            This feature is currently under development and will be available soon!
+                          </p>
+                        </div>
+                        <div className="modal-footer border-0">
+                          <button
+                            type="button"
+                            className="btn btn-primary w-100"
+                            onClick={() => setShowComingSoonModal(false)}
+                            style={{
+                              borderRadius: '8px',
+                              background: '#7C3AED',
+                              border: 'none',
+                              padding: '10px'
+                            }}
+                          >
+                            Got it!
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
 
 
 
@@ -641,18 +770,55 @@ const toggleVoiceRecognition = () => {
             )}
           </div>
 
-          {/* Quick Questions */}
+
+          {/* Quick Questions - Updated with numbering and reduced gap */}
           {chatHistory.length === 0 && (
-            <div className="quick-questions-single-line">
-              <div className="quick-questions-scroll">
+            <div style={{
+              padding: "24px 16px",
+              maxWidth: "800px"
+            }}>
+              <h3 style={{
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#1a1a1a",
+                marginBottom: "12px",
+                textAlign: "left"
+              }}>
+                Examples
+              </h3>
+
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0px"
+              }}>
                 {quickQuestions.map((question, index) => (
                   <button
                     key={index}
-                    className="quick-question-btn-inline"
                     onClick={() => handleQuickQuestion(question)}
                     disabled={isLoading}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      padding: "0px 0",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      color: "#6b7280",
+                      transition: "color 0.2s ease",
+                      fontWeight: "400",
+                      display: "flex",
+                      gap: "8px"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#7C3AED";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "#6b7280";
+                    }}
                   >
-                    {question}
+                    <span style={{ minWidth: "20px" }}>{index + 1}.</span>
+                    <span>{question}</span>
                   </button>
                 ))}
               </div>
@@ -687,26 +853,26 @@ const toggleVoiceRecognition = () => {
               />
               <div className="input-buttons">
                 <button
-  type="button"
-  className={`voice-btn ${isListening ? 'listening' : ''}`}
-  onClick={toggleVoiceRecognition}
-  disabled={isLoading}
-  title={isListening ? 'Stop recording' : 'Start voice input'}
->
-  {isListening ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-      {/* Add a red recording indicator */}
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3"/>
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-    </svg>
-  )}
-</button>
+                  type="button"
+                  className={`voice-btn ${isListening ? 'listening' : ''}`}
+                  onClick={toggleVoiceRecognition}
+                  disabled={isLoading}
+                  title={isListening ? 'Stop recording' : 'Start voice input'}
+                >
+                  {isListening ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                      {/* Add a red recording indicator */}
+                      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                    </svg>
+                  )}
+                </button>
                 <button
                   type="submit"
                   className="send-btn"
@@ -719,6 +885,7 @@ const toggleVoiceRecognition = () => {
           </form>
         </div>
       </div>
+
 
       {/* Settings Modal */}
       {showSettingsModal && (
@@ -742,6 +909,58 @@ const toggleVoiceRecognition = () => {
           </div>
         </div>
       )}
+
+      {/* Bookmarks Modal */}
+{showBookmarksModal && (
+  <>
+    <div 
+      className="position-fixed top-0 start-0 w-100 h-100"
+      style={{ zIndex: 9998, backgroundColor: 'rgba(0,0,0,0.5)' }}
+      onClick={() => setShowBookmarksModal(false)}
+    ></div>
+    <div 
+      className="modal fade show d-block" 
+      style={{ zIndex: 9999 }}
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header border-0">
+            <div className="d-flex align-items-center">
+              <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                   style={{ width: '40px', height: '40px' }}>
+                <img 
+                  src="/bookmark.png" 
+                  alt="Bookmarks" 
+                  style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                />
+              </div>
+              <h4 className="modal-title mb-0">Bookmarks</h4>
+            </div>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => setShowBookmarksModal(false)}
+            ></button>
+          </div>
+          <div className="modal-body text-center py-5">
+            <i className="bx bx-bookmark text-muted" style={{ fontSize: '4rem' }}></i>
+            <h3 className="text-muted mb-3">No Bookmarks Yet</h3>
+            <p className="text-muted">Save important cases and documents here for quick access later.</p>
+          </div>
+          <div className="modal-footer border-0 justify-content-center">
+            <button 
+              type="button" 
+              className="btn btn-primary px-4"
+              onClick={() => setShowBookmarksModal(false)}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+)}
 
       {/* Click outside handlers */}
       {showAccountDropdown && (

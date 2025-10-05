@@ -22,18 +22,26 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="col-lg-3 col-md-6">
             <div className="d-flex align-items-center mb-3">
-              <div 
-                className="rounded-circle d-flex align-items-center justify-content-center me-2"
-                style={{ 
-                  background: 'linear-gradient(135deg, #8B5CF6, #3B82F6)',
-                  width: '40px', 
-                  height: '40px' 
-                }}
-              >
-                <i className="bx bx-plus text-white fs-5"></i>
-              </div>
-              <h4 className="text-white mb-0 fw-bold">GoJuris</h4>
-            </div>
+  <div 
+    className="rounded-circle d-flex align-items-center justify-content-center me-2"
+    style={{ 
+      // background: 'linear-gradient(135deg, #8B5CF6, #3B82F6)',
+      width: '40px', 
+      height: '40px' 
+    }}
+  >
+    <img 
+      src="/reverselogo.png" 
+      alt="GoJuris" 
+      style={{ 
+        width: '24px', 
+        height: '24px',
+        objectFit: 'contain'
+      }}
+    />
+  </div>
+  <h4 className="text-white mb-0 fw-bold">GoJuris</h4>
+</div>
             <p className="text-light mb-4" style={{ lineHeight: '1.6', color: '#CBD5E0 !important' }}>
               Leading legal research platform providing comprehensive legal services with advanced AI technology and experienced professionals.
             </p>

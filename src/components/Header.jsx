@@ -1,4 +1,4 @@
-// src/components/Header.jsx - Fix dropdown clickability
+// src/components/Header.jsx - Add announcement banner only
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ApiService from '../services/apiService';
@@ -298,15 +298,17 @@ const Header = () => {
     setShowAccountDropdown(false);
   };
 
- const handleContactClick = (e) => {
-  e.preventDefault();
-  navigate('/pricing');
-  closeOffcanvas();
-};
-const navigateToSubscriptions = () => {
-  navigate('/pricing');
-  closeOffcanvas();
-};
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    navigate('/pricing');
+    closeOffcanvas();
+  };
+  
+  const navigateToSubscriptions = () => {
+    navigate('/pricing');
+    closeOffcanvas();
+  };
+  
   const handleLogoClick = (e) => {
     e.preventDefault();
     navigateToHome();
@@ -341,6 +343,11 @@ const navigateToSubscriptions = () => {
 
   return (
     <>
+      {/* Announcement Banner - ONLY NEW ADDITION */}
+      <div className="announcement-banner">
+        <span className="blink-text">Legal Eagle is now AI Powered</span>
+      </div>
+
       <header className={`header navbar navbar-expand-lg fixed-top navbar-sticky w-100 ${isScrolled ? 'scrolled' : ''}`}>
         <div className="container px-3">
           <a href="/" className="navbar-brand pe-3" onClick={handleLogoClick}>
@@ -361,24 +368,6 @@ const navigateToSubscriptions = () => {
           </a>
           
           <div className="d-flex align-items-center ms-auto order-lg-3">
-            {/* <div className="d-none d-sm-flex align-items-center me-3">
-              <span className="text-muted me-2 d-none d-md-inline" style={{ fontSize: '0.875rem' }}>
-                LIGHT
-              </span>
-              <div className="form-check form-switch mode-switch mb-0">
-                <input 
-                  type="checkbox" 
-                  className="form-check-input" 
-                  id="theme-mode"
-                  checked={isDarkMode}
-                  onChange={toggleTheme}
-                />
-              </div>
-              <span className="text-muted ms-2 d-none d-md-inline" style={{ fontSize: '0.875rem' }}>
-                DARK
-              </span>
-            </div> */}
-
             {/* Login/My Account Button */}
             {isAuthenticated ? (
               <div className="position-relative account-dropdown">
@@ -712,21 +701,67 @@ const navigateToSubscriptions = () => {
       )}
 
       {/* Account dropdown backdrop for mobile */}
-     {showAccountDropdown && (
-  <div 
-    className="position-fixed top-0 start-0 w-100 h-100"
-    style={{ 
-      zIndex: 9998,
-      pointerEvents: 'none' // This allows clicks to pass through to dropdown
-    }}
-    onClick={(e) => {
-      // Only close if clicking directly on backdrop, not on dropdown
-      if (e.target === e.currentTarget) {
-        setShowAccountDropdown(false);
-      }
-    }}
-  ></div>
-)}
+      {showAccountDropdown && (
+        <div 
+          className="position-fixed top-0 start-0 w-100 h-100"
+          style={{ 
+            zIndex: 9998,
+            pointerEvents: 'none'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAccountDropdown(false);
+            }
+          }}
+        ></div>
+      )}
+
+      {/* CSS for Announcement Banner - ONLY NEW STYLES */}
+      <style jsx>{`
+        .announcement-banner {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          text-align: center;
+          padding: 10px 0;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1051;
+          font-size: 14px;
+          font-weight: 500;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .blink-text {
+          animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+          0%, 49% {
+            opacity: 1;
+          }
+          50%, 100% {
+            opacity: 0.4;
+          }
+        }
+
+        /* Adjust header position */
+        .header {
+          top: 34px !important;
+        }
+
+        @media (max-width: 768px) {
+          .announcement-banner {
+            font-size: 12px;
+            padding: 8px 0;
+          }
+          
+          .header {
+            top: 30px !important;
+          }
+        }
+      `}</style>
     </>
   );
 };

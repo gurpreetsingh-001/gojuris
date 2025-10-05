@@ -277,10 +277,32 @@ const Header = () => {
     closeOffcanvas();
   };
 
-  const navigateToHome = () => {
+ const navigateToHome = () => {
+  // If already on home page, scroll to hero section
+  if (location.pathname === '/') {
+    const heroElement = document.getElementById('hero');
+    if (heroElement) {
+      const headerOffset = 120; // Account for fixed header + announcement banner
+      const elementPosition = heroElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    } else {
+      // Fallback: scroll to top if hero section not found
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  } else {
+    // If on other pages, navigate to home page
     navigate('/');
-    closeOffcanvas();
-  };
+  }
+  closeOffcanvas();
+};
 
   const navigateToSearch = () => {
     navigate('/search');
@@ -515,7 +537,7 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className={`nav-link btn btn-link ${location.pathname === '/search' ? 'active' : ''}`}
-                  onClick={() => scrollToSection('about')}
+                  onClick={() => scrollToSection('services')}
                 >
                   WHY US
                 </button>
@@ -523,7 +545,7 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className="nav-link btn btn-link" 
-                  onClick={() => scrollToSection('video-section')}
+                  onClick={() => scrollToSection('services')}
                 >
                   COVERAGE
                 </button>
@@ -531,7 +553,7 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className="nav-link btn btn-link" 
-                  onClick={() => scrollToSection('services')}
+                  onClick={() => scrollToSection('llp')}
                 >
                   LATEST
                 </button>
@@ -539,7 +561,7 @@ const Header = () => {
               <li className="nav-item">
                 <button 
                   className="nav-link btn btn-link" 
-                  onClick={() => scrollToSection('doctors')}
+                  onClick={() => scrollToSection('cta')}
                 >
                   PRODUCTS
                 </button>

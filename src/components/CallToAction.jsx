@@ -191,7 +191,7 @@ const CallToAction = () => {
   }
 
   return (
-    <section className="container mb-md-3 pt-5">
+    <section id="cta" className="container mb-md-3 pt-5">
       <div className="row align-items-center">
         {/* Left Column - Illustration */}
         

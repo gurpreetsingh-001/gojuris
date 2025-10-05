@@ -28,7 +28,9 @@ const Hero = () => {
       observer.disconnect();
     };
   }, []);
-
+   const handleSignUp = () => {
+    navigate('/signup');
+  };
   const scrollToContact = () => {
     const contactSection = document.getElementById('contact');
     if (contactSection) {
@@ -64,7 +66,7 @@ const Hero = () => {
         <div className="row align-items-center" style={{ minHeight: '60vh' }}>
           {/* Left Content */}
           <div className="col-lg-6">
-            {/* Law Meets AI Badge */}
+            {/* Law Meets AI Badge */}            
             <div className="d-inline-flex align-items-center bg-primary rounded-pill px-4 py-2 mb-4">
               <div
                 className="bg-white rounded-circle d-flex align-items-center justify-content-center me-3"
@@ -75,7 +77,12 @@ const Hero = () => {
               <span className="text-white" style={{ fontSize: '16px', fontWeight: '500' }}>
 Powered by Legal Eagle              </span>
             </div>
+        <img src="ic_beta_96.png"
+        style={{
+          marginLeft: '10px'
+        }}>
 
+        </img>
             {/* Main Heading */}
             <h3 className="mb-4" style={{ 
               // fontSize: 'clamp(2.5rem, 5vw, 4rem)',
@@ -104,8 +111,8 @@ Powered by Legal Eagle              </span>
            {/* Button and Description Layout - ADJUSTED WIDTHS */}
 <div className="d-flex flex-column flex-lg-row align-items-start mb-5">
   {/* Wider Button */}
-  <div
-    onClick={scrollToContact}
+  <a
+    href="signup"
     style={{
       fontSize: '16px',
       fontWeight: '500',
@@ -141,7 +148,7 @@ Powered by Legal Eagle              </span>
   >
     Sign Up Now
     <i className="bx bx-right-arrow-alt" style={{ fontSize: '16px', color: '#ffffff' }}></i>
-  </div>
+  </a>
 
   {/* Narrower Text */}
   <p style={{

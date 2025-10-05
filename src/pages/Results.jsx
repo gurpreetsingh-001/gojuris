@@ -572,7 +572,7 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
       content = 'Content not available';
     }
     
-    return content.length > 400 ? content.substring(0, 400) + '...' : content;
+    return content.length > 800 ? content.substring(0, 800) + '...' : content;
   };
 
   const formatResultTitle = (result) => {
@@ -842,7 +842,7 @@ const handleJudgementClick = (keycode, event) => {
 
                 <div 
                   className="result-content"
-                  dangerouslySetInnerHTML={highlightText(formatResultContent(result), searchQuery + ' ' + refineText)}
+                  dangerouslySetInnerHTML={{__html: formatResultContent(result)}}
                 />
 
                 {result.keycode && (

@@ -107,10 +107,9 @@ const toggleVoiceRecognition = () => {
 };
 
   const quickQuestions = [
-    "Whether the parliament has the right to change fundamental rights?",
-    "Maneka Gandhi Case",
-    "Give me a sample Lease Agreement in Hindi",
-    "I want details on section 156(3) CPC"
+    "Whether Right to travel abroad is a fundamental right?",
+    "Whether anticipatory bail is maintainable in ndps cases?",
+    "Cases on CPC, Order 9 Rule 7"
   ];
 
   // Handle message sending - ONLY API responses
@@ -155,7 +154,7 @@ const toggleVoiceRecognition = () => {
       if (!Array.isArray(embeddingVector)) {
         throw new Error('Invalid embedding format received');
       }
-
+      
       console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
 
       let streamedText = '';
@@ -183,8 +182,8 @@ const toggleVoiceRecognition = () => {
           if (accumulatedText.length > 0) {
             const lastChar = accumulatedText.slice(-1);
             const firstChar = chunkText.charAt(0);
-            if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;:!?\n\r]/)) {
-              accumulatedText += ' ';
+            if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;<>?/\\#*!?\n\r]/)) {
+              accumulatedText += '';
             }
           }
           accumulatedText += chunkText;
@@ -244,6 +243,22 @@ const toggleVoiceRecognition = () => {
           ));
         }
       );
+
+      const resultsData = {
+        results:  [],
+        totalCount: 1,
+        query: userMessage,
+        searchType: 'AI Search', 
+        timestamp: new Date().toISOString(),
+        courtsList:  [],
+        yearList:  [],
+        searchData: {
+          query: userMessage
+        }
+      };
+
+      console.log('💾 Storing results with API data:', resultsData);
+      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
 
     } catch (generalError) {
       console.error('❌ General Error:', generalError);
@@ -585,7 +600,7 @@ const toggleVoiceRecognition = () => {
                             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                             fontSize: '14px',
                             lineHeight: '1.6',
-                            color: '#333'
+                            color: '#000'
                           }}
                           dangerouslySetInnerHTML={{ __html: msg.text }}
                         />
@@ -919,6 +934,7 @@ const toggleVoiceRecognition = () => {
           word-wrap: break-word;
           font-family: inherit;
           margin: 0;
+          text-align:right;
         }
           .api-response-content {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

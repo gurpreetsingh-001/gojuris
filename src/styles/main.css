@@ -2245,7 +2245,7 @@ footer hr {
 .login-right {
    flex: 1;
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
-  background-image: url('/back.jpg');
+  background-image: url('/back.jpeg');
   background-size: cover;
   background-position: top;
   background-repeat: no-repeat;
@@ -2768,19 +2768,17 @@ footer hr {
   flex: 1;
   padding: 0.75rem 1rem;
   border-radius: 12px;
-  background: #f8f9fa;
   word-wrap: break-word;
   font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
 
 .message.user .message-content {
-  background: var(--gj-primary);
-  color: white;
+
+  color: black;
   border-bottom-right-radius: 4px;
 }
 
 .message.ai .message-content {
-  background: #f8f9fa;
   border-bottom-left-radius: 4px;
 }
 
@@ -3542,13 +3540,12 @@ footer hr {
 }
 
 .ai-chat-layout-with-nav .message.user .message-content {
-  background: var(--gj-primary);
-  color: white;
+
+  color: black;
   border-bottom-right-radius: 4px;
 }
 
 .ai-chat-layout-with-nav .message.ai .message-content {
-  background: #f8f9fa;
   border-bottom-left-radius: 4px;
 }
 

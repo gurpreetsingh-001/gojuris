@@ -5,7 +5,7 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import RightSidebar from '../components/RightSidebar';
 import ApiService from '../services/apiService';
-
+import GoogleTranslate from "../components/GoogleTranslatenew";
 
 
 const Judgement = () => {
@@ -15,7 +15,7 @@ const Judgement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('issue');
-const [activeNotesTab, setActiveNotesTab] = useState('advocates');
+  const [activeNotesTab, setActiveNotesTab] = useState('advocates');
   // Refs for scroll targets
   const issueRef = useRef(null);
   const lawPointsRef = useRef(null);
@@ -44,67 +44,47 @@ const [activeNotesTab, setActiveNotesTab] = useState('advocates');
   }, [id]);
 
   // Add this useEffect in your Judgement component
-useEffect(() => {
-  const initGoogleTranslate = () => {
-    if (window.google && window.google.translate) {
-      try {
-        new window.google.translate.TranslateElement({
-          pageLanguage: 'en',
-          includedLanguages: 'hi,bn,te,ta,gu,kn,ml,mr,pa,or,as,ur,ne,si,my,th,vi,zh,ja,ko,fr,de,es,it,pt,ru,ar',
-          layout: window.google.translate.TranslateElement.InlineLayout.DROPDOWN,
-          autoDisplay: false
-        }, 'google_translate_element');
-      } catch (error) {
-        console.log('Google Translate initialization error:', error);
+
+  // In Judgement.jsx - Add keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case 'ArrowLeft':
+            event.preventDefault();
+            // Trigger previous judgement
+            const prevBtn = document.querySelector('[data-action="previous"]');
+            if (prevBtn && !prevBtn.disabled) {
+              prevBtn.click();
+            }
+            break;
+          case 'ArrowRight':
+            event.preventDefault();
+            // Trigger next judgement
+            const nextBtn = document.querySelector('[data-action="next"]');
+            if (nextBtn && !nextBtn.disabled) {
+              nextBtn.click();
+            }
+            break;
+        }
       }
-    }
-  };
+    };
 
-  // Try to initialize after a delay
-  const timer = setTimeout(() => {
-    initGoogleTranslate();
-  }, 2000);
-
-  return () => clearTimeout(timer);
-}, [judgmentData]); 
-
-// In Judgement.jsx - Add keyboard navigation
-useEffect(() => {
-  const handleKeyPress = (event) => {
-    if (event.ctrlKey || event.metaKey) {
-      switch (event.key) {
-        case 'ArrowLeft':
-          event.preventDefault();
-          // Trigger previous judgement
-          const prevBtn = document.querySelector('[data-action="previous"]');
-          if (prevBtn && !prevBtn.disabled) {
-            prevBtn.click();
-          }
-          break;
-        case 'ArrowRight':
-          event.preventDefault();
-          // Trigger next judgement
-          const nextBtn = document.querySelector('[data-action="next"]');
-          if (nextBtn && !nextBtn.disabled) {
-            nextBtn.click();
-          }
-          break;
-      }
-    }
-  };
-
-  window.addEventListener('keydown', handleKeyPress);
-  return () => window.removeEventListener('keydown', handleKeyPress);
-}, []);
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const fetchJudgmentDetails = async (keycode) => {
     try {
       setIsLoading(true);
       setError('');
+      const savedResults = sessionStorage.getItem('searchResults');
 
+      const resultsData = JSON.parse(savedResults);
+      debugger;
       const searchPayload = {
         keycode: parseInt(keycode),
-        query: "",
+        query: resultsData.query || '',
         pageSize: 1,
         page: 0,
         sortBy: "relevance",
@@ -168,7 +148,7 @@ useEffect(() => {
         <div className="gojuris-main">
           <Navbar />
 
-        
+
 
           <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
             <div className="text-center">
@@ -188,7 +168,7 @@ useEffect(() => {
         <Sidebar />
         <div className="gojuris-main">
           <Navbar />
-              
+
           <div className="container mt-5">
             <div className="alert alert-danger">
               <i className="bx bx-error-circle me-2"></i>
@@ -221,36 +201,6 @@ useEffect(() => {
 
       <div className="gojuris-main">
         <Navbar />
-<div className="google-translate-hardcoded">
-  <div className="translate-label">
-    <i className="bx bx-world"></i> Language:
-  </div>
-  <select 
-    className="language-selector"
-    onChange={(e) => {
-      if (e.target.value) {
-        const currentURL = window.location.href;
-        const translateURL = `https://translate.google.com/translate?sl=en&tl=${e.target.value}&u=${encodeURIComponent(currentURL)}`;
-        window.open(translateURL, '_blank');
-      }
-    }}
-    defaultValue=""
-  >
-    <option value="">Select Language</option>
-    <option value="hi">हिंदी (Hindi)</option>
-    <option value="bn">বাংলা (Bengali)</option>
-    <option value="te">తెలుగు (Telugu)</option>
-    <option value="ta">தமிழ் (Tamil)</option>
-    <option value="gu">ગુજરાતી (Gujarati)</option>
-    <option value="kn">ಕನ್ನಡ (Kannada)</option>
-    <option value="ml">മലയാളം (Malayalam)</option>
-    <option value="mr">मराठी (Marathi)</option>
-    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-    <option value="ur">اردو (Urdu)</option>
-    <option value="or">ଓଡିଆ (Odia)</option>
-    <option value="as">অসমীয়া (Assamese)</option>
-  </select>
-</div>
         {/* Back Button */}
         <div className="back-button-container">
           <button className="btn btn-outline-primary btn-sm" onClick={handleBackToResults}>
@@ -273,7 +223,7 @@ useEffect(() => {
             ))}
           </div>
         </div>
-
+        <GoogleTranslate />
         {/* Judgment Document */}
         <div className="judgment-document">
           {/* Header Information */}
@@ -285,7 +235,7 @@ useEffect(() => {
 
             {/* Court Name */}
             <div className="court-name-line">
-              IN THE {judgmentData.court?.toUpperCase() || 'SUPREME COURT OF INDIA'}
+              IN THE {judgmentData.court?.toUpperCase()}
             </div>
 
             {/* Equivalent Citations */}
@@ -295,23 +245,23 @@ useEffect(() => {
 
             {/* Judges */}
             <div className="judges-line">
-              [Before : {judgmentData.judges || 'HON\'BLE CHIEF JUSTICE'}]
+              [Before : {judgmentData.judges || ''}]
             </div>
 
             {/* Parties */}
             <div className="parties-section">
               <div className="appellant-name">
-                {judgmentData.appellant || 'Appellant Name'}
+                {judgmentData.appellant || ''}
               </div>
               <div className="vs-text">vs.</div>
               <div className="respondent-name">
-                {judgmentData.respondent || 'Respondent Name'}
+                {judgmentData.respondent || ''}
               </div>
             </div>
 
             {/* Case Details */}
             <div className="case-details-line">
-              Case No. : {judgmentData.caseNo || 'Criminal Appeal No. 12 of 2023'}
+              Case No. : {judgmentData.caseNo || '.'}
             </div>
             <div className="date-line">
               Date of Decision : {formatDate(judgmentData.date)}
@@ -323,33 +273,15 @@ useEffect(() => {
             {/* Issue for Consideration */}
             <div ref={issueRef} className="content-section">
               <div className="section-heading">ISSUE FOR CONSIDERATION</div>
-              <div className="section-text">
-                {judgmentData.issueForConsideration}
+              <div className="section-text" dangerouslySetInnerHTML={{ __html: judgmentData.issueForConsideration }}>
               </div>
             </div>
 
             {/* Law Points */}
             <div ref={lawPointsRef} className="content-section">
               <div className="section-heading">LAW POINTS</div>
-              <div className="section-text-lawpoint">
-                {judgmentData.lawPoint ? (
-                  <div>
-                    {judgmentData.lawPoint.split('\n').map((point, index) => (
-                      <div key={index} className="law-point-item">
-                        <strong></strong> {point.trim()}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div>
-                    <div className="law-point-item">
-                      <strong>1)</strong> A specific mention of the time of commencement of an insurance policy in the contract dictates its effective date of coverage.
-                    </div>
-                    <div className="law-point-item">
-                      <strong>2)</strong> Liability of the insurer arises only when there exists a valid contract of insurance at the time of the accident.
-                    </div>
-                  </div>
-                )}
+              <div className="section-text-lawpoint" dangerouslySetInnerHTML={{ __html: judgmentData.lawPoint }}>
+                
               </div>
             </div>
 
@@ -358,13 +290,13 @@ useEffect(() => {
               <div className="section-heading">HEADNOTE/S</div>
               <div className="section-text">
                 <div className="headnote-content">
-                  <strong>{judgmentData.newHeadnote}</strong>
+                  <strong dangerouslySetInnerHTML={{ __html: judgmentData.newHeadnote }}></strong>
                 </div>
                 <div className="held-content">
-                  <em><strong>Held:</strong></em> {judgmentData.held || ''}
+                  <em><strong>Held:</strong></em> <spam dangerouslySetInnerHTML={{ __html: judgmentData.held }}></spam>
                 </div>
                 <div className="background-facts">
-                  <em><strong>Background Facts:</strong></em> {judgmentData.backgroundFacts || ''}
+                  <em><strong>Background Facts:</strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.backgroundFacts }}></spam>
                 </div>
               </div>
             </div>
@@ -389,7 +321,7 @@ useEffect(() => {
             <div ref={contentionsRef} className="content-section">
               {/* <div className="section-heading">PARTIES CONTENTIONS</div> */}
               <div className="section-text-parties">
-               <em><strong>Parties Contentions:</strong></em> {judgmentData.partiesContentions || ''}
+                <em><strong>Parties Contentions:</strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.partiesContentions }}></spam> 
               </div>
             </div>
 
@@ -397,72 +329,67 @@ useEffect(() => {
             <div ref={dispositionRef} className="content-section">
               {/* <div className="section-heading">DISPOSITION</div> */}
               <div className="section-text">
-                 <em><strong>Disposition: </strong></em>{judgmentData.disposition || ''}
+                <em><strong>Disposition: </strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.disposition }}></spam> 
               </div>
             </div>
 
             {/* Case Notes & Summaries */}
             <div className="content-section">
-  <div className="section-text">
-    {/* Disposition line */}
-    <div className="disposition-line">
-      <em><strong>Case Notes: </strong></em>{judgmentData.headnotes || ''}
-    </div>
-    
-    {/* Case Notes Tabs */}
-    <div className="case-notes-tabs-container">
-      <div className="case-notes-tabs">
-        <button
-          className={`case-notes-tab ${activeNotesTab === 'advocates' ? 'active' : ''}`}
-          onClick={() => setActiveNotesTab('advocates')}
-        >
-          Advocates
-        </button>
-        <button
-          className={`case-notes-tab ${activeNotesTab === 'acts' ? 'active' : ''}`}
-          onClick={() => setActiveNotesTab('acts')}
-        >
-          Acts Referred
-        </button>
-        <button
-          className={`case-notes-tab ${activeNotesTab === 'cases' ? 'active' : ''}`}
-          onClick={() => setActiveNotesTab('cases')}
-        >
-          Cases Cited
-        </button>
-      </div>
-      
-      {/* Tab Content */}
-      <div className="case-notes-content">
-        {activeNotesTab === 'advocates' && (
-          <div className="tab-content">
-            {judgmentData.advocate || 'Adv. Vivek Sharma, Sr. Sharma, M/s 2-3 Chambers, Sukhvinder Singh'}
-          </div>
-        )}
-        {activeNotesTab === 'acts' && (
-          <div className="tab-content">
-            <div>1. Central Excise Act -- S.35L</div>
-            <div>2. Finance Act -- S.65(23)</div>
-            <div>3. Finance Act -- S.65(105)</div>
-          </div>
-        )}
-        {activeNotesTab === 'cases' && (
-          <div className="tab-content">
-            Various precedents cited
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-</div>
+              <div className="section-heading">{judgmentData.headnote.length > 5 ? 'Case Notes & Summaries' : ''}</div>
+              <div className="section-text">
+                <div className="headnote-content">
+                  <strong dangerouslySetInnerHTML={{ __html: judgmentData.headnote }}></strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Case Notes Tabs */}
+            <div className="case-notes-tabs-container">
+              <div className="case-notes-tabs">
+                <button
+                  className={`case-notes-tab ${activeNotesTab === 'advocates' ? 'active' : ''}`}
+                  onClick={() => setActiveNotesTab('advocates')}
+                >
+                  Advocates
+                </button>
+                <button
+                  className={`case-notes-tab ${activeNotesTab === 'acts' ? 'active' : ''}`}
+                  onClick={() => setActiveNotesTab('acts')}
+                >
+                  Acts Referred
+                </button>
+                <button
+                  className={`case-notes-tab ${activeNotesTab === 'cases' ? 'active' : ''}`}
+                  onClick={() => setActiveNotesTab('cases')}
+                >
+                  Cases Cited
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="case-notes-content">
+                {activeNotesTab === 'advocates' && (
+                  <div className="tab-content-adv">
+                    {judgmentData.advocates || ''}
+                  </div>
+                )}
+                {activeNotesTab === 'acts' && (
+                  <div className="tab-content" dangerouslySetInnerHTML={{ __html: judgmentData.actReferred || '' }}>
+                  </div>
+                )}
+                {activeNotesTab === 'cases' && (
+                  <div className="tab-content" dangerouslySetInnerHTML={{ __html: judgmentData.casesReferred || '' }}>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Judgment Order */}
             {judgmentData.judgement && (
               <div ref={judgmentOrderRef} className="content-section">
                 <div className="section-heading">JUDGMENT ORDER :</div>
-                <div className="section-text">
+                <div className="section-text-judgement">
                   <div className="judgment-order-text">
-                    <strong>Judgement</strong>
                     <div className="judgment-content-text">
                       <div dangerouslySetInnerHTML={{ __html: judgmentData.judgement }} />
                     </div>
@@ -543,22 +470,21 @@ useEffect(() => {
 
         .main-citation-line {
           font-size: 1.17rem;
-          font-weight: 500;
           margin-bottom: 0rem;
-          color: #333;
+          color: #000;
         }
 
         .court-name-line {
           font-size: 1.25rem;
           font-weight: bold;
           margin-bottom: 0rem;
-          color: #333;
+          color: #000;
         }
 
         .equivalent-citations {
           font-size: 1.1rem;
           margin-bottom: 0rem;
-          color: #666;
+          color: #000;
         }
 
         .judges-line {
@@ -576,14 +502,14 @@ useEffect(() => {
           font-size: 1.65rem;
           font-weight: bold;
           margin: 0.3rem 0;
-          color: #333;
+          color: #000;
         }
 
         .vs-text {
           font-size: 1.2rem;
     font-weight: 500;
     margin: 0.1rem 0;
-    color: #333;
+    color: #000;
         }
 
         .case-details-line {
@@ -644,7 +570,12 @@ useEffect(() => {
     color: green;
             text-align: justify;
         }
-
+        .section-text-judgement {
+          line-height: 1.7;
+          text-align: justify;
+          font-size: 15pt;
+          font-family: Calibri;
+        }
         .law-point-item {
           margin-bottom: 0.95rem;
           text-indent: 0;
@@ -688,7 +619,7 @@ useEffect(() => {
 
         /* Judgment Order */
         .judgment-order-text {
-          font-size: 0.95rem;
+          
         }
 
         .judgment-content-text {
@@ -781,7 +712,6 @@ useEffect(() => {
   border: 1px solid #ddd;
   border-radius: 4px;
   overflow: hidden;
-  width:500px;
 }
 
 .case-notes-tabs {
@@ -828,8 +758,15 @@ useEffect(() => {
 .tab-content {
   font-size: 0.95rem;
   line-height: 1.5;
-  color: #333;
+  color: #000;
 }
+  .tab-content-adv {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #000;
+   font-style:italic;
+}
+  
 
 .tab-content div {
   margin-bottom: 0.5rem;

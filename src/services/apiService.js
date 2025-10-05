@@ -1,7 +1,7 @@
 // src/services/apiService.js - COMPLETE FILE WITH ALL FUNCTIONALITY
 class ApiService {
   constructor() {
-    this.baseURL = 'http://216.172.100.173:8001';
+    this.baseURL = 'https://api.gojuris.ai';
     this.defaultTimeout = 30000;
   }
 

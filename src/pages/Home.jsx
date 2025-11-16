@@ -26,7 +26,7 @@ const Home = () => {
       <CallToAction />
       <NewsJudgement/>
       <Blog />
-      <Team />
+      {/*<Team />*/}
       <Testimonials />
       <ContactMap />
       {/* <Contact /> */}

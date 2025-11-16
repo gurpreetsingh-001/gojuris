@@ -1,10 +1,15 @@
 // src/components/Features.jsx
 import React, { useEffect, useRef, useState } from 'react';
-
+var isGJ= false;
 const Features = () => {
   const featuresRef = useRef(null);
   const [activeModal, setActiveModal] = useState(null);
+  const domain = window.location.hostname;
 
+    if (domain.includes("gojuris.ai")) {
+      isGJ= true;
+    }
+  
   const features = [
     {
       icon: 'bx-search-alt-2',
@@ -16,7 +21,7 @@ const Features = () => {
         title: 'AI Search',
         subtitle: 'Ask once. Find fast. AI-powered legal search at your command.',
         points: [
-          'Discover smarter results instantly — GoJuris\' AI-powered search understands legal context, citations, and keywords, delivering precise case law and statutes in seconds.',
+          'Discover smarter results instantly — ' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' AI-powered search understands legal context, citations, and keywords, delivering precise case law and statutes in seconds.',
           'Go beyond keywords — Our AI search interprets your queries like a lawyer would, connecting facts, issues, and precedents for sharper insights.',
           'Structured and reliable — Find judgments, headnotes, issues, judges\' findings, parties contentions, facts and legal principles with AI-curated accuracy, saving you time and ensuring court-ready research.'
         ]
@@ -25,15 +30,15 @@ const Features = () => {
     {
       icon: 'bx-chat',
       title: 'AI Chat',
-      description: 'Chat with your GoJuris E-library — GoJuris AI answers like your smartest associate.',
+      description: 'Chat with your ' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' E-library — ' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' AI answers like your smartest associate.',
       linkText: 'Read more',
       bgColor: 'bg-danger',
       modalContent: {
         title: 'AI Chat',
-        subtitle: 'Chat with your GoJuris E-library — GoJuris AI answers like your smartest associate.',
+        subtitle: 'Chat with your ' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' E-library — ' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' AI answers like your smartest associate.',
         points: [
           'From queries to clarity — Ask in plain language, get structured legal answers.',
-          'GoJuris AI Chat allows lawyers to interact with case law, statutes, and legal principles in natural language.',
+          '' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' AI Chat allows lawyers to interact with case law, statutes, and legal principles in natural language.',
           'It provides structured, citation-backed responses, saving hours of manual research.',
           'Designed for accuracy and context, it works like a virtual junior counsel — always ready with court-prepared answers.'
         ]
@@ -49,7 +54,7 @@ const Features = () => {
         title: 'Subject/Keyword Search',
         subtitle: 'Search by subject, filter by keyword — precision at your fingertips.',
         points: [
-          'GoJuris Subject/Keyword Search enables quick navigation through vast legal databases by topic or keyword.',
+          '' + (isGJ ? 'GoJuris' : 'Legal Eagle') + ' Subject/Keyword Search enables quick navigation through vast legal databases by topic or keyword.',
           'It organizes judgments under structured subject headings and provides instant keyword-based filtering.',
           'This feature ensures targeted research, helping users pinpoint relevant case laws and legal principles efficiently.'
         ]
@@ -58,6 +63,7 @@ const Features = () => {
   ];
 
   useEffect(() => {
+    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -117,7 +123,7 @@ const Features = () => {
       {/* Features Section */}
       <section className="container pt-4 mb-2 mb-md-4" ref={featuresRef}>
         <div className="text-center" style={{ marginBottom: '2px' }}>
-          <h2 className="h1 mb-3 text-primary">What's New in GoJuris.ai</h2>
+          <h2 className="h1 mb-3 text-primary">What's New in {isGJ? 'GoJuris AI' : 'Legal Eagle AI'}</h2>
         </div>
         
         <div className="row row-cols-1 row-cols-md-3 g-4  pt-md-4 pb-lg-2">

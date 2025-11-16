@@ -3,14 +3,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gImage from '../assets/gohurisheader.png';
 import backgroundImage from '../assets/background.svg';
-
+var isGJ= false;
 const Hero = () => {
   const heroRef = useRef(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  
+  const domain = window.location.hostname;
 
+    if (domain.includes("gojuris.ai")) {
+      isGJ= true;
+    }
   useEffect(() => {
     const el = heroRef.current;
+    
     if (!el) return;
 
     const observer = new IntersectionObserver(
@@ -50,7 +56,7 @@ const Hero = () => {
       <section
         id="home"
         ref={heroRef}
-        className="hero-section position-relative mb-md-3 mb-lg-0"
+        className={isGJ ? "hero-section position-relative mb-md-3 mb-lg-0" : "hero-sectionLe hero-section position-relative mb-md-3 mb-lg-0" }
         style={{
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
@@ -76,7 +82,7 @@ const Hero = () => {
             {/* Left Content */}
             <div className="col-lg-6">
               {/* Law Meets AI Badge */}
-              <div className="d-inline-flex align-items-center bg-primary rounded-pill px-4 py-2 mb-4">
+              <div className="d-inline-flex align-items-center bg-primarynew rounded-pill px-4 py-2 mb-4">
                 <div
                   className="bg-white rounded-circle d-flex align-items-center justify-content-center me-3"
                   style={{ width: '24px', height: '24px' }}
@@ -84,15 +90,10 @@ const Hero = () => {
                   <i className="bx bx-play text-primary" style={{ fontSize: '12px' }}></i>
                 </div>
                 <span className="text-white" style={{ fontSize: '16px', fontWeight: '500' }}>
-                  Powered by Legal Eagle              
+                 {isGJ ? 'Powered by Legal Eagle' : 'Where Law Meets AI Precision'}               
                 </span>
               </div>
-               <img src="ic_beta_96.png"
-        style={{
-          marginLeft: '10px'
-        }}>
-
-        </img>
+               
               {/* Main Heading */}
               <h3 className="mb-4" style={{ 
                 fontWeight: '700',
@@ -166,7 +167,7 @@ const Hero = () => {
                   margin: 0,
                   flex: '1'
                 }}>
-                  GoJuris AI is your intelligent legal research assistant, built to simplify complex case law, statutes, and legal principles. 
+                  {isGJ ? 'GoJuris' : 'Legal Eagle'} AI is your intelligent legal research assistant, built to simplify complex case law, statutes, and legal principles. 
                 </p>
               </div>
 
@@ -199,7 +200,7 @@ const Hero = () => {
               <div className="text-center">
                 <img
                   src={gImage}
-                  alt="GoJuris AI Assistant"
+                  alt={isGJ? 'GoJuris AI Assistant' : 'Legal Eagle AI Assistant'}
                   className="img-fluid"
                   style={{
                     maxWidth: '100%',
@@ -249,14 +250,24 @@ const Hero = () => {
               transform: translateY(-15px);
             }
           }
-
+          .btn-primary
+      {
+        background-color: rgb(139, 92, 246)
+      }
+        .bg-primarynew
+      {
+        background-color: rgb(139, 92, 246)
+      }
           .hero-section {
             opacity: 0;
             transform: translateY(18px);
             transition: opacity 0.6s ease, transform 0.6s ease;
             margin-top:30px;
           }
-
+          hero-sectionLe
+          {
+            margin-top:0px;
+          }
           .hero-section.fade-in {
             opacity: 1;
             transform: translateY(0);
@@ -317,7 +328,7 @@ const Hero = () => {
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              GoJuris AI – The Next Generation of Legal Research
+              {isGJ? 'GoJuris' : 'Legal Eagle'} AI – The Next Generation of Legal Research
             </h5>
             <button 
               type="button" 
@@ -328,19 +339,19 @@ const Hero = () => {
           </div>
           <div className="modal-body pt-3" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <p style={{ fontSize: '15px', lineHeight: '1.8', color: '#4b5563', marginBottom: '1rem' }}>
-              GoJuris AI is your intelligent legal research assistant, designed to transform how lawyers, law firms, and legal professionals access and interpret the law. It simplifies the most complex case law, statutes, regulations, and legal principles into clear, actionable insights—so you can focus on strategy, not searching.
+              {isGJ? 'GoJuris' : 'Legal Eagle'} AI is your intelligent legal research assistant, designed to transform how lawyers, law firms, and legal professionals access and interpret the law. It simplifies the most complex case law, statutes, regulations, and legal principles into clear, actionable insights—so you can focus on strategy, not searching.
             </p>
             
             <p style={{ fontSize: '15px', lineHeight: '1.8', color: '#4b5563', marginBottom: '1rem' }}>
-              With its cutting-edge <strong>AI Search</strong>, intuitive <strong>AI Chat</strong>, and advanced keyword tools, GoJuris AI delivers precise, court-ready results in seconds, eliminating the time-consuming hassles of traditional research. Whether you're preparing for arguments, drafting pleadings, or analyzing judgments, you get faster, smarter, and more reliable answers—anytime, anywhere.
+              With its cutting-edge <strong>AI Search</strong>, intuitive <strong>AI Chat</strong>, and advanced keyword tools, {isGJ? 'GoJuris' : 'Legal Eagle'} AI delivers precise, court-ready results in seconds, eliminating the time-consuming hassles of traditional research. Whether you're preparing for arguments, drafting pleadings, or analyzing judgments, you get faster, smarter, and more reliable answers—anytime, anywhere.
             </p>
 
             <p style={{ fontSize: '15px', lineHeight: '1.8', color: '#4b5563', marginBottom: '1rem' }}>
-              Built on decades of judgments, statutes, amendments, and curated legal insights, GoJuris AI goes beyond just retrieving data. It interprets the law in context, identifies relevant precedents, and highlights nuanced legal points—empowering you with the clarity and confidence you need for decisive legal action.
+              Built on decades of judgments, statutes, amendments, and curated legal insights, {isGJ? 'GoJuris' : 'Legal Eagle'} AI goes beyond just retrieving data. It interprets the law in context, identifies relevant precedents, and highlights nuanced legal points—empowering you with the clarity and confidence you need for decisive legal action.
             </p>
 
             <p style={{ fontSize: '15px', lineHeight: '1.8', color: '#4b5563', marginBottom: '1rem' }}>
-              Accessible on multiple devices, GoJuris AI ensures that your research is always within reach—secure, seamless, and consistently up-to-date. By combining speed, accuracy, and comprehensive coverage, it sets a new benchmark for AI-driven legal research in India.
+              Accessible on multiple devices, {isGJ? 'GoJuris' : 'Legal Eagle'} AI ensures that your research is always within reach—secure, seamless, and consistently up-to-date. By combining speed, accuracy, and comprehensive coverage, it sets a new benchmark for AI-driven legal research in India.
             </p>
 
             <div className="mt-4 p-3 rounded" style={{ 

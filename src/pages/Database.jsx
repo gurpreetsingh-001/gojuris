@@ -7,27 +7,30 @@ import ApiService from '../services/apiService';
 
 const Database = () => {
   const navigate = useNavigate();
-  
+
   // State management
   const [courts, setCourts] = useState([]);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [isLoadingCourts, setIsLoadingCourts] = useState(true);
   const [courtsError, setCourtsError] = useState('');
-  
+
   const [judgements, setJudgements] = useState([]);
   const [isLoadingJudgements, setIsLoadingJudgements] = useState(false);
   const [totalJudgements, setTotalJudgements] = useState(0);
-  
+  const [totalPages, setTotalPages] = useState(0);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedYear, setSelectedYear] = useState('2025');
-  const [years] = useState(['2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016']);
-  
-  const resultsPerPage = 50;
+  const [years] = useState(
+    Array.from({ length: 2025 - 1950 + 1 }, (_, i) => (2025 - i).toString())
+  );
+
+  const resultsPerPage = 25;
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
     loadCourts();
-    
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -40,18 +43,18 @@ const Database = () => {
       setCourtsError('');
       console.log('🏛️ Loading courts from API...');
 
-      const permissionsData = await ApiService.getUserPermissions();
+      const permissionsData = JSON.parse(localStorage.getItem('userp'));
       const courtsData = permissionsData.courts || [];
-      
+
       console.log('✅ Courts loaded:', courtsData);
       setCourts(courtsData);
-      
+
       // Auto-select first court
       if (courtsData.length > 0) {
         setSelectedCourt(courtsData[0].key);
         loadJudgements(courtsData[0].key, currentPage, selectedYear);
       }
-      
+
     } catch (error) {
       console.error('❌ Error loading courts:', error);
       setCourtsError(error.message || 'Failed to load courts');
@@ -59,47 +62,84 @@ const Database = () => {
       setIsLoadingCourts(false);
     }
   };
-
+  const formatDate = (dateStr) => {
+    if (dateStr) {
+      try {
+        if (dateStr.length === 8) {
+          const year = dateStr.substring(0, 4);
+          const month = dateStr.substring(4, 6);
+          const day = dateStr.substring(6, 8);
+          return `${day}/${month}/${year}`;
+        }
+        return dateStr;
+      } catch {
+        return dateStr;
+      }
+    }
+    return 'Date not available';
+  };
   // Load judgements for selected court
   const loadJudgements = async (courtKey, page, year) => {
     try {
       setIsLoadingJudgements(true);
       console.log(`📊 Loading judgements for ${courtKey}, Page: ${page}, Year: ${year}`);
-      
+
       // TODO: Replace with actual API call when available
       // For now using mock data
-      const mockData = generateMockJudgements(courtKey, page, year);
-      
-      setJudgements(mockData.judgements);
-      setTotalJudgements(mockData.total);
-      
+      const payload = {
+        requests: [{
+          yearFrom: year,
+          yearTo: year,
+          mainkeys: courtKey == 'All' ? [] : [courtKey]
+        }],
+        sortBy: "year",
+        sortOrder: "desc",
+        page: page || 1,
+        pageSize: resultsPerPage,
+        inst: '',
+        prompt: "Database",
+      };
+      // const mockData = generateMockJudgements(courtKey, page, year);
+      const apiResponse = await ApiService.executeSearchFilter(
+        payload
+      );
+      setJudgements(apiResponse.hits);
+      setTotalJudgements(apiResponse.total);
+
+      if (page == '1')
+        setTotalPages(Math.ceil(apiResponse.total / resultsPerPage));
+
+      const searchResults = apiResponse.hits || [];
+      const totalCount = apiResponse.total || 0;
+      const courtsList = apiResponse.courtsList || [];
+      const yearList = apiResponse.yearList || [];
+
+      const resultsData = {
+        results: searchResults,
+        totalCount: totalCount,
+        query: ``.trim(),
+        searchType: 'Database Search',
+        timestamp: new Date().toISOString(),
+        // ✅ IMPORTANT: Include API filter data
+        courtsList: courtsList,
+        yearList: yearList,
+        searchData: {
+          yearFrom: year,
+          yearTo: year,
+          mainkeys: courtKey == 'All' ? [] : [courtKey]
+        }
+      };
+
+      console.log('💾 Storing citation results with API filter data:', resultsData);
+      localStorage.setItem('searchResults', JSON.stringify(resultsData));
+
+      // Navigate to results page
+      //navigate('/results');
     } catch (error) {
       console.error('❌ Error loading judgements:', error);
     } finally {
       setIsLoadingJudgements(false);
     }
-  };
-
-  // Generate mock data (replace with actual API call)
-  const generateMockJudgements = (courtKey, page, year) => {
-    const total = 18718666; // Example total from reference image
-    const mockJudgements = [];
-    
-    for (let i = 0; i < resultsPerPage; i++) {
-      const index = (page - 1) * resultsPerPage + i + 1;
-      mockJudgements.push({
-        id: index,
-        appellant: `Appellant Name ${index}`,
-        respondent: `Respondent Name ${index}`,
-        date: `${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}/09/${year}`,
-        court: courtKey.toUpperCase()
-      });
-    }
-    
-    return {
-      judgements: mockJudgements,
-      total: total
-    };
   };
 
   const handleCourtSelect = (courtKey) => {
@@ -123,29 +163,44 @@ const Database = () => {
   const handleJudgementClick = (judgement) => {
     console.log('Judgement clicked:', judgement);
     // Navigate to judgement detail page
-    // navigate(`/judgement/${judgement.id}`);
+    const currentIndex = judgements.findIndex(result => result.id === judgement.id);
+    const navigationData = {
+      currentIndex: currentIndex,
+      results: judgements.map(result => ({
+        keycode: result.id,
+        title: '',
+        court: '',
+        date: ''
+      })),
+      searchQuery: '',
+      totalResults: totalJudgements,
+      currentPage: currentPage
+    };
+
+    sessionStorage.setItem('judgementNavigation', JSON.stringify(navigationData));
+    navigate(`/judgement/${judgement.id}`);
   };
 
-  const totalPages = Math.ceil(totalJudgements / resultsPerPage);
+
   const startResult = (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalJudgements);
 
   return (
     <div className="gojuris-layout">
       <Sidebar />
-      
+
       <div className="gojuris-main">
         <Navbar />
-        
+
         <div className="database-container">
           {/* Tabs */}
-          
+
 
           <div className="content-wrapper">
             {/* Left Sidebar - Courts List */}
             <div className="courts-sidebar">
               <div className="courts-header">Select Court</div>
-              
+
               {isLoadingCourts ? (
                 <div className="loading-state">Loading courts...</div>
               ) : courtsError ? (
@@ -171,12 +226,12 @@ const Database = () => {
               <div className="top-controls">
                 <div className="page-selector">
                   <label>Select Page:</label>
-                  <select 
-                    value={currentPage} 
+                  <select
+                    value={currentPage}
                     onChange={(e) => handlePageChange(Number(e.target.value))}
                     className="page-select"
                   >
-                    {[...Array(Math.min(10, totalPages))].map((_, i) => (
+                    {[...Array(Math.min(totalPages))].map((_, i) => (
                       <option key={i + 1} value={i + 1}>{i + 1}</option>
                     ))}
                   </select>
@@ -192,8 +247,8 @@ const Database = () => {
 
                 <div className="year-selector">
                   <label>Select Year</label>
-                  <select 
-                    value={selectedYear} 
+                  <select
+                    value={selectedYear}
                     onChange={(e) => handleYearChange(e.target.value)}
                     className="year-select"
                   >
@@ -226,7 +281,7 @@ const Database = () => {
                     </thead>
                     <tbody>
                       {judgements.map((judgement, index) => (
-                        <tr 
+                        <tr
                           key={judgement.id}
                           onClick={() => handleJudgementClick(judgement)}
                           className="judgement-row"
@@ -236,7 +291,7 @@ const Database = () => {
                           </td>
                           <td className="col-appellant">{judgement.appellant}</td>
                           <td className="col-respondent">{judgement.respondent}</td>
-                          <td className="col-date">{judgement.date}</td>
+                          <td className="col-date">{formatDate(judgement.date)}</td>
                           <td className="col-court">{judgement.court}</td>
                         </tr>
                       ))}

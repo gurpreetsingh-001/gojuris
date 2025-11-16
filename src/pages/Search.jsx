@@ -14,275 +14,282 @@ const Search = () => {
   const [isJournalOpen, setIsJournalOpen] = useState(false);
   const [courtSearchTerm, setCourtSearchTerm] = useState('');
 
-const [isYearOpen, setIsYearOpen] = useState(false);
-const [isVolumeOpen, setIsVolumeOpen] = useState(false);
-const [isPageOpen, setIsPageOpen] = useState(false);
-const [courts, setCourts] = useState([]);
-const [isLoadingCourts, setIsLoadingCourts] = useState(true);
-const [courtsError, setCourtsError] = useState('');
-const [selectedCourts, setSelectedCourts] = useState({});
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const [isVolumeOpen, setIsVolumeOpen] = useState(false);
+  const [isPageOpen, setIsPageOpen] = useState(false);
+  const [courts, setCourts] = useState([]);
+  const [isLoadingCourts, setIsLoadingCourts] = useState(true);
+  const [courtsError, setCourtsError] = useState('');
+  const [selectedCourts, setSelectedCourts] = useState({});
 
-// API data states
-const [journals, setJournals] = useState([]);
-const [years, setYears] = useState([]);
-const [volumes, setVolumes] = useState([]);
-const [pages, setPages] = useState([]);
+  // API data states
+  const [journals, setJournals] = useState([]);
+  const [years, setYears] = useState([]);
+  const [volumes, setVolumes] = useState([]);
+  const [pages, setPages] = useState([]);
 
-// Loading states
-const [isLoadingJournals, setIsLoadingJournals] = useState(true);
-const [isLoadingYears, setIsLoadingYears] = useState(false);
-const [isLoadingVolumes, setIsLoadingVolumes] = useState(false);
-const [isLoadingPages, setIsLoadingPages] = useState(false);
+  // Loading states
+  const [isLoadingJournals, setIsLoadingJournals] = useState(true);
+  const [isLoadingYears, setIsLoadingYears] = useState(false);
+  const [isLoadingVolumes, setIsLoadingVolumes] = useState(false);
+  const [isLoadingPages, setIsLoadingPages] = useState(false);
 
-// Error states
-const [journalsError, setJournalsError] = useState('');
-const [yearsError, setYearsError] = useState('');
-const [volumesError, setVolumesError] = useState('');
-const [pagesError, setPagesError] = useState('');
+  // Error states
+  const [journalsError, setJournalsError] = useState('');
+  const [yearsError, setYearsError] = useState('');
+  const [volumesError, setVolumesError] = useState('');
+  const [pagesError, setPagesError] = useState('');
 
-// API base URL
-const API_BASE_URL = 'http://216.172.100.173:8001';
+  // API base URL
+  const API_BASE_URL = 'https://api.gojuris.ai';
 
-// Add these API methods after your existing useEffect
-const makeAuthenticatedRequest = async (url) => {
-  const token = ApiService.getAccessToken();
+  // Add these API methods after your existing useEffect
+  const makeAuthenticatedRequest = async (url) => {
+    const token = ApiService.getAccessToken();
 
-  if (!token) {
-    throw new Error('No access token found. Please login again.');
-  }
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+    if (!token) {
+      throw new Error('No access token found. Please login again.');
     }
-  });
 
-  if (response.status === 401) {
-    ApiService.clearTokensAndRedirect();
-    throw new Error('Session expired. Please login again.');
-  }
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
-};
-
-useEffect(() => {
-  document.body.style.paddingTop = '0';
-  loadCourts(); // Load courts from API
-  
-  return () => {
-    document.body.style.paddingTop = '';
-  };
-}, []);
-
-const loadCourts = async () => {
-  try {
-    setIsLoadingCourts(true);
-    setCourtsError('');
-    console.log('🏛️ Loading courts from API...');
-
-    const permissionsData = await ApiService.getUserPermissions();
-    
-    // Extract courts array from API response
-    const courtsData = permissionsData.courts || [];
-    
-    console.log('✅ Courts loaded:', courtsData);
-    setCourts(courtsData);
-    
-    // Initialize all courts as unchecked
-    const initialSelection = {};
-    courtsData.forEach(court => {
-      initialSelection[court.key] = false;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
     });
-    setSelectedCourts(initialSelection);
-    
-  } catch (error) {
-    console.error('❌ Error loading courts:', error);
-    setCourtsError(error.message || 'Failed to load courts');
-  } finally {
-    setIsLoadingCourts(false);
-  }
-};
 
-const handleCourtToggle = (courtKey) => {
-  setSelectedCourts(prev => ({
-    ...prev,
-    [courtKey]: !prev[courtKey]
-  }));
-};
+    if (response.status === 401) {
+      ApiService.clearTokensAndRedirect();
+      throw new Error('Session expired. Please login again.');
+    }
 
-// Add function to select all courts
-const handleSelectAllCourts = () => {
-  const allSelected = {};
-  courts.forEach(court => {
-    allSelected[court.key] = true;
-  });
-  setSelectedCourts(allSelected);
-};
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-// Add function to unselect all courts
-
-
-const loadJournals = async () => {
-  try {
-    setIsLoadingJournals(true);
-    setJournalsError('');
-    console.log('Loading journals...');
-
-    const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals`);
-    setJournals(data);
-    console.log('Journals loaded:', data);
-  } catch (error) {
-    console.error('Error loading journals:', error);
-    setJournalsError(error.message);
-  } finally {
-    setIsLoadingJournals(false);
-  }
-};
-
-const loadYears = async (journalName) => {
-  try {
-    setIsLoadingYears(true);
-    setYearsError('');
-    console.log('Loading years for:', journalName);
-
-    const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years`);
-    setYears(data);
-    console.log('Years loaded for', journalName, ':', data);
-  } catch (error) {
-    console.error('Error loading years:', error);
-    setYearsError(error.message);
-    setYears([]);
-  } finally {
-    setIsLoadingYears(false);
-  }
-};
-
-const loadVolumes = async (journalName, year) => {
-  try {
-    setIsLoadingVolumes(true);
-    setVolumesError('');
-    console.log('Loading volumes for:', journalName, year);
-
-    const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes`);
-    setVolumes(data);
-    console.log('Volumes loaded for', journalName, year, ':', data);
-  } catch (error) {
-    console.error('Error loading volumes:', error);
-    setVolumesError(error.message);
-    setVolumes([]);
-  } finally {
-    setIsLoadingVolumes(false);
-  }
-};
-
-const loadPages = async (journalName, year, volume) => {
-  try {
-    setIsLoadingPages(true);
-    setPagesError('');
-    console.log('Loading pages for:', journalName, year, volume);
-
-    const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes/${encodeURIComponent(volume)}/pages`);
-    setPages(data);
-    console.log('Pages loaded for', journalName, year, volume, ':', data);
-  } catch (error) {
-    console.error('Error loading pages:', error);
-    setPagesError(error.message);
-    setPages([]);
-  } finally {
-    setIsLoadingPages(false);
-  }
-};
-// Citation event handlers
-const handleJournalSelect = (journal) => {
-  setFormData(prev => ({
-    ...prev,
-    selectedJournal: journal,
-    selectedYear: 'Select a option',
-    selectedVolume: 'Select a option', 
-    selectedPage: 'Select a option'
-  }));
-  setIsJournalOpen(false);
-
-  // Reset dependent dropdowns
-  setYears([]);
-  setVolumes([]);
-  setPages([]);
-
-  // Clear errors
-  setYearsError('');
-  setVolumesError('');
-  setPagesError('');
-
-  // Load years for selected journal
-  if (journal !== 'Select a option') {
-    loadYears(journal);
-  }
-};
-
-const handleYearSelect = (year) => {
-  setFormData(prev => ({
-    ...prev,
-    selectedYear: year,
-    selectedVolume: 'Select a option',
-    selectedPage: 'Select a option'
-  }));
-  setIsYearOpen(false);
-
-  // Reset dependent dropdowns
-  setVolumes([]);
-  setPages([]);
-
-  // Clear errors
-  setVolumesError('');
-  setPagesError('');
-
-  // Load volumes for selected journal and year
-  if (year !== 'Select a option' && formData.selectedJournal !== 'Select a option') {
-    loadVolumes(formData.selectedJournal, year);
-  }
-};
-
-const handleVolumeSelect = (volume) => {
-  setFormData(prev => ({
-    ...prev,
-    selectedVolume: volume,
-    selectedPage: 'Select a option'
-  }));
-  setIsVolumeOpen(false);
-
-  // Reset dependent dropdown
-  setPages([]);
-
-  // Clear errors
-  setPagesError('');
-
-  // Load pages for selected journal, year, and volume
-  if (volume !== 'Select a option' && formData.selectedJournal !== 'Select a option' && formData.selectedYear !== 'Select a option') {
-    loadPages(formData.selectedJournal, formData.selectedYear, volume);
-  }
-};
-
-const handlePageSelect = (page) => {
-  setFormData(prev => ({
-    ...prev,
-    selectedPage: page
-  }));
-  setIsPageOpen(false);
-};
-useEffect(() => {
-  document.body.style.paddingTop = '0';
-  loadJournals(); // Add this line
-  return () => {
-    document.body.style.paddingTop = '';
+    return response.json();
   };
-}, []);
+
+  useEffect(() => {
+    const storedKeyword = localStorage.getItem('SearchHAdvance');
+    if (storedKeyword) {
+      setFormData(prev => ({
+      ...prev,
+      ['queryText']: storedKeyword
+    }));
+    }
+    document.body.style.paddingTop = '0';
+    loadCourts(); // Load courts from API
+
+    return () => {
+      document.body.style.paddingTop = '';
+    };
+  }, []);
+
+  const loadCourts = async () => {
+    try {
+      setIsLoadingCourts(true);
+      setCourtsError('');
+      console.log('🏛️ Loading courts from API...');
+
+      const permissionsData = await ApiService.getUserPermissions();
+
+      // Extract courts array from API response
+      const courtsData = permissionsData.courts || [];
+
+      console.log('✅ Courts loaded:', courtsData);
+      setCourts(courtsData);
+
+      // Initialize all courts as unchecked
+      const initialSelection = {};
+      courtsData.forEach(court => {
+        initialSelection[court.key] = true;
+      });
+      setSelectedCourts(initialSelection);
+
+    } catch (error) {
+      console.error('❌ Error loading courts:', error);
+      setCourtsError(error.message || 'Failed to load courts');
+    } finally {
+      setIsLoadingCourts(false);
+    }
+  };
+
+  const handleCourtToggle = (courtKey) => {
+    setSelectedCourts(prev => ({
+      ...prev,
+      [courtKey]: !prev[courtKey]
+    }));
+  };
+
+  // Add function to select all courts
+  const handleSelectAllCourts = () => {
+    const allSelected = {};
+    courts.forEach(court => {
+      allSelected[court.key] = true;
+    });
+    setSelectedCourts(allSelected);
+  };
+
+  // Add function to unselect all courts
+
+
+  const loadJournals = async () => {
+    try {
+      setIsLoadingJournals(true);
+      setJournalsError('');
+      console.log('Loading journals...');
+
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals`);
+      setJournals(data);
+      console.log('Journals loaded:', data);
+    } catch (error) {
+      console.error('Error loading journals:', error);
+      setJournalsError(error.message);
+    } finally {
+      setIsLoadingJournals(false);
+    }
+  };
+
+  const loadYears = async (journalName) => {
+    try {
+      setIsLoadingYears(true);
+      setYearsError('');
+      console.log('Loading years for:', journalName);
+
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years`);
+      setYears(data);
+      console.log('Years loaded for', journalName, ':', data);
+    } catch (error) {
+      console.error('Error loading years:', error);
+      setYearsError(error.message);
+      setYears([]);
+    } finally {
+      setIsLoadingYears(false);
+    }
+  };
+
+  const loadVolumes = async (journalName, year) => {
+    try {
+      setIsLoadingVolumes(true);
+      setVolumesError('');
+      console.log('Loading volumes for:', journalName, year);
+
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes`);
+      setVolumes(data);
+      console.log('Volumes loaded for', journalName, year, ':', data);
+    } catch (error) {
+      console.error('Error loading volumes:', error);
+      setVolumesError(error.message);
+      setVolumes([]);
+    } finally {
+      setIsLoadingVolumes(false);
+    }
+  };
+
+  const loadPages = async (journalName, year, volume) => {
+    try {
+      setIsLoadingPages(true);
+      setPagesError('');
+      console.log('Loading pages for:', journalName, year, volume);
+
+      const data = await makeAuthenticatedRequest(`${API_BASE_URL}/Journals/${encodeURIComponent(journalName)}/years/${year}/volumes/${encodeURIComponent(volume)}/pages`);
+      setPages(data);
+      console.log('Pages loaded for', journalName, year, volume, ':', data);
+    } catch (error) {
+      console.error('Error loading pages:', error);
+      setPagesError(error.message);
+      setPages([]);
+    } finally {
+      setIsLoadingPages(false);
+    }
+  };
+  // Citation event handlers
+  const handleJournalSelect = (journal) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedJournal: journal,
+      selectedYear: 'Select a option',
+      selectedVolume: 'Select a option',
+      selectedPage: 'Select a option'
+    }));
+    setIsJournalOpen(false);
+
+    // Reset dependent dropdowns
+    setYears([]);
+    setVolumes([]);
+    setPages([]);
+
+    // Clear errors
+    setYearsError('');
+    setVolumesError('');
+    setPagesError('');
+
+    // Load years for selected journal
+    if (journal !== 'Select a option') {
+      loadYears(journal);
+    }
+  };
+
+  const handleYearSelect = (year) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedYear: year,
+      selectedVolume: 'Select a option',
+      selectedPage: 'Select a option'
+    }));
+    setIsYearOpen(false);
+
+    // Reset dependent dropdowns
+    setVolumes([]);
+    setPages([]);
+
+    // Clear errors
+    setVolumesError('');
+    setPagesError('');
+
+    // Load volumes for selected journal and year
+    if (year !== 'Select a option' && formData.selectedJournal !== 'Select a option') {
+      loadVolumes(formData.selectedJournal, year);
+    }
+  };
+
+  const handleVolumeSelect = (volume) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedVolume: volume,
+      selectedPage: 'Select a option'
+    }));
+    setIsVolumeOpen(false);
+
+    // Reset dependent dropdown
+    setPages([]);
+
+    // Clear errors
+    setPagesError('');
+
+    // Load pages for selected journal, year, and volume
+    if (volume !== 'Select a option' && formData.selectedJournal !== 'Select a option' && formData.selectedYear !== 'Select a option') {
+      loadPages(formData.selectedJournal, formData.selectedYear, volume);
+    }
+  };
+
+  const handlePageSelect = (page) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedPage: page
+    }));
+    setIsPageOpen(false);
+  };
+  useEffect(() => {
+    document.body.style.paddingTop = '0';
+    loadJournals(); // Add this line
+    return () => {
+      document.body.style.paddingTop = '';
+    };
+  }, []);
   // Form data for all search fields
   const [formData, setFormData] = useState({
     // Citations
@@ -292,9 +299,9 @@ useEffect(() => {
     page: '',
 
     selectedJournal: 'Select a option',
-  selectedYear: 'Select a option', 
-  selectedVolume: 'Select a option',
-  selectedPage: 'Select a option',
+    selectedYear: 'Select a option',
+    selectedVolume: 'Select a option',
+    selectedPage: 'Select a option',
     // Party Names
     appellant: '',
     respondent: '',
@@ -303,7 +310,7 @@ useEffect(() => {
     // Judge Name
     judges: '',
     searchJudgeType: 'exact',
-
+    searchType: 'all',
     // Advocate Name
     advocates: '',
 
@@ -311,15 +318,12 @@ useEffect(() => {
     queryText: '',
     nearWords: '5',
     stateFavourCases: false,
-    searchOrder: 'most-recent',
+    searchOrder: 'most-relevant',
     headnote: true,
     fulltext: true,
     selectedCourts: {
-      all: true,
-      supremeCourt: true,
-      privyCouncil: true,
-      allahabad: true,
-      apHigh: true
+      ALL: true,
+      SC: true
     },
     bench: 'All',
 
@@ -364,13 +368,13 @@ useEffect(() => {
     }));
   };
 
- const handleUnselectAllCourts = () => {
-  const allUnselected = {};
-  courts.forEach(court => {
-    allUnselected[court.key] = false;
-  });
-  setSelectedCourts(allUnselected);
-};
+  const handleUnselectAllCourts = () => {
+    const allUnselected = {};
+    courts.forEach(court => {
+      allUnselected[court.key] = false;
+    });
+    setSelectedCourts(allUnselected);
+  };
 
   const handleSearch = async (searchType) => {
     setIsLoading(true);
@@ -378,35 +382,93 @@ useEffect(() => {
 
     try {
       console.log('🔍 Starting Advanced Search...', searchType);
-
-      const searchPayload = {
-        query: formData.queryText || 'Advanced Search',
+      const journal = formData.selectedJournal !== 'Select a option' ? formData.selectedJournal : null;;
+      const year = formData.selectedYear !== 'Select a option' ? formData.selectedYear : null;
+      const volume = formData.selectedVolume !== 'Select a option' && formData.selectedVolume !== "0" ? formData.selectedVolume : null;
+      const page = formData.selectedPage !== 'Select a option' ? formData.selectedPage : null;
+      var searchIn = 'B';
+      localStorage.setItem('SearchHKeyword', formData.queryText);
+      var ActSearch = formData.acts;
+      if (formData.acts && formData.section) {
+        ActSearch = `${formData.acts || ''} ${journal || ''} -- ${formData.section || ''}`.trim()
+      }
+      else if (formData.section) {
+        ActSearch = formData.section
+      }
+      debugger;
+      const trueKeys =
+        selectedCourts.ALL
+          ? ["ALL"]
+          : Object.keys(selectedCourts).filter(key => selectedCourts[key]);
+      const payload = {
+        requests: [{
+          query: formData.queryText,
+          type: formData.searchType,
+          querySlop: formData.nearWords,
+          searchIn: searchIn,
+          mainkeys: searchType == 'all' ? trueKeys : [searchType.toUpperCase()],
+          citation: `${year || ''} ${volume || ''} ${journal || ''} ${page || ''}`.trim(),
+          appellant: formData.appellant || '',
+          respondent: formData.respondent || '',
+          caseNo: formData.caseNo,
+          judges: formData.judges,
+          advocate: formData.advocates,
+          act: ActSearch
+        }],
+        sortBy: formData.searchOrder === 'most-relevant' ? 'rele' :
+          formData.searchOrder === 'most-recent' ? 'year' :
+            formData.searchOrder === 'most-referred' ? 'rele' : 'year',
+        sortOrder: formData.searchOrder === 'oldest' ? 'asc' : 'desc',
+        page: 1,
         pageSize: 25,
-        page: 0,
-        sortBy: 'relevance',
-        sortOrder: 'desc',
-        filters: formData
+        inst: '',
+        prompt: "Advance",
       };
+      // const mockData = generateMockJudgements(courtKey, page, year);
+      const apiResponse = await ApiService.executeAllSearch(
+        payload
+      );
 
-      const apiResponse = await ApiService.searchJudgements(searchPayload);
-      const searchResults = apiResponse.results || apiResponse.hits || [];
-      const totalCount = apiResponse.total || searchResults.length;
+      const searchResults = apiResponse.hits || [];
+      const totalCount = apiResponse.total || 0;
+
+      console.log(`📊 Processing ${searchResults.length} results from total ${totalCount}`);
 
       if (searchResults.length === 0) {
-        setError('No results found. Try different search criteria.');
+        setError('No results found for your search query. Try different keywords.');
         setIsLoading(false);
         return;
       }
 
+
       const resultsData = {
-        query: formData.queryText || 'Advanced Search',
-        results: searchResults,
-        totalCount: totalCount,
-        searchType: searchType === 'sc' ? 'Supreme Court Search' : 'All Courts Search',
-        timestamp: new Date().toISOString()
+        results: apiResponse.hits || [],
+        totalCount: apiResponse.total || 0,
+        query: formData.queryText,
+        searchType: 'Advance Search',
+        timestamp: new Date().toISOString(),
+        courtsList: apiResponse.courtsList || [],
+        yearList: apiResponse.yearList || [],
+        searchData: {
+          query: formData.queryText,
+          searchType: formData.searchType,
+          sortOrder: formData.searchOrder,
+          searchIn,
+          querySlop: formData.nearWords,
+          citation: `${year || ''} ${volume || ''} ${journal || ''} ${page || ''}`.trim(),
+          mainkeys: searchType == 'all' ? trueKeys : [searchType.toUpperCase()],
+          appellant: formData.appellant || '',
+          respondent: formData.respondent || '',
+          caseNo: formData.caseNo,
+          judges: formData.caseNo,
+          advocate: formData.advocates,
+          act: ActSearch
+        }
       };
 
-      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+      localStorage.setItem('searchResults', JSON.stringify(resultsData));
+      localStorage.setItem('SearchHAdvance', formData.queryText);
+      console.log('🚀 Navigating to results page...');
       navigate('/results');
 
     } catch (error) {
@@ -452,6 +514,7 @@ useEffect(() => {
       dateFrom: '01-01-1950',
       dateTo: '24-09-2025'
     });
+    localStorage.setItem('SearchHAdvance', '');
   };
 
   const handleResetDate = () => {
@@ -470,11 +533,11 @@ useEffect(() => {
         <Navbar />
 
         <div className="advance-search-page">
-          {/* Page Header */}
+          {/* Page Header 
           <div className="page-header">
             <h1 className="page-title">Advanced Search</h1>
           </div>
-
+*/}
           {error && (
             <div className="alert alert-danger">
               <i className="bx bx-error-circle"></i>
@@ -487,161 +550,162 @@ useEffect(() => {
             {/* Left Column */}
             <div className="left-column">
               {/* Search Cases by Citations */}
-             {/* Search Cases by Citations */}
-<div className="search-card">
-  <div className="card-header">
-    <h3 className="card-title">Search Cases by Citations</h3>
-  </div>
-  <div className="card-content">
-    <div className="form-row">
-      {/* Journal Name Dropdown */}
-      <div className="form-group">
-        <label className="form-label">Journal</label>
-        <div className="citation-dropdown-wrapper">
-          <button
-            className="citation-dropdown-btn"
-            onClick={() => setIsJournalOpen(!isJournalOpen)}
-            disabled={isLoadingJournals}
-          >
-            {isLoadingJournals ? 'Loading journals...' : formData.selectedJournal}
-            <i className="bx bx-chevron-down"></i>
-          </button>
+              {/* Search Cases by Citations */}
+              <div className="search-card">
+                <div className="card-header">
+                  <h3 className="card-title">Search Cases by Citations</h3>
+                </div>
+                <div className="card-content">
+                  <div className="form-row">
+                    {/* Journal Name Dropdown */}
+                    <div className="form-group ">
 
-          {(isJournalOpen || isLoadingJournals || journalsError) && (
-            <>
-              <div
-                className="dropdown-backdrop"
-                onClick={() => setIsJournalOpen(false)}
-              />
-              <SearchableDropdown
-                items={journals}
-                selectedItem={formData.selectedJournal}
-                onSelect={handleJournalSelect}
-                isOpen={isJournalOpen}
-                onToggle={setIsJournalOpen}
-                isLoading={isLoadingJournals}
-                error={journalsError}
-                loadingText="Loading journals..."
-                placeholder="journals"
-              />
-            </>
-          )}
-        </div>
-        {journalsError && <div className="citation-error">{journalsError}</div>}
-      </div>
+                      <div className="citation-dropdown-wrapper">
+                        <label className="form-label">Journal</label>
+                        <button
+                          className="citation-dropdown-btn"
+                          onClick={() => setIsJournalOpen(!isJournalOpen)}
+                          disabled={isLoadingJournals}
+                        >
+                          {isLoadingJournals ? 'Loading journals...' : formData.selectedJournal}
+                          <i className="bx bx-chevron-down"></i>
+                        </button>
 
-      {/* Year Dropdown */}
-      <div className="form-group">
-        <label className="form-label">Year</label>
-        <div className="citation-dropdown-wrapper">
-          <button
-            className="citation-dropdown-btn"
-            onClick={() => setIsYearOpen(!isYearOpen)}
-            disabled={isLoadingYears || formData.selectedJournal === 'Select a option'}
-          >
-            {isLoadingYears ? 'Loading years...' : formData.selectedYear}
-            <i className="bx bx-chevron-down"></i>
-          </button>
+                        {(isJournalOpen || isLoadingJournals || journalsError) && (
+                          <>
+                            <div
+                              className="dropdown-backdrop"
+                              onClick={() => setIsJournalOpen(false)}
+                            />
+                            <SearchableDropdown
+                              items={journals}
+                              selectedItem={formData.selectedJournal}
+                              onSelect={handleJournalSelect}
+                              isOpen={isJournalOpen}
+                              onToggle={setIsJournalOpen}
+                              isLoading={isLoadingJournals}
+                              error={journalsError}
+                              loadingText="Loading journals..."
+                              placeholder="journals"
+                            />
+                          </>
+                        )}
+                      </div>
+                      {journalsError && <div className="citation-error">{journalsError}</div>}
+                    </div>
 
-          {(isYearOpen || isLoadingYears || yearsError) && formData.selectedJournal !== 'Select a option' && (
-            <>
-              <div
-                className="dropdown-backdrop"
-                onClick={() => setIsYearOpen(false)}
-              />
-              <SearchableDropdown
-                items={years}
-                selectedItem={formData.selectedYear}
-                onSelect={handleYearSelect}
-                isOpen={isYearOpen}
-                onToggle={setIsYearOpen}
-                isLoading={isLoadingYears}
-                error={yearsError}
-                loadingText="Loading years..."
-                placeholder="years"
-              />
-            </>
-          )}
-        </div>
-        {yearsError && <div className="citation-error">{yearsError}</div>}
-      </div>
-    </div>
+                    {/* Year Dropdown */}
+                    <div className="form-group">
+                      <label className="form-label">Year</label>
+                      <div className="citation-dropdown-wrapper">
+                        <button
+                          className="citation-dropdown-btn"
+                          onClick={() => setIsYearOpen(!isYearOpen)}
+                          disabled={isLoadingYears || formData.selectedJournal === 'Select a option'}
+                        >
+                          {isLoadingYears ? 'Loading years...' : formData.selectedYear}
+                          <i className="bx bx-chevron-down"></i>
+                        </button>
 
-    <div className="form-row">
-      {/* Volume Dropdown */}
-      <div className="form-group">
-        <label className="form-label">Volume</label>
-        <div className="citation-dropdown-wrapper">
-          <button
-            className="citation-dropdown-btn"
-            onClick={() => setIsVolumeOpen(!isVolumeOpen)}
-            disabled={isLoadingVolumes || formData.selectedYear === 'Select a option'}
-          >
-            {isLoadingVolumes ? 'Loading volumes...' : formData.selectedVolume}
-            <i className="bx bx-chevron-down"></i>
-          </button>
+                        {(isYearOpen || isLoadingYears || yearsError) && formData.selectedJournal !== 'Select a option' && (
+                          <>
+                            <div
+                              className="dropdown-backdrop"
+                              onClick={() => setIsYearOpen(false)}
+                            />
+                            <SearchableDropdown
+                              items={years}
+                              selectedItem={formData.selectedYear}
+                              onSelect={handleYearSelect}
+                              isOpen={isYearOpen}
+                              onToggle={setIsYearOpen}
+                              isLoading={isLoadingYears}
+                              error={yearsError}
+                              loadingText="Loading years..."
+                              placeholder="years"
+                            />
+                          </>
+                        )}
+                      </div>
+                      {yearsError && <div className="citation-error">{yearsError}</div>}
+                    </div>
+                  </div>
 
-          {(isVolumeOpen || isLoadingVolumes || volumesError) && formData.selectedYear !== 'Select a option' && (
-            <>
-              <div
-                className="dropdown-backdrop"
-                onClick={() => setIsVolumeOpen(false)}
-              />
-              <SearchableDropdown
-                items={volumes}
-                selectedItem={formData.selectedVolume}
-                onSelect={handleVolumeSelect}
-                isOpen={isVolumeOpen}
-                onToggle={setIsVolumeOpen}
-                isLoading={isLoadingVolumes}
-                error={volumesError}
-                loadingText="Loading volumes..."
-                placeholder="volumes"
-              />
-            </>
-          )}
-        </div>
-        {volumesError && <div className="citation-error">{volumesError}</div>}
-      </div>
+                  <div className="form-row">
+                    {/* Volume Dropdown */}
+                    <div className="form-group">
+                      <label className="form-label">Volume</label>
+                      <div className="citation-dropdown-wrapper">
+                        <button
+                          className="citation-dropdown-btn"
+                          onClick={() => setIsVolumeOpen(!isVolumeOpen)}
+                          disabled={isLoadingVolumes || formData.selectedYear === 'Select a option'}
+                        >
+                          {isLoadingVolumes ? 'Loading volumes...' : formData.selectedVolume}
+                          <i className="bx bx-chevron-down"></i>
+                        </button>
 
-      {/* Page Dropdown */}
-      <div className="form-group">
-        <label className="form-label">Page</label>
-        <div className="citation-dropdown-wrapper">
-          <button
-            className="citation-dropdown-btn"
-            onClick={() => setIsPageOpen(!isPageOpen)}
-            disabled={isLoadingPages || formData.selectedVolume === 'Select a option'}
-          >
-            {isLoadingPages ? 'Loading pages...' : formData.selectedPage}
-            <i className="bx bx-chevron-down"></i>
-          </button>
+                        {(isVolumeOpen || isLoadingVolumes || volumesError) && formData.selectedYear !== 'Select a option' && (
+                          <>
+                            <div
+                              className="dropdown-backdrop"
+                              onClick={() => setIsVolumeOpen(false)}
+                            />
+                            <SearchableDropdown
+                              items={volumes}
+                              selectedItem={formData.selectedVolume}
+                              onSelect={handleVolumeSelect}
+                              isOpen={isVolumeOpen}
+                              onToggle={setIsVolumeOpen}
+                              isLoading={isLoadingVolumes}
+                              error={volumesError}
+                              loadingText="Loading volumes..."
+                              placeholder="volumes"
+                            />
+                          </>
+                        )}
+                      </div>
+                      {volumesError && <div className="citation-error">{volumesError}</div>}
+                    </div>
 
-          {(isPageOpen || isLoadingPages || pagesError) && formData.selectedVolume !== 'Select a option' && (
-            <>
-              <div
-                className="dropdown-backdrop"
-                onClick={() => setIsPageOpen(false)}
-              />
-              <SearchableDropdown
-                items={pages}
-                selectedItem={formData.selectedPage}
-                onSelect={handlePageSelect}
-                isOpen={isPageOpen}
-                onToggle={setIsPageOpen}
-                isLoading={isLoadingPages}
-                error={pagesError}
-                loadingText="Loading pages..."
-                placeholder="pages"
-              />
-            </>
-          )}
-        </div>
-        {pagesError && <div className="citation-error">{pagesError}</div>}
-      </div>
-    </div>
-  </div>
-</div>
+                    {/* Page Dropdown */}
+                    <div className="form-group">
+                      <label className="form-label">Page</label>
+                      <div className="citation-dropdown-wrapper">
+                        <button
+                          className="citation-dropdown-btn"
+                          onClick={() => setIsPageOpen(!isPageOpen)}
+                          disabled={isLoadingPages || formData.selectedVolume === 'Select a option'}
+                        >
+                          {isLoadingPages ? 'Loading pages...' : formData.selectedPage}
+                          <i className="bx bx-chevron-down"></i>
+                        </button>
+
+                        {(isPageOpen || isLoadingPages || pagesError) && formData.selectedVolume !== 'Select a option' && (
+                          <>
+                            <div
+                              className="dropdown-backdrop"
+                              onClick={() => setIsPageOpen(false)}
+                            />
+                            <SearchableDropdown
+                              items={pages}
+                              selectedItem={formData.selectedPage}
+                              onSelect={handlePageSelect}
+                              isOpen={isPageOpen}
+                              onToggle={setIsPageOpen}
+                              isLoading={isLoadingPages}
+                              error={pagesError}
+                              loadingText="Loading pages..."
+                              placeholder="pages"
+                            />
+                          </>
+                        )}
+                      </div>
+                      {pagesError && <div className="citation-error">{pagesError}</div>}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Search Cases by Party Name */}
               <div className="search-card">
@@ -661,6 +725,7 @@ useEffect(() => {
                       Enable Spelling Variations
                     </label>
                   </div>
+
                   <div className="form-group">
                     <label className="form-label">Appellant</label>
                     <input
@@ -681,6 +746,19 @@ useEffect(() => {
                       onChange={(e) => handleInputChange('respondent', e.target.value)}
                     />
                   </div>
+
+                </div>
+              </div>
+
+              {/* Search Cases by Case No */}
+              <div className="search-card">
+                <div className="card-header">
+                  <h3 className="card-title">Search Cases by Case No</h3>
+                </div>
+                <div className="card-content">
+
+
+
                   <div className="form-group">
                     <label className="form-label">Case Number</label>
                     <input
@@ -693,6 +771,7 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
+
 
               {/* Search Cases by Judge Name */}
               <div className="search-card">
@@ -759,272 +838,272 @@ useEffect(() => {
 
             {/* Right Column */}
             <div className="right-column">
-             {/* Search Cases by Subject And Topic */}
-<div className="search-card">
-  <div className="card-header">
-    <h3 className="card-title">Search Cases by Subject And Topic</h3>
-  </div>
-  <div className="card-content">
-    {/* Search Type Radio Buttons */}
-    <div className="search-type-options">
-      <label className="radio-label">
-        <input 
-          type="radio" 
-          name="searchType" 
-          value="exact-phrase"
-          checked={formData.searchType === 'exact-phrase'}
-          onChange={(e) => handleInputChange('searchType', e.target.value)}
-        />
-        <span className="radio-mark"></span>
-        Exact Phrase
-      </label>
-      <label className="radio-label">
-        <input 
-          type="radio" 
-          name="searchType" 
-          value="free-search"
-          checked={formData.searchType === 'free-search'}
-          onChange={(e) => handleInputChange('searchType', e.target.value)}
-        />
-        <span className="radio-mark"></span>
-        Free Search
-      </label>
-      <label className="radio-label">
-        <input 
-          type="radio" 
-          name="searchType" 
-          value="near"
-          checked={formData.searchType === 'near'}
-          onChange={(e) => handleInputChange('searchType', e.target.value)}
-        />
-        <span className="radio-mark"></span>
-        Near
-        <input 
-          type="text" 
-          className="near-words-input"
-          placeholder="5"
-          value={formData.nearWords || '5'}
-          onChange={(e) => handleInputChange('nearWords', e.target.value)}
-          disabled={formData.searchType !== 'near'}
-        />
-        Words
-      </label>
-      <label className="radio-label">
-        <input 
-          type="radio" 
-          name="searchType" 
-          value="magic-search"
-          checked={formData.searchType === 'magic-search'}
-          onChange={(e) => handleInputChange('searchType', e.target.value)}
-        />
-        <span className="radio-mark"></span>
-        Magic Search
-      </label>
-    </div>
+              {/* Search Cases by Subject And Topic */}
+              <div className="search-card">
+                <div className="card-header">
+                  <h3 className="card-title">Search Cases by Subject And Topic</h3>
+                </div>
+                <div className="card-content">
+                  {/* Search Type Radio Buttons */}
+                  <div className="search-type-options">
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="searchType"
+                        value="exact"
+                        checked={formData.searchType === 'exact'}
+                        onChange={(e) => handleInputChange('searchType', e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Exact Phrase
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="searchType"
+                        value="all"
+                        checked={formData.searchType === 'all'}
+                        onChange={(e) => handleInputChange('searchType', e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Free Search
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="searchType"
+                        value="near"
+                        checked={formData.searchType === 'near'}
+                        onChange={(e) => handleInputChange('searchType', e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Near
+                      <input
+                        type="text"
+                        className="near-words-input"
+                        placeholder="5"
+                        value={formData.nearWords || '5'}
+                        onChange={(e) => handleInputChange('nearWords', e.target.value)}
+                        disabled={formData.searchType !== 'near'}
+                      />
+                      Words
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="searchType"
+                        value="magic"
+                        checked={formData.searchType === 'magic'}
+                        onChange={(e) => handleInputChange('searchType', e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Magic Search
+                    </label>
+                  </div>
 
-    <div className="form-group">
-      <label className="form-label">Type your Query Here</label>
-      <textarea 
-        className="form-textarea"
-        rows="4"
-        placeholder="Enter your search query here..."
-        value={formData.queryText}
-        onChange={(e) => handleInputChange('queryText', e.target.value)}
-      />
-    </div>
+                  <div className="form-group">
 
-    <div className="search-preferences">
-      <label className="checkbox-label">
-        <input 
-          type="checkbox" 
-          checked={formData.stateFavourCases}
-          onChange={(e) => handleCheckboxChange('stateFavourCases', e.target.checked)}
-        />
-        <span className="checkmark"></span>
-        State Favour Cases
-      </label>
-      
-      {/* Single Line Radio Buttons for Sort Order */}
-      <div className="sort-order-row">
-        <label className="radio-label">
-          <input 
-            type="radio" 
-            name="searchOrder" 
-            value="most-recent"
-            checked={formData.searchOrder === 'most-recent'}
-            onChange={(e) => handleInputChange('searchOrder', e.target.value)}
-          />
-          <span className="radio-mark"></span>
-          Most Recent
-        </label>
-        <label className="radio-label">
-          <input 
-            type="radio" 
-            name="searchOrder" 
-            value="least-recent"
-            checked={formData.searchOrder === 'least-recent'}
-            onChange={(e) => handleInputChange('searchOrder', e.target.value)}
-          />
-          <span className="radio-mark"></span>
-          Least Recent
-        </label>
-        <label className="radio-label">
-          <input 
-            type="radio" 
-            name="searchOrder" 
-            value="most-relevant"
-            checked={formData.searchOrder === 'most-relevant'}
-            onChange={(e) => handleInputChange('searchOrder', e.target.value)}
-          />
-          <span className="radio-mark"></span>
-          Most Relevant
-        </label>
-        <label className="radio-label">
-          <input 
-            type="radio" 
-            name="searchOrder" 
-            value="most-referred"
-            checked={formData.searchOrder === 'most-referred'}
-            onChange={(e) => handleInputChange('searchOrder', e.target.value)}
-          />
-          <span className="radio-mark"></span>
-          Most Referred
-        </label>
-      </div>
+                    <textarea
+                      className="form-textarea"
+                      rows="4"
+                      placeholder="Enter your search query here..."
+                      value={formData.queryText}
+                      onChange={(e) => handleInputChange('queryText', e.target.value)}
+                    />
+                  </div>
 
-      <div className="content-types">
-        <label className="checkbox-label">
-          <input 
-            type="checkbox" 
-            checked={formData.headnote}
-            onChange={(e) => handleCheckboxChange('headnote', e.target.checked)}
-          />
-          <span className="checkmark"></span>
-          Headnote
-        </label>
-        <label className="checkbox-label">
-          <input 
-            type="checkbox" 
-            checked={formData.fulltext}
-            onChange={(e) => handleCheckboxChange('fulltext', e.target.checked)}
-          />
-          <span className="checkmark"></span>
-          Full Text
-        </label>
-      </div>
-    </div>
+                  <div className="search-preferences">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={formData.stateFavourCases}
+                        onChange={(e) => handleCheckboxChange('stateFavourCases', e.target.checked)}
+                      />
+                      <span className="checkmark"></span>
+                      State Favour Cases
+                    </label>
+
+                    {/* Single Line Radio Buttons for Sort Order */}
+                    <div className="sort-order-row">
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="searchOrder"
+                          value="most-recent"
+                          checked={formData.searchOrder === 'most-recent'}
+                          onChange={(e) => handleInputChange('searchOrder', e.target.value)}
+                        />
+                        <span className="radio-mark"></span>
+                        Most Recent
+                      </label>
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="searchOrder"
+                          value="least-recent"
+                          checked={formData.searchOrder === 'least-recent'}
+                          onChange={(e) => handleInputChange('searchOrder', e.target.value)}
+                        />
+                        <span className="radio-mark"></span>
+                        Least Recent
+                      </label>
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="searchOrder"
+                          value="most-relevant"
+                          checked={formData.searchOrder === 'most-relevant'}
+                          onChange={(e) => handleInputChange('searchOrder', e.target.value)}
+                        />
+                        <span className="radio-mark"></span>
+                        Most Relevant
+                      </label>
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="searchOrder"
+                          value="most-referred"
+                          checked={formData.searchOrder === 'most-referred'}
+                          onChange={(e) => handleInputChange('searchOrder', e.target.value)}
+                        />
+                        <span className="radio-mark"></span>
+                        Most Referred
+                      </label>
+                    </div>
+
+                    <div className="content-types">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={formData.headnote}
+                          onChange={(e) => handleCheckboxChange('headnote', e.target.checked)}
+                        />
+                        <span className="checkmark"></span>
+                        Headnote
+                      </label>
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={formData.fulltext}
+                          onChange={(e) => handleCheckboxChange('fulltext', e.target.checked)}
+                        />
+                        <span className="checkmark"></span>
+                        Full Text
+                      </label>
+                    </div>
+                  </div>
 
                   {/* Courts Selection */}
                   {/* Courts Selection - Updated Layout */}
-<div className="courts-and-actions-container">
-  {/* Left: Courts Section */}
-  <div className="courts-section-compact">
-    {/* Court Search Input */}
-    <div className="court-search-wrapper">
-      <input
-        type="text"
-        className="court-search-input"
-        placeholder="Search courts..."
-        value={courtSearchTerm}
-        onChange={(e) => setCourtSearchTerm(e.target.value)}
-      />
-      <i className="bx bx-search court-search-icon"></i>
-    </div>
+                  <div className="courts-and-actions-container">
+                    {/* Left: Courts Section */}
+                    <div className="courts-section-compact">
+                      {/* Court Search Input */}
+                      <div className="court-search-wrapper">
+                        <input
+                          type="text"
+                          className="court-search-input"
+                          placeholder="Search courts..."
+                          value={courtSearchTerm}
+                          onChange={(e) => setCourtSearchTerm(e.target.value)}
+                        />
+                        <i className="bx bx-search court-search-icon"></i>
+                      </div>
 
-    {/* Unselect Button */}
-    <div className="court-header-actions">
-      <button 
-        className="btn-unselect-compact"
-        onClick={handleUnselectAllCourts}
-        disabled={isLoadingCourts}
-      >
-        UNSELECT ALL COURTS
-      </button>
-    </div>
+                      {/* Unselect Button */}
+                      <div className="court-header-actions">
+                        <button
+                          className="btn-unselect-compact"
+                          onClick={handleUnselectAllCourts}
+                          disabled={isLoadingCourts}
+                        >
+                          UNSELECT ALL COURTS
+                        </button>
+                      </div>
 
-    {/* Loading State */}
-    {isLoadingCourts && (
-      <div className="loading-state-compact">
-        <i className="bx bx-loader-alt bx-spin"></i>
-        <p>Loading courts...</p>
-      </div>
-    )}
+                      {/* Loading State */}
+                      {isLoadingCourts && (
+                        <div className="loading-state-compact">
+                          <i className="bx bx-loader-alt bx-spin"></i>
+                          <p>Loading courts...</p>
+                        </div>
+                      )}
 
-    {/* Error State */}
-    {courtsError && (
-      <div className="error-state-compact">
-        <p>{courtsError}</p>
-        <button onClick={loadCourts}>Retry</button>
-      </div>
-    )}
+                      {/* Error State */}
+                      {courtsError && (
+                        <div className="error-state-compact">
+                          <p>{courtsError}</p>
+                          <button onClick={loadCourts}>Retry</button>
+                        </div>
+                      )}
 
-    {/* Courts List - Filtered */}
-    {!isLoadingCourts && !courtsError && (
-      <div className="courts-list-compact">
-        {courts
-          .filter(court => 
-            court.value.toLowerCase().includes(courtSearchTerm.toLowerCase())
-          )
-          .map((court) => (
-            <div key={court.key} className="court-item-compact">
-              <input
-                type="checkbox"
-                id={`court-${court.key}`}
-                checked={selectedCourts[court.key] || false}
-                onChange={(e) => handleCourtToggle(court.key)}
-              />
-              <label htmlFor={`court-${court.key}`}>
-                {court.value}
-              </label>
-            </div>
-          ))}
-        {courts.filter(court => 
-          court.value.toLowerCase().includes(courtSearchTerm.toLowerCase())
-        ).length === 0 && (
-          <div className="no-courts-found">
-            No courts found matching "{courtSearchTerm}"
-          </div>
-        )}
-      </div>
-    )}
-  </div>
+                      {/* Courts List - Filtered */}
+                      {!isLoadingCourts && !courtsError && (
+                        <div className="courts-list-compact">
+                          {courts
+                            .filter(court =>
+                              court.value.toLowerCase().includes(courtSearchTerm.toLowerCase())
+                            )
+                            .map((court) => (
+                              <div key={court.key} className="court-item-compact">
+                                <input
+                                  type="checkbox"
+                                  id={`court-${court.key}`}
+                                  checked={selectedCourts[court.key] || false}
+                                  onChange={(e) => handleCourtToggle(court.key)}
+                                />
+                                <label htmlFor={`court-${court.key}`}>
+                                  {court.value}
+                                </label>
+                              </div>
+                            ))}
+                          {courts.filter(court =>
+                            court.value.toLowerCase().includes(courtSearchTerm.toLowerCase())
+                          ).length === 0 && (
+                              <div className="no-courts-found">
+                                No courts found matching "{courtSearchTerm}"
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
 
-  {/* Right: Action Buttons */}
-  <div className="action-buttons-vertical">
-    <button
-      className="search-btn-vertical search-sc-btn"
-      onClick={() => handleSearch('sc')}
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <i className="bx bx-loader bx-spin"></i>
-      ) : (
-        <i className="bx bx-search"></i>
-      )}
-      Search Supreme Court
-    </button>
-    <button
-      className="search-btn-vertical search-all-btn"
-      onClick={() => handleSearch('all')}
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <i className="bx bx-loader bx-spin"></i>
-      ) : (
-        <i className="bx bx-search"></i>
-      )}
-      Search All Courts
-    </button>
-    <button
-      className="clear-btn-vertical"
-      onClick={handleClear}
-      type="button"
-    >
-      <i className="bx bx-refresh"></i>
-      Clear All
-    </button>
-  </div>
-</div>
+                    {/* Right: Action Buttons */}
+                    <div className="action-buttons-vertical">
+                      <button
+                        className="search-btn-vertical search-sc-btn"
+                        onClick={() => handleSearch('sc')}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <i className="bx bx-loader bx-spin"></i>
+                        ) : (
+                          <i style={{ fontSize: "30px" }} className="bx bx-search"></i>
+                        )}
+                        Search SC
+                      </button>
+                      <button
+                        className="search-btn-vertical search-all-btn"
+                        onClick={() => handleSearch('all')}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <i className="bx bx-loader bx-spin"></i>
+                        ) : (
+                          <i style={{ fontSize: "30px" }} className="bx bx-search"></i>
+                        )}
+                        Search All
+                      </button>
+                      <button
+                        className="clear-btn-vertical"
+                        onClick={handleClear}
+                        type="button"
+                      >
+                        <i style={{ fontSize: "30px" }} className="bx bx-refresh"></i>
+                        Clear
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1110,7 +1189,7 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons 
           <div className="action-buttons-section">
             <button
               className="search-btn search-sc-btn"
@@ -1145,12 +1224,13 @@ useEffect(() => {
               Clear All
             </button>
           </div>
+*/}
         </div>
       </div>
 
-    
 
-<style jsx>{`
+
+      <style jsx>{`
         .gojuris-layout {
           display: flex;
           min-height: 100vh;
@@ -1226,12 +1306,12 @@ useEffect(() => {
 
         .card-header {
           background: linear-gradient(135deg, var(--gj-primary, #8b5cf6) 0%, var(--gj-secondary, #a855f7) 100%);
-          padding: 0.75rem 1rem; /* Reduced from 1rem 1.5rem */
+          padding: 0.2rem 1rem; /* Reduced from 1rem 1.5rem */
         }
 
         .card-title {
           color: white;
-          font-size: 0.875rem; /* Reduced from 1rem */
+          font-size: 1rem; /* Reduced from 1rem */
           font-weight: 600;
           margin: 0;
         }
@@ -1247,7 +1327,7 @@ useEffect(() => {
         }
 
         .card-content {
-          padding: 1rem; /* Reduced from 1.5rem */
+          padding: 0.7rem 1rem; /* Reduced from 1.5rem */
         }
 
         /* Form Elements - Compact */
@@ -1255,7 +1335,7 @@ useEffect(() => {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 0.75rem; /* Reduced from 1rem */
-          margin-bottom: 0.75rem; /* Reduced from 1rem */
+          margin-bottom: 0.1rem; /* Reduced from 1rem */
         }
 
         .form-row:last-child {
@@ -1263,7 +1343,7 @@ useEffect(() => {
         }
 
         .form-group {
-          margin-bottom: 0.75rem; /* Reduced from 1rem */
+          margin-bottom: 0.1rem; /* Reduced from 1rem */
         }
 
         .form-group:last-child {
@@ -1272,9 +1352,9 @@ useEffect(() => {
 
         .form-label {
           display: block;
-          font-size: 0.8rem; /* Reduced from 0.875rem */
+          font-size: 1rem; /* Reduced from 0.875rem */
           font-weight: 600;
-          color: #374151;
+          color: #8b5cf6;
           margin-bottom: 0.25rem; /* Reduced from 0.5rem */
         }
 
@@ -1285,7 +1365,7 @@ useEffect(() => {
           padding: 0.5rem 0.75rem; /* Reduced from 0.75rem 1rem */
           border: 2px solid #e5e7eb;
           border-radius: 6px; /* Reduced from 8px */
-          font-size: 0.8rem; /* Reduced from 0.875rem */
+          font-size: 1rem; /* Reduced from 0.875rem */
           background: white;
           transition: all 0.2s ease;
         }
@@ -1522,7 +1602,7 @@ useEffect(() => {
         }
 
         /* Search Preferences - Compact */
-        .search-preferences {
+        .search-preferences11 {
           border-top: 1px solid #f3f4f6;
           padding-top: 0.75rem; /* Reduced from 1rem */
           margin-top: 0.75rem; /* Reduced from 1rem */
@@ -1609,6 +1689,7 @@ useEffect(() => {
           background: #6366f1;
           color: white;
           border: none;
+          width: 100px;
           padding: 0.5rem 0.75rem; /* Reduced from 0.75rem 1rem */
           border-radius: 4px; /* Reduced from 6px */
           font-size: 0.7rem; /* Reduced from 0.75rem */
@@ -1690,7 +1771,7 @@ useEffect(() => {
           }
           
           .card-content {
-            padding: 0.75rem; /* Reduced from 1rem */
+            padding: 0.1rem; /* Reduced from 1rem */
           }
           
           .courts-list {
@@ -2134,8 +2215,8 @@ useEffect(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-top: 20px;
+  gap: 10px;
+  padding-top: 0px;
 }
 
 .search-btn-vertical,

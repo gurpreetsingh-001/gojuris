@@ -1,9 +1,14 @@
 // src/components/Footer.jsx
 import React, { useState } from 'react';
-
+var isGJ= false;
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const domain = window.location.hostname;
+
+    if (domain.includes("gojuris.ai")) {
+      isGJ= true;
+    }
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
@@ -31,7 +36,7 @@ const Footer = () => {
                 }}
               >
                 <img
-                  src="/reverselogo.png"
+                  src={isGJ? "/reverselogo.png" : "/reverselogoLe.png"}
                   alt="GoJuris"
                   style={{
                     width: '24px',
@@ -40,7 +45,7 @@ const Footer = () => {
                   }}
                 />
               </div>
-              <h4 className="text-white mb-0 fw-bold">GoJuris</h4>
+              <h4 className="text-white mb-0 fw-bold">{isGJ? 'GoJuris' : 'Legal Eagle'}</h4>
             </div>
             <p className="text-light mb-4" style={{ lineHeight: '1.6', color: '#CBD5E0 !important' }}>
               Leading legal research platform providing comprehensive legal services with advanced AI technology and experienced professionals.
@@ -155,7 +160,7 @@ Technical Support     :   9310 22 60 00</small>
             <div className="mb-2">
               <div className="d-flex align-items-center">
                 <i className="bx bx-envelope text-primary me-2"></i>
-                <small style={{ color: '#CBD5E0' }}>support@gojuris.in</small>
+                <small style={{ color: '#CBD5E0' }}>{isGJ? 'support@gojuris.in' : 'contact@legaleagle.co.in'}</small>
               </div>
             </div>
 
@@ -211,7 +216,7 @@ Technical Support     :   9310 22 60 00</small>
         <div className="row align-items-center">
           <div className="col-md-6">
             <small style={{ color: '#CBD5E0' }}>
-              © 2024 GoJuris Legal Platform. All rights reserved.
+              © 2025 {isGJ? 'GoJuris Legal' : 'Legal Eagle'} Platform. All rights reserved.
             </small>
           </div>
           <div className="col-md-6 text-md-end mt-2 mt-md-0">

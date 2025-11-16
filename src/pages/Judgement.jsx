@@ -37,11 +37,18 @@ const Judgement = () => {
   useEffect(() => {
     if (id) {
       fetchJudgmentDetails(id);
+
     } else {
       setError('No judgment ID provided');
       setIsLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (judgmentData) {
+      scrollToSection(issueRef, 'issue');
+    }
+  }, [judgmentData]);
 
   // Add this useEffect in your Judgement component
 
@@ -78,13 +85,12 @@ const Judgement = () => {
     try {
       setIsLoading(true);
       setError('');
-      const savedResults = sessionStorage.getItem('searchResults');
+      const savedResults = localStorage.getItem('searchResults');
 
       const resultsData = JSON.parse(savedResults);
-      debugger;
       const searchPayload = {
-        keycode: parseInt(keycode),
-        query: resultsData.query || '',
+        keycode: keycode,
+        query: resultsData?.query || '',
         pageSize: 1,
         page: 0,
         sortBy: "relevance",
@@ -93,7 +99,7 @@ const Judgement = () => {
 
       const response = await ApiService.getJudgementDetails(keycode, searchPayload);
 
-      if (response && response.keycode) {
+      if (response && response.id) {
         setJudgmentData(response);
       } else {
         setError('Judgment not found or invalid response format');
@@ -218,6 +224,7 @@ const Judgement = () => {
                 className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => scrollToSection(tab.ref, tab.id)}
               >
+
                 {tab.label}
               </button>
             ))}
@@ -281,7 +288,7 @@ const Judgement = () => {
             <div ref={lawPointsRef} className="content-section">
               <div className="section-heading">LAW POINTS</div>
               <div className="section-text-lawpoint" dangerouslySetInnerHTML={{ __html: judgmentData.lawPoint }}>
-                
+
               </div>
             </div>
 
@@ -292,10 +299,10 @@ const Judgement = () => {
                 <div className="headnote-content">
                   <strong dangerouslySetInnerHTML={{ __html: judgmentData.newHeadnote }}></strong>
                 </div>
-                <div className="held-content">
+                <div ref={heldRef} className="held-content">
                   <em><strong>Held:</strong></em> <spam dangerouslySetInnerHTML={{ __html: judgmentData.held }}></spam>
                 </div>
-                <div className="background-facts">
+                <div ref={factsRef} className="background-facts">
                   <em><strong>Background Facts:</strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.backgroundFacts }}></spam>
                 </div>
               </div>
@@ -321,7 +328,7 @@ const Judgement = () => {
             <div ref={contentionsRef} className="content-section">
               {/* <div className="section-heading">PARTIES CONTENTIONS</div> */}
               <div className="section-text-parties">
-                <em><strong>Parties Contentions:</strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.partiesContentions }}></spam> 
+                <em><strong>Parties Contentions:</strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.partiesContentions }}></spam>
               </div>
             </div>
 
@@ -329,7 +336,7 @@ const Judgement = () => {
             <div ref={dispositionRef} className="content-section">
               {/* <div className="section-heading">DISPOSITION</div> */}
               <div className="section-text">
-                <em><strong>Disposition: </strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.disposition }}></spam> 
+                <em><strong>Disposition: </strong></em><spam dangerouslySetInnerHTML={{ __html: judgmentData.disposition }}></spam>
               </div>
             </div>
 
@@ -409,7 +416,13 @@ const Judgement = () => {
           padding: 1rem;
           background: #f8f9fa;
         }
-
+        mark {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(217, 70, 239, 0.2));
+          color: var(--gj-primary);
+          padding: 0.1rem 0.3rem;
+          border-radius: 3px;
+          font-weight: 600;
+        }
         .judgment-navigation {
           background: white;
           padding: 0.5rem 0;
@@ -458,7 +471,7 @@ const Judgement = () => {
           // font-family: 'Times New Roman', serif;
           max-width: 1300px;
           margin: 0 auto;
-          padding: 2rem;
+          padding: 2rem 6rem 2rem 2rem;
           line-height: 1.6;
         }
 

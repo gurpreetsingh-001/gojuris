@@ -23,7 +23,7 @@ const Results = () => {
     
   useEffect(() => {
     // Load search results from sessionStorage
-    const savedResults = sessionStorage.getItem('searchResults');
+    const savedResults = localStorage.getItem('searchResults');
     console.log('📋 Raw sessionStorage data:', savedResults);
     
     if (savedResults) {
@@ -84,7 +84,7 @@ const Results = () => {
     }
     
     if (result.keycode) {
-      return `Case ${result.keycode}`;
+      return `Case ${result.id}`;
     }
     
     return 'Legal Case';

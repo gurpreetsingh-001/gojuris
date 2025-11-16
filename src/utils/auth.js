@@ -1,5 +1,5 @@
 // src/utils/auth.js
-const API_BASE_URL = 'http://216.172.100.173:8001';
+const API_BASE_URL = 'https://api.gojuris.ai';
 
 export const authAPI = {
   // Login function

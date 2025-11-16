@@ -1,7 +1,15 @@
 // src/components/ContactMap.jsx
-import React from 'react';
+import React, { useState } from 'react';
 
+var isGJ= false;
 const ContactMap = () => {
+  
+    const domain = window.location.hostname;
+  
+    if (domain.includes("gojuris.ai")) {
+      isGJ= true;
+    }
+
   return (
     <section className="container py-5 mb-md-3 mb-lg-5">
       <div className="row">
@@ -11,8 +19,8 @@ const ContactMap = () => {
                style={{ height: '400px' }}>
             <div className="text-center text-muted">
               <i className="bx bx-map display-1 mb-3"></i>
-              <h5>Interactive Map</h5>
-              <p className="mb-0">Noe Valley Bakery 24th Street<br />San Francisco, CA, USA</p>
+              <h5>Capital Law Infotch</h5>
+              <p className="mb-0">New Delhi (INDIA)<br />Dubai & Singapore</p>
             </div>
             
             {/* Map markers */}
@@ -41,7 +49,7 @@ const ContactMap = () => {
         </div>
         
         <div className="col-lg-6 ps-lg-5">
-          <h2 className="h1 mb-4">TRY GOJURIS</h2>
+          <h2 className="h1 mb-4">TRY {isGJ ? 'GOJURIS AI' : 'LEGAL EAGLE AI'}</h2>
           {/* <p className="fs-lg text-muted mb-4">
             Book your appointment today and get expert medical advice from our experienced doctors.
           </p> */}

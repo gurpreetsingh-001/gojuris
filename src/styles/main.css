@@ -13,7 +13,7 @@ html {
 /* Updated Color Scheme - Purple as Primary */
 :root {
   /* Primary Colors - Purple is now primary */
-  --gj-primary: #8b5cf6;           
+  --gj-primary: #AD54b3;           
   --gj-primary-rgb: 139, 92, 246;
   --gj-secondary: #00CED1;         
   --gj-secondary-rgb: 0, 206, 209;
@@ -1353,7 +1353,7 @@ footer hr {
 .gojuris-sidebar {
   width: 70px;
   /* background: var(--gj-gradient-primary); */
-  background: #753476;
+  background: #A514C7;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -1435,7 +1435,8 @@ footer hr {
 }
 
 .sidebar-text {
-  font-size: 10px;
+  font-size: 12px;
+  font-family: 'Arial Narrow Bold', sans-serif;
   text-align: center;
   line-height: 1.2;
   color: white;
@@ -2129,7 +2130,7 @@ footer hr {
 .btn-continue {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: var(--gj-primary);
+  background: rgb(139, 92, 246);
   color: white;
   border: none;
   border-radius: 6px;
@@ -2248,6 +2249,19 @@ footer hr {
    flex: 1;
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
   background-image: url('/back.jpeg');
+  background-size: cover;
+  background-position: top;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.login-rightLe {
+   flex: 1;
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  background-image: url('/backle.jpg');
   background-size: cover;
   background-position: top;
   background-repeat: no-repeat;
@@ -2598,11 +2612,12 @@ footer hr {
 
 .sidebar-content {
   flex: 1;
-  padding: 1rem;
+  padding: .5rem;
+  background-color: #f2f2f2;
 }
 
 .sidebar-section {
-  margin-bottom: 2rem;
+  margin-bottom: 0rem;
 }
 
 .sidebar-item {
@@ -2630,14 +2645,13 @@ footer hr {
   padding: 0.75rem;
   border: 1px solid var(--gj-border);
   border-radius: 6px;
-  background: white;
-  color: var(--gj-dark);
+  background: var(--gj-primary);
+  color: var(--gj-light);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
-  margin-top: 1rem;
 }
 
 .new-chat-btn:hover {
@@ -2647,9 +2661,9 @@ footer hr {
 
 .section-title {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--gj-gray);
-  margin-bottom: 0.75rem;
+  font-weight: 700;
+  color: var(--gj-dark);
+  margin-bottom: 0.1rem;
 }
 
 .history-placeholder {
@@ -2664,6 +2678,7 @@ footer hr {
 .sidebar-footer {
   padding: 1rem;
   border-top: 1px solid var(--gj-border);
+  background-color: #f2f2f2;
 }
 
 .ai-chat-main {
@@ -2674,7 +2689,7 @@ footer hr {
 }
 
 .chat-header {
-  padding: 1rem 2rem;
+  padding: 0.25rem 2rem;
   border-bottom: 1px solid var(--gj-border);
   display: flex;
   align-items: center;
@@ -2830,7 +2845,7 @@ footer hr {
 
 .chat-input {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem .5rem;
   border: 1px solid var(--gj-border);
   border-radius: 12px;
   background: #f8f9fa;
@@ -3246,12 +3261,12 @@ footer hr {
 
 .ai-chat-layout-with-nav .sidebar-content {
   flex: 1;
-  padding: 1rem;
+  padding: .5rem 1rem;
   overflow-y: auto;
 }
 
 .ai-chat-layout-with-nav .sidebar-section {
-  margin-bottom: 2rem;
+  margin-bottom: 0rem;
 }
 
 .ai-chat-layout-with-nav .sidebar-item {
@@ -3280,14 +3295,13 @@ footer hr {
   padding: 0.75rem;
   border: 1px solid var(--gj-border);
   border-radius: 8px;
-  background: white;
-  color: var(--gj-dark);
+  background: var(--gj-primary);
+  color: var(--gj-light);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
-  margin-top: 1rem;
   font-weight: 500;
   transition: all 0.2s ease;
 }
@@ -3299,9 +3313,9 @@ footer hr {
 
 .ai-chat-layout-with-nav .section-title {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--gj-gray);
-  margin-bottom: 0.75rem;
+  font-weight: 700;
+  color: var(--gj-dark);
+  margin-bottom: 0.1rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -3335,7 +3349,7 @@ footer hr {
 
 /* Chat header - fixed at top */
 .ai-chat-layout-with-nav .chat-header {
-  padding: 1rem 2rem;
+  padding: 0.25rem 2rem;
   border-bottom: 1px solid var(--gj-border);
   display: flex;
   align-items: center;
@@ -3359,7 +3373,7 @@ footer hr {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 2rem;
+  padding: 0rem 2rem;
   padding-bottom: 0;
   overflow: hidden;
 }
@@ -3447,7 +3461,7 @@ footer hr {
 
 /* Chat input - fixed at bottom */
 .ai-chat-layout-with-nav .chat-input-section {
-  padding: 1rem 2rem;
+  padding: 0rem 2rem;
   border-top: 1px solid var(--gj-border);
   background: white;
   flex-shrink: 0;
@@ -3466,7 +3480,7 @@ footer hr {
 
 .ai-chat-layout-with-nav .chat-input {
   flex: 1;
-  padding: 0.75rem 1rem;
+ padding: 0.5rem 4.5rem 0.5rem 1rem;
   border: 2px solid var(--gj-primary);
   border-radius: 12px;
   background: #f8f9fa;
@@ -4216,12 +4230,12 @@ footer hr {
   }
   
   .ai-chat-layout-with-nav .chat-content {
-    padding: 2rem;
+    padding: 0rem 2rem;
     padding-bottom: 0;
   }
   
   .ai-chat-layout-with-nav .chat-input-section {
-    padding: 1rem 2rem;
+    padding: 0rem 2rem;
   }
   
   .ai-search-content-with-sidebar {
@@ -4330,7 +4344,7 @@ footer hr {
   }
   
   .ai-chat-layout-with-nav .chat-header {
-    padding: 0.75rem 1rem;
+    padding: 0.25rem 1rem;
   }
   
   .ai-chat-layout-with-nav .chat-content {
@@ -4338,7 +4352,7 @@ footer hr {
   }
   
   .ai-chat-layout-with-nav .chat-input-section {
-    padding: 0.75rem 1rem;
+    padding: 0rem 1rem;
   }
   
   .ai-chat-layout-with-nav .welcome-message {
@@ -4486,7 +4500,7 @@ footer hr {
 
 @media (max-height: 700px) {
   .dashboard-page-compact {
-    padding: 0.5rem;
+    padding: 2rem;
     align-items: flex-start;
   }
   

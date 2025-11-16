@@ -11,20 +11,22 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  var isGJ= false;
 
+  const domain = window.location.hostname;
+  if (domain.includes("gojuris.ai")) {
+    isGJ= true;
+  }
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!email.trim()) {
-      setError('Email address is required');
+      setError('Email address or Mobile No is required');
       return;
     }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
+
 
     if (!password.trim()) {
       setError('Password is required');
@@ -36,7 +38,7 @@ const Login = () => {
 
     try {
       console.log('🔐 Attempting login...');
-      
+
       // Call login API
       const loginData = {
         username: email, // API expects username, using email
@@ -44,9 +46,9 @@ const Login = () => {
       };
 
       const result = await ApiService.loginUser(loginData);
-      
+
       console.log('✅ Login successful:', result);
-      
+
       // Store user data
       if (result.userEmail || email) {
         localStorage.setItem('userEmail', result.userEmail || email);
@@ -58,13 +60,14 @@ const Login = () => {
       } else if (result.user) {
         localStorage.setItem('userData', JSON.stringify(result.user));
       }
-      
+      const permissionsData = await ApiService.getUserPermissions();
+      localStorage.setItem('userp', JSON.stringify(permissionsData));
       // Navigate to dashboard on successful login
       navigate('/dashboard');
 
     } catch (error) {
       console.error('❌ Login error:', error);
-      
+
       // Handle specific login errors
       if (error.message.includes('Invalid') || error.message.includes('incorrect')) {
         setError('Invalid email or password. Please try again.');
@@ -84,7 +87,7 @@ const Login = () => {
 
   return (
     <>
-      <Header/>
+      <Header />
       <div className="login-page-wrapper">
         <div className="login-layout">
           <div className="login-container">
@@ -92,7 +95,7 @@ const Login = () => {
               <div className="login-form-wrapper">
                 <div className="login-form">
                   <h1 className="login-title">Welcome back</h1>
-                  
+
                   {/* Error Message */}
                   {error && (
                     <div className="alert alert-danger mb-3" role="alert">
@@ -100,14 +103,14 @@ const Login = () => {
                       {error}
                     </div>
                   )}
-                  
+
                   <form onSubmit={handleLogin}>
                     {/* Email Field */}
                     <div className="form-group">
                       <input
-                        type="email"
+                        type="text"
                         className={`form-input ${error ? 'is-invalid' : ''}`}
-                        placeholder="Email address*"
+                        placeholder="Email address or Mobile*"
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
@@ -143,10 +146,10 @@ const Login = () => {
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* Login Button */}
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className="btn-continue"
                       disabled={isLoading || !email.trim() || !password.trim()}
                     >
@@ -165,20 +168,20 @@ const Login = () => {
 
                   <div className="login-footer">
                     <p className="signup-text">
-                      Don't have an account? 
-                      <button 
-                        onClick={handleSignUp} 
+                      Don't have an account?
+                      <button
+                        onClick={handleSignUp}
                         className="signup-link"
                         disabled={isLoading}
                       >
                         Sign Up
                       </button>
                     </p>
-                    
+
                     <div className="divider">
                       <span>OR</span>
                     </div>
-                    
+
                     <div className="social-login">
                       <button className="social-btn" disabled={isLoading}>
                         <i className="bx bx-phone"></i>
@@ -193,9 +196,9 @@ const Login = () => {
                         Continue with Google
                       </button>
                     </div>
-                    
+
                     <div className="terms">
-                      <a href="#" className="terms-link">Terms of Use</a> | 
+                      <a href="#" className="terms-link">Terms of Use</a> |
                       <a href="#" className="terms-link">Privacy Policy</a>
                     </div>
                   </div>
@@ -203,7 +206,7 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="login-right">
+            <div className={isGJ? "login-right" : "login-rightLe"}>
               <div className="brand-section">
                 {/* <div className="brand-logo">
                   <h1 className="brand-title">Legal Eagle</h1>
@@ -213,7 +216,7 @@ const Login = () => {
                     <div className="orbit-animation"></div>
                   </div>
                 </div> */}
-                
+
                 {/* <div className="brand-footer">
                   <div className="gojuris-logo">
                     <img 

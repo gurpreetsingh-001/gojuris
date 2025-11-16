@@ -1,12 +1,18 @@
 // src/components/VideoSection.jsx
 import React, { useState, useRef, useEffect } from 'react';
-
+var isGJ= false;
 const VideoSection = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const sectionRef = useRef(null);
+  const domain = window.location.hostname;
+
+    if (domain.includes("gojuris.ai")) {
+      isGJ= true;
+    }
 
   useEffect(() => {
+    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -48,11 +54,11 @@ const VideoSection = () => {
       className="container text-center py-2 mb-0" 
       ref={sectionRef}
     >
-      <h2 className="h1 pt-0 mb-2">See,How Gojuris AI Works</h2>
+      <h2 className="h1 pt-0 mb-2">See,How {isGJ? 'GoJuris' : 'Legal Eagle'} AI Works</h2>
       <div className="row justify-content-center mb-2">
         <div className="col-lg-6 col-md-8">
           <p className="fs-lg text-muted mb-2">
-           Watch our quick demo and see how Gojuris AI transforms legal research into a faster, smarter experience
+           Watch our quick demo and see how {isGJ? 'GoJuris' : 'Legal Eagle'} AI transforms legal research into a faster, smarter experience
           </p>
         </div>
       </div>
@@ -102,7 +108,7 @@ const VideoSection = () => {
           <div className="position-relative">
             <div className="ratio ratio-16x9">
               <iframe
-                src="https://www.youtube.com/embed/wJC1LFT_GD0?autoplay=1&rel=0&modestbranding=1"
+                src="https://www.youtube.com/embed/7eyL7SSJUkM?autoplay=1&rel=0&modestbranding=1"
                 title="Medical Center Video"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

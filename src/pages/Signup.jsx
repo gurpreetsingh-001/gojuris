@@ -7,17 +7,28 @@ import ApiService from '../services/apiService';
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    UserName: '',
+    profession: '',
+    mobileno: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    city: '',
+    state: '',
+    acode: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  var isGJ= false;
+
+  const domain = window.location.hostname;
+
+  if (domain.includes("gojuris.ai")) {
+    isGJ= true;
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,7 +36,7 @@ const Signup = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear field-specific error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -37,15 +48,15 @@ const Signup = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
+    debugger;
     // First name validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.UserName.trim()) {
+      newErrors.UserName = 'Name is required';
     }
 
     // Last name validation
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!formData.mobileno.trim()) {
+      newErrors.mobileno = 'Mobile No. is required';
     }
 
     // Email validation
@@ -69,6 +80,15 @@ const Signup = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    // City validation
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+
+    // State validation
+    if (!formData.state.trim()) {
+      newErrors.state = 'City is required';
+    }
     // Terms validation
     if (!agreeToTerms) {
       newErrors.agreeToTerms = 'You must agree to the terms and conditions';
@@ -79,10 +99,10 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    
+
     // Clear previous errors
     setErrors({});
-    
+
     // Validate form
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -98,27 +118,31 @@ const Signup = () => {
         username: formData.email, // API expects username, using email
         password: formData.password,
         // Add additional fields if your API supports them
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email
+        name: formData.UserName,
+        mobileNo: formData.mobileno,
+        email: formData.email,
+        city: formData.city,
+        state: formData.state,
+        acode: formData.acode,
+        profession: formData.profession
       };
 
       console.log('🚀 Attempting user registration...');
-      
+
       // Call registration API
       const result = await ApiService.registerUser(registrationData);
-      
+
       console.log('✅ Registration successful:', result);
-      
+
       // Show success message
       alert('Registration successful! Please login with your credentials.');
-      
+
       // Redirect to login page
       navigate('/login');
 
     } catch (error) {
       console.error('❌ Registration error:', error);
-      
+
       // Handle specific API errors
       if (error.message.includes('already exists') || error.message.includes('duplicate')) {
         setErrors({ email: 'An account with this email already exists' });
@@ -146,7 +170,7 @@ const Signup = () => {
               <div className="login-form-wrapper">
                 <div className="login-form">
                   <h1 className="login-title">Create your account</h1>
-                  
+
                   {/* General Error Message */}
                   {errors.general && (
                     <div className="alert alert-danger mb-3" role="alert">
@@ -154,25 +178,43 @@ const Signup = () => {
                       {errors.general}
                     </div>
                   )}
-                  
+
                   <form onSubmit={handleSignup}>
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        className={`form-input ${errors.UserName ? 'is-invalid' : ''}`}
+                        placeholder="Name*"
+                        name="UserName"
+                        value={formData.UserName}
+                        onChange={handleInputChange}
+                        disabled={isLoading}
+                        required
+                      />
+                      {errors.UserName && (
+                        <div className="invalid-feedback d-block">
+                          <i className="bx bx-error-circle me-1"></i>
+                          {errors.UserName}
+                        </div>
+                      )}
+                    </div>
                     <div className="row g-3">
                       <div className="col-6">
                         <div className="form-group">
                           <input
                             type="text"
-                            className={`form-input ${errors.firstName ? 'is-invalid' : ''}`}
-                            placeholder="First Name*"
-                            name="firstName"
-                            value={formData.firstName}
+                            className={`form-input ${errors.mobileno ? 'is-invalid' : ''}`}
+                            placeholder="Mobile No.*"
+                            name="mobileno"
+                            value={formData.mobileno}
                             onChange={handleInputChange}
                             disabled={isLoading}
                             required
                           />
-                          {errors.firstName && (
+                          {errors.mobileno && (
                             <div className="invalid-feedback d-block">
                               <i className="bx bx-error-circle me-1"></i>
-                              {errors.firstName}
+                              {errors.mobileno}
                             </div>
                           )}
                         </div>
@@ -181,22 +223,16 @@ const Signup = () => {
                         <div className="form-group">
                           <input
                             type="text"
-                            className={`form-input ${errors.lastName ? 'is-invalid' : ''}`}
-                            placeholder="Last Name*"
-                            name="lastName"
-                            value={formData.lastName}
+                            className={`form-input ${errors.profession ? 'is-invalid' : ''}`}
+                            placeholder="Profession"
+                            name="profession"
+                            value={formData.profession}
                             onChange={handleInputChange}
                             disabled={isLoading}
-                            required
                           />
-                          {errors.lastName && (
-                            <div className="invalid-feedback d-block">
-                              <i className="bx bx-error-circle me-1"></i>
-                              {errors.lastName}
-                            </div>
-                          )}
                         </div>
                       </div>
+
                     </div>
 
                     <div className="form-group">
@@ -276,6 +312,61 @@ const Signup = () => {
                       )}
                     </div>
 
+                    <div className="row g-3">
+                      <div className="col-6">
+                        <div className="form-group">
+                          <input
+                            type="text"
+                            className={`form-input ${errors.city ? 'is-invalid' : ''}`}
+                            placeholder="City*"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleInputChange}
+                            disabled={isLoading}
+                            required
+                          />
+                          {errors.city && (
+                            <div className="invalid-feedback d-block">
+                              <i className="bx bx-error-circle me-1"></i>
+                              {errors.city}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-6">
+                        <div className="form-group">
+                          <input
+                            type="text"
+                            className={`form-input ${errors.state ? 'is-invalid' : ''}`}
+                            placeholder="State*"
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            disabled={isLoading}
+                            required
+                          />
+                          {errors.mobileno && (
+                            <div className="invalid-feedback d-block">
+                              <i className="bx bx-error-circle me-1"></i>
+                              {errors.state}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <input
+                        type="text"
+                        className={`form-input ${errors.acode ? 'is-invalid' : ''}`}
+                        placeholder="Sales Code"
+                        name="acode"
+                        value={formData.acode}
+                        onChange={handleInputChange}
+                        disabled={isLoading}
+                      />
+                    </div>
+
                     <div className="form-group">
                       <div className="form-check d-flex align-items-start">
                         <input
@@ -298,9 +389,9 @@ const Signup = () => {
                         </div>
                       )}
                     </div>
-                    
-                    <button 
-                      type="submit" 
+
+                    <button
+                      type="submit"
                       className="btn-continue"
                       disabled={isLoading}
                     >
@@ -319,20 +410,20 @@ const Signup = () => {
 
                   <div className="login-footer">
                     <p className="signup-text">
-                      Already have an account? 
-                      <button 
-                        onClick={handleLoginRedirect} 
+                      Already have an account?
+                      <button
+                        onClick={handleLoginRedirect}
                         className="signup-link"
                         disabled={isLoading}
                       >
                         Sign In
                       </button>
                     </p>
-                    
+
                     <div className="divider">
                       <span>OR</span>
                     </div>
-                    
+
                     <div className="social-login">
                       <button className="social-btn" disabled={isLoading}>
                         <i className="bx bx-phone fs-4"></i>
@@ -347,9 +438,9 @@ const Signup = () => {
                         Continue with Google
                       </button>
                     </div>
-                    
+
                     <div className="terms">
-                      <a href="#" className="terms-link">Terms of Use</a> | 
+                      <a href="#" className="terms-link">Terms of Use</a> |
                       <a href="#" className="terms-link">Privacy Policy</a>
                     </div>
                   </div>
@@ -357,7 +448,7 @@ const Signup = () => {
               </div>
             </div>
 
-            <div className="login-right">
+            <div className={isGJ ? "login-right" : "login-rightLe"}>
               <div className="brand-section">
                 {/* <div className="brand-logo">
                   <h1 className="brand-title">Legal Eagle</h1>
@@ -367,7 +458,7 @@ const Signup = () => {
                     <div className="orbit-animation"></div>
                   </div>
                 </div> */}
-                
+
                 <div className="brand-footer">
                   {/* <div className="gojuris-logo">
                     <img 

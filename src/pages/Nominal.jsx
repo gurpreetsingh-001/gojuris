@@ -1,21 +1,23 @@
-// src/pages/AISearch.jsx - With image instead of search icon
+// src/pages/Keyword.jsx - Corrected version
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ApiService from '../services/apiService';
 
-const AISearch = () => {
+const Nominal = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState(null);
+
+  // New state for radio button options
+  const [searchIn, setSearchIn] = useState('B'); // head-notes, full-judgement, both
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
-    const storedKeyword = localStorage.getItem('SearchHAISearch');
+    const storedKeyword = localStorage.getItem('SearchHNominal');
     if (storedKeyword) {
       setSearchQuery(storedKeyword);
     }
@@ -34,32 +36,21 @@ const AISearch = () => {
     setError('');
 
     try {
-      console.log('🤖 Starting AI Search process...');
+      console.log('Starting Search process...');
       console.log('Query:', searchQuery);
+      console.log('Search In:', searchIn);
 
-      // Step 1: Generate embedding
-      const embeddingData = await ApiService.generateEmbedding(searchQuery);
-      console.log('✅ Embedding generated');
-
-      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data || embeddingData;
-
-      if (!embeddingVector || !Array.isArray(embeddingVector)) {
-        throw new Error('Invalid embedding response from API');
-      }
-
-      console.log(`✅ Embedding vector length: ${embeddingVector.length}`);
-
-      // Step 2: AI Search
-      const apiResponse = await ApiService.searchWithAI(searchQuery, embeddingVector, {
+      // Prepare search options with new radio button values
+      const searchOptions = {
         pageSize: 25,
         page: 1,
-        sortBy: "relevance",
-        sortOrder: "desc"
-      });
+        sortBy: 'rele',
+        searchIn: searchIn
+      };
+      
 
-      console.log('✅ AI Search API Response:', apiResponse);
+      const apiResponse = await ApiService.searchNominal({party: searchQuery, searchIn: searchIn}, searchOptions);
 
-      // Handle the exact API structure: { total: number, hits: array }
       const searchResults = apiResponse.hits || [];
       const totalCount = apiResponse.total || 0;
 
@@ -70,108 +61,47 @@ const AISearch = () => {
         setIsLoading(false);
         return;
       }
-      localStorage.setItem('SearchHAISearch', searchQuery);
-      // Store results in sessionStorage with embedding vector for pagination
+
       const resultsData = {
         results: apiResponse.hits || [],
         totalCount: apiResponse.total || 0,
-        query: searchQuery,
-        searchType: 'AI Search',
+        query: '',
+        searchType: 'Nominal Search',
         timestamp: new Date().toISOString(),
-        courtsList: apiResponse.courtsList || [], // ✅ Include this
-        yearList: apiResponse.yearList || [],     // ✅ Include this
-        embeddingVector: embeddingVector,
+        courtsList: apiResponse.courtsList || [],
+        yearList: apiResponse.yearList || [],
         searchData: {
-          query: searchQuery,
-          embeddingVector: embeddingVector
+          query: '',
+          searchType: 'Nominal Search',
+          sortOrder: 'rele',
+          searchIn,
+          nearWordsDistance:'5'
         }
       };
 
       console.log('💾 Storing results with API data:', resultsData);
       localStorage.setItem('searchResults', JSON.stringify(resultsData));
-
-      // Navigate to Results page
+      localStorage.setItem('SearchHNominal', searchQuery);
       console.log('🚀 Navigating to results page...');
       navigate('/results');
 
     } catch (error) {
-      console.error('❌ AI Search failed:', error);
-      setError(error.message || 'AI Search failed. Please try again.');
+      console.error('❌ Keyword Search failed:', error);
+      setError(error.message || 'Keyword Search failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognitionInstance = new SpeechRecognition();
-  
-        recognitionInstance.continuous = true;
-        recognitionInstance.interimResults = true;
-        recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
-  
-        recognitionInstance.onstart = () => {
-          setIsListening(true);
-        };
-  
-        recognitionInstance.onresult = (event) => {
-          let finalTranscript = '';
-  
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
-            }
-          }
-  
-          if (finalTranscript) {
-            setSearchQuery(prev => prev + finalTranscript);
-          }
-        };
-  
-        recognitionInstance.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          setIsListening(false);
-  
-          // Show user-friendly error messages
-          if (event.error === 'not-allowed') {
-            setError('Microphone access denied. Please allow microphone access and try again.');
-          } else if (event.error === 'no-speech') {
-            setError('No speech detected. Please try speaking again.');
-          } else {
-            setError('Speech recognition error. Please try again.');
-          }
-        };
-  
-        recognitionInstance.onend = () => {
-          setIsListening(false);
-        };
-  
-        setRecognition(recognitionInstance);
-      } else {
-        console.warn('Speech recognition not supported in this browser');
-      }
-    }, []);
-  
-
   const handleVoiceSearch = () => {
-    if (!recognition) {
-      setError('Speech recognition is not supported in your browser. Please try Chrome, Safari, or Edge.');
-      return;
-    }
-
-    if (isListening) {
-      recognition.stop();
-    } else {
-      setError(''); // Clear any previous errors
-      recognition.start();
-    }
+    setIsListening(!isListening);
+    console.log('Voice search clicked');
   };
 
   const handleClearSearch = () => {
     setSearchQuery('');
     setError('');
-    localStorage.setItem('SearchHAISearch', '');
+    localStorage.setItem('SearchHNominal', '');
   };
 
   return (
@@ -194,16 +124,17 @@ const AISearch = () => {
             <div className="search-header">
               <div className="search-badge">
                 <i className="bx bx-search-alt"></i>
-                <span>AI Searches</span>
+                <span>Nominal Search</span>
               </div>
             </div>
 
             {/* Main Hero Section */}
             <div className="search-hero">
               <h1 className="hero-title">
-                Discover patterns, context, and legal logic—faster than ever.
-              </h1>
+                Find exactly what you need- fast and precise with powerful Party search              </h1>
 
+              {/* Search Type Options - Above Search Box */}
+              
               {/* Search Box */}
               <div className="search-container">
                 <form onSubmit={handleSearch} className="search-form">
@@ -213,7 +144,7 @@ const AISearch = () => {
                       className="search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Ask AI"
+                      placeholder="Nominal Search : Type any name in full or partial to find the desired case"
                       disabled={isLoading}
                     />
                     <div className="input-actions">
@@ -227,38 +158,18 @@ const AISearch = () => {
                           <i style={{ fontSize: "25px" }} className="bx bx-x"></i>
                         </button>
                       )}
-                      <button
-                        type="button"
-                        className={`voice-btn ${isListening ? 'listening' : ''}`}
-                        onClick={handleVoiceSearch}
-                        disabled={isListening}
-                        title={isListening ? 'Stop recording' : 'Start voice input'}
-                      >
-                       {isListening ? (
-                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                        {/* Add a red recording indicator */}
-                        <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
-                      </svg>
-                    ) : (
-                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                      </svg>
-                    )}
-                      </button>
+                     
                       <button
                         type="submit"
                         className="search-btn"
                         disabled={isLoading || !searchQuery.trim()}
-                        style={{ background: '#fff' }}
+                        style={{ background: '#ffffff' }}
                       >
                         {isLoading ? (
                           <i className="bx bx-loader bx-spin" style={{ color: '#8b5cf6', fontSize: '24px' }}></i>
                         ) : (
                           <img
-                            src="/i-ai-search.png"
+                            src="/i-search.png"
                             alt="Search"
                             className="search-icon-img"
                           />
@@ -268,26 +179,66 @@ const AISearch = () => {
                   </div>
                 </form>
               </div>
+
+              {/* Search Options - Below Search Box */}
+              <div className="search-options-below">
+                {/* Sort Order Options */}
+               
+                {/* Search In Options */}
+                <div className="radio-group search-in-group">
+                  <span className="group-label">Search in:</span>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="A"
+                      checked={searchIn === 'A'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Appellant
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="R"
+                      checked={searchIn === 'R'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                   Respondent
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="B"
+                      checked={searchIn === 'B'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Both
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Related Queries Section */}
-            <div className="related-section">
+            {/* <div className="related-section">
               <p className="related-title">Related Queries</p>
-            </div>
+            </div> */}
 
-            {/* Description Section */}
-            <div className="description-section">
+            {/* Description Section - Simplified without legal content */}
+            {/* <div className="description-section">
               <h2 className="description-title">
-                Making legal search easy for you or Simplifying legal search for you
+                Simplifying search for you
               </h2>
               <p className="description-text">
-                Tailored for legal professionals, our advanced search options simplify legal research. Effortlessly access    <br />
-                judgments, statutes, and citations, saving time and enhancing your workflow efficiency.
+                Advanced search options to help you find exactly what you're looking for. 
+                Use our flexible search types and filtering options to get precise results quickly.
               </p>
-              <p className="includes-text">
-                <strong>Includes:</strong> Case Law | Codes, Rules & Constitutions | Practical Guidance | Treatises
-              </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -318,6 +269,7 @@ const AISearch = () => {
         .ai-search-container {
           max-width: 1200px;
           width: 100%;
+          margin-top:-100px;
           text-align: center;
         }
 
@@ -364,8 +316,8 @@ const AISearch = () => {
           font-weight: 300;
           color: #333;
           line-height: 1.2;
-          margin-bottom: 3rem;
-          max-width: 800px;
+          margin-bottom: 1rem;
+          max-width: 1100px;
           margin-left: auto;
           margin-right: auto;
         }
@@ -383,10 +335,10 @@ const AISearch = () => {
           position: relative;
           background: white;
           border-radius: 50px;
+          border: 2px solid #8b5cf6;
           padding: 8px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
           display: flex;
-          border: 2px solid #8b5cf6;
           align-items: center;
           gap: 8px;
         }
@@ -439,7 +391,7 @@ const AISearch = () => {
           width: 48px;
           height: 48px;
           border: none;
-         
+          // background: #007bff;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -450,6 +402,7 @@ const AISearch = () => {
         }
 
         .search-btn:hover:not(:disabled) {
+          // background: #0056b3;
           transform: scale(1.05);
         }
 
@@ -459,12 +412,12 @@ const AISearch = () => {
           transform: none;
         }
 
-        /* Image styling for search button */
+        /* Fixed search icon image styling */
         .search-icon-img {
-          width: 20px;
-          height: 20px;
+          width: 50px;
+          height: 50px;
           object-fit: contain;
-         
+          // filter: brightness(0) invert(1);
         }
 
         .related-section {
@@ -477,35 +430,26 @@ const AISearch = () => {
           margin: 0;
         }
 
+        /* Fixed description section styling */
         .description-section {
-          max-width: 1000px;
+          max-width: 800px;
           margin: 0 auto;
-          font:14px;
-          margin-top:140px;
+          text-align: center;
         }
 
         .description-title {
-          font-size: 16px;
+          font-size: 24px;
           font-weight: 600;
           color: #333;
-         
+          margin-bottom: 1rem;
           line-height: 1.3;
         }
 
         .description-text {
-          font-size: 10px;
+          font-size: 16px;
           color: #6c757d;
-         margin:0
-        }
-
-        .includes-text {
-          color: #6c757d;
-          font-size: 12px;
           margin: 0;
-        }
-
-        .includes-text strong {
-          color: #333;
+          line-height: 1.5;
         }
 
         @keyframes pulse {
@@ -520,6 +464,115 @@ const AISearch = () => {
           }
         }
 
+        /* Radio button options styling */
+        .search-options-above,
+        .search-options-below {
+          margin: 1rem 0;
+        }
+
+        .radio-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          justify-content: center;
+          align-items: center;
+          margin: 0.5rem 0;
+        }
+
+        .search-in-group {
+          border-top: 1px solid #e5e7eb;
+          padding-top: 1rem;
+          margin-top: 1rem;
+        }
+
+        .group-label {
+          font-weight: 600;
+          color: #374151;
+          margin-right: 1rem;
+        }
+
+        .radio-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          color: #374151;
+          user-select: none;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.375rem;
+          transition: background-color 0.2s ease;
+        }
+
+        .radio-label:hover {
+          background-color: #f9fafb;
+        }
+
+        .radio-label input[type="radio"] {
+          width: 18px;
+          height: 18px;
+          margin: 0;
+          opacity: 0;
+          position: absolute;
+          z-index: -1;
+        }
+
+        .radio-mark {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #d1d5db;
+          border-radius: 50%;
+          background: white;
+          transition: all 0.2s ease;
+          position: relative;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+
+        .radio-label:hover .radio-mark {
+          border-color: var(--gj-primary);
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-mark {
+          border-color: var(--gj-primary);
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-mark::after {
+          content: '';
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background: var(--gj-primary);
+          border-radius: 50%;
+          top: 3px;
+          left: 3px;
+        }
+
+        .radio-label input[type="radio"]:focus + .radio-mark {
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .near-words-input {
+          width: 50px;
+          padding: 0.25rem 0.5rem;
+          border: 1px solid #d1d5db;
+          border-radius: 0.25rem;
+          font-size: 0.875rem;
+          text-align: center;
+          margin: 0 0.25rem;
+        }
+
+        .near-words-input:disabled {
+          background-color: #f3f4f6;
+          color: #9ca3af;
+        }
+
+        .near-words-input:focus {
+          outline: none;
+          border-color: var(--gj-primary);
+          box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
           .ai-search-page {
@@ -528,7 +581,6 @@ const AISearch = () => {
 
           .search-header {
             margin-bottom: 2rem;
-            margin-top:180px;
           }
 
           .search-hero {
@@ -566,6 +618,17 @@ const AISearch = () => {
             width: 18px;
             height: 18px;
           }
+
+          .radio-group {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+
+          .group-label {
+            margin-right: 0;
+            margin-bottom: 0.5rem;
+          }
         }
 
         @media (max-width: 575.98px) {
@@ -582,15 +645,9 @@ const AISearch = () => {
             max-width: 100%;
           }
         }
-        .search-icon-img {
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-     
-   }
       `}</style>
     </div>
   );
 };
 
-export default AISearch;
+export default Nominal;

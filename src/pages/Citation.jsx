@@ -50,7 +50,7 @@ const Citation = () => {
   const [pagesError, setPagesError] = useState('');
 
   // API base URL
-  const API_BASE_URL = 'http://216.172.100.173:8001';
+  const API_BASE_URL = 'https://api.gojuris.ai';
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -247,7 +247,7 @@ const handleSearch = async (type) => {
   const searchData = {
     journal: selectedJournal,
     year: selectedYear !== 'Select a option' ? selectedYear : null,
-    volume: selectedVolume !== 'Select a option' ? selectedVolume : null,
+    volume: selectedVolume !== 'Select a option' && selectedVolume !=="0" ? selectedVolume : null,
     page: selectedPage !== 'Select a option' ? selectedPage : null,
     court: selectedCourt !== 'All Courts Selected' ? selectedCourt : null,
     searchType: type
@@ -283,7 +283,7 @@ const handleSearch = async (type) => {
     };
 
     console.log('💾 Storing citation results with API filter data:', resultsData);
-    sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+    localStorage.setItem('searchResults', JSON.stringify(resultsData));
 
     // Navigate to results page
     navigate('/results');
@@ -459,6 +459,27 @@ const handleSearch = async (type) => {
               <div className="citation-actions">
                 <div className="citation-buttons">
                   <button
+                  style={{
+                      padding: "12px 20px",
+                      borderRadius: "8px",
+                     maxWidth: "200px",
+                      alignItems: "center",
+                      gap: "10px",
+                      background: "var(--gj-primary)",
+                      color: "white",
+                      border: "none",
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      whiteSpace: "nowrap"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#6D28D9";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "#7C3AED";
+                    }}
                     className="citation-search-btn primary"
                     onClick={() => handleSearch('citations')}
                     disabled={selectedJournal === 'Select a option' || isLoading}
@@ -471,7 +492,18 @@ const handleSearch = async (type) => {
           </div>
         </div>
       </div>
+      <style jsx>{`
+          .citation-label {
+            color: #8b5cf6;
+          }
+          .citation-main-title {
+            color: #8b5cf6;
+            font-size: 15pt;
+          }
+         
+        `}</style>
     </div>
+    
   );
 };
 

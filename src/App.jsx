@@ -19,6 +19,7 @@ import Signup from './pages/Signup';
 import Keyword from './pages/keyword';
 import Database from './pages/Database'; // ADD THIS LINE
 import PricingPlans from './pages/PricingPlans';
+import Nominal from './pages/Nominal';
 
 
 function App() {
@@ -90,6 +91,12 @@ function App() {
           <Route path="/keyword" element={
             <ProtectedRoute>
               <Keyword />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/Nominal" element={
+            <ProtectedRoute>
+              <Nominal />
             </ProtectedRoute>
           } />
           

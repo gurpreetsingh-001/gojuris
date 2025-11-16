@@ -105,16 +105,16 @@ const RightSidebar = () => {
 
   const sidebarActions = [
     { 
-      icon: 'bx-chevron-left', 
-      action: 'previous', 
-      title: 'Previous Judgment',
-      disabled: !canGoPrevious
-    },
-    { 
       icon: 'bx-chevron-right', 
       action: 'next', 
       title: 'Next Judgment',
       disabled: !canGoNext
+    },
+    { 
+      icon: 'bx-chevron-left', 
+      action: 'previous', 
+      title: 'Previous Judgment',
+      disabled: !canGoPrevious
     },
     { icon: 'bx-fullscreen', action: 'fullscreen', title: 'Fullscreen' },
     { icon: 'bx-expand-alt', action: 'expand', title: 'Expand' },

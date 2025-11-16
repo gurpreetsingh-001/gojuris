@@ -3,8 +3,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/apiService';
 
+var isGJ = false;
+
 const CallToAction = () => {
   const navigate = useNavigate();
+
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,13 +24,18 @@ const CallToAction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const domain = window.location.hostname;
+
+  if (domain.includes("gojuris.ai")) {
+    isGJ = true;
+  }
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -74,7 +83,7 @@ const CallToAction = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -110,7 +119,7 @@ const CallToAction = () => {
 
       // Step 3: Show success state
       setIsSuccess(true);
-      
+
       // Reset form
       setFormData({
         firstName: '',
@@ -128,21 +137,21 @@ const CallToAction = () => {
 
     } catch (error) {
       console.error('❌ Signup/Login failed:', error);
-      
+
       // Handle specific errors
-      if (error.message.includes('already exists') || 
-          error.message.includes('duplicate') || 
-          error.message.includes('already registered')) {
-        setErrors({ 
-          email: 'An account with this email already exists. Try logging in instead.' 
+      if (error.message.includes('already exists') ||
+        error.message.includes('duplicate') ||
+        error.message.includes('already registered')) {
+        setErrors({
+          email: 'An account with this email already exists. Try logging in instead.'
         });
       } else if (error.message.includes('password')) {
-        setErrors({ 
-          password: error.message 
+        setErrors({
+          password: error.message
         });
       } else if (error.message.includes('email') || error.message.includes('invalid')) {
-        setErrors({ 
-          email: 'Please enter a valid email address' 
+        setErrors({
+          email: 'Please enter a valid email address'
         });
       } else {
         setErrors({
@@ -161,13 +170,13 @@ const CallToAction = () => {
         <div className="row justify-content-center">
           <div className="col-lg-6">
             <div className="text-center">
-              <div className="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-4" 
-                   style={{ width: '80px', height: '80px' }}>
+              <div className="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                style={{ width: '80px', height: '80px' }}>
                 <i className="bx bx-check text-white" style={{ fontSize: '2rem' }}></i>
               </div>
               <h2 className="h1 mb-3 text-success">Account Created Successfully!</h2>
               <p className="fs-lg text-muted mb-4">
-                Welcome to GoJuris! Your account has been created and you're now signed in. 
+                Welcome to {isGJ ? 'GoJuris' : 'Legal Eagle'}! Your account has been created and you're now signed in.
                 Redirecting you to dashboard...
               </p>
               <div className="spinner-border text-primary" role="status">
@@ -175,8 +184,8 @@ const CallToAction = () => {
               </div>
               <div className="mt-3">
                 <small className="text-muted">
-                  Taking too long? <button 
-                    className="btn btn-link p-0" 
+                  Taking too long? <button
+                    className="btn btn-link p-0"
                     onClick={() => navigate('/dashboard')}
                   >
                     Click here to continue
@@ -194,25 +203,25 @@ const CallToAction = () => {
     <section id="cta" className="container mb-md-3 pt-5">
       <div className="row align-items-center">
         {/* Left Column - Illustration */}
-        
 
-{/* Left Column - Image */}
-<div className="col-lg-6 mb-4 mb-lg-0">
-  <div 
-    className="rounded-3 overflow-hidden"
-    style={{ height: '100%', minHeight: '400px' }}
-  >
-    <img
-      src="/free-trial.jpg"
-      alt="Free Trial"
-      className="img-fluid w-100 h-100"
-      style={{ 
-        objectFit: 'cover',
-        borderRadius: '12px'
-      }}
-      onError={(e) => {
-        e.target.style.display = 'none';
-        e.target.parentElement.innerHTML = `
+
+        {/* Left Column - Image */}
+        <div className="col-lg-6 mb-4 mb-lg-0">
+          <div
+            className="rounded-3 overflow-hidden"
+            style={{ height: '100%', minHeight: '400px' }}
+          >
+            <img
+              src="/free-trial.jpg"
+              alt="Free Trial"
+              className="img-fluid w-100 h-100"
+              style={{
+                objectFit: 'cover',
+                borderRadius: '12px'
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
           <div style="
             background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
             border-radius: 12px;
@@ -227,18 +236,18 @@ const CallToAction = () => {
             <i class="bx bx-image"></i>
           </div>
         `;
-      }}
-    />
-  </div>
-</div>
-        
+              }}
+            />
+          </div>
+        </div>
+
         {/* Right Column - Signup Form */}
         <div className="col-lg-6 ps-lg-5">
           <div className="text-center mb-4">
             <h2 className="h1 mb-0 text-dark">Start Your Free Trial</h2>
-            <p className="text-muted mt-2">Join thousands of legal professionals using GoJuris AI</p>
+            <p className="text-muted mt-2">Join thousands of legal professionals using {isGJ ? 'GoJuris' : 'Legal Eagle'} AI</p>
           </div>
-          
+
           {/* General Error Message */}
           {errors.general && (
             <div className="alert alert-danger mb-3" role="alert">
@@ -246,7 +255,7 @@ const CallToAction = () => {
               {errors.general}
             </div>
           )}
-          
+
           {/* Signup Form */}
           <form onSubmit={handleSubmit} className="needs-validation" noValidate>
             {/* Name Fields Row */}
@@ -290,7 +299,7 @@ const CallToAction = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Email Field */}
             <div className="mb-3">
               <input
@@ -311,7 +320,7 @@ const CallToAction = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Password Field */}
             <div className="mb-3 position-relative">
               <input
@@ -341,7 +350,7 @@ const CallToAction = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Confirm Password Field */}
             <div className="mb-3 position-relative">
               <input
@@ -371,7 +380,7 @@ const CallToAction = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Terms Checkbox */}
             <div className="mb-4">
               <div className="form-check">
@@ -396,15 +405,15 @@ const CallToAction = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Submit Button */}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-lg w-100 text-white fw-semibold d-flex align-items-center justify-content-center"
               disabled={isLoading}
-              style={{ 
-                backgroundColor: '#8B5CF6', 
-                borderRadius: '10px', 
+              style={{
+                backgroundColor: '#8B5CF6',
+                borderRadius: '10px',
                 padding: '15px',
                 border: 'none',
                 fontSize: '16px'
@@ -424,13 +433,13 @@ const CallToAction = () => {
                 </>
               )}
             </button>
-            
+
             {/* Login Link */}
             <p className="text-center mt-4 mb-0 text-muted">
-              Already have an account? 
-              <button 
+              Already have an account?
+              <button
                 type="button"
-                onClick={() => navigate('/login')} 
+                onClick={() => navigate('/login')}
                 className="btn btn-link p-0 ms-1 text-primary text-decoration-none fw-semibold"
                 disabled={isLoading}
               >

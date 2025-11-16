@@ -11,15 +11,21 @@ const Keyword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isListening, setIsListening] = useState(false);
-  
+  const [recognition, setRecognition] = useState(null);
+
   // New state for radio button options
-  const [searchType, setSearchType] = useState('exact-phrase'); // exact-phrase, all-words, near-words, magic-search
+  const [searchType, setSearchType] = useState('all'); // exact-phrase, all-words, near-words, magic-search
   const [nearWordsDistance, setNearWordsDistance] = useState('5'); // for Near-Input text-Words option
   const [sortOrder, setSortOrder] = useState('most-relevant'); // most-relevant, most-recent, most-referred, oldest
-  const [searchIn, setSearchIn] = useState('both'); // head-notes, full-judgement, both
+  const [searchIn, setSearchIn] = useState('B'); // head-notes, full-judgement, both
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
+    const storedKeyword = localStorage.getItem('SearchHKeyword');
+    if (storedKeyword) {
+      setSearchQuery(storedKeyword);
+    }
+
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -44,18 +50,17 @@ const Keyword = () => {
       const searchOptions = {
         pageSize: 25,
         page: 1,
-        sortBy: sortOrder === 'most-relevant' ? 'relevance' : 
-                sortOrder === 'most-recent' ? 'date' :
-                sortOrder === 'most-referred' ? 'references' : 'date',
+        sortBy: sortOrder === 'most-relevant' ? 'rele' :
+        sortOrder === 'most-recent' ? 'year' :
+        sortOrder === 'most-referred' ? 'rele' : 'year',
         sortOrder: sortOrder === 'oldest' ? 'asc' : 'desc',
         searchType: searchType,
         searchIn: searchIn,
         nearWordsDistance: searchType === 'near-words' ? parseInt(nearWordsDistance) : undefined
       };
+      
 
-      const apiResponse = await ApiService.searchKeyword(searchQuery, searchOptions);
-
-      console.log('✅ Search API Response:', apiResponse);
+      const apiResponse = await ApiService.searchKeyword({query: searchQuery, type: searchType, querySlop: nearWordsDistance, searchIn: searchIn}, searchOptions);
 
       const searchResults = apiResponse.hits || [];
       const totalCount = apiResponse.total || 0;
@@ -72,7 +77,7 @@ const Keyword = () => {
         results: apiResponse.hits || [],
         totalCount: apiResponse.total || 0,
         query: searchQuery,
-        searchType: 'Keyword Search', 
+        searchType: 'Keyword Search',
         timestamp: new Date().toISOString(),
         courtsList: apiResponse.courtsList || [],
         yearList: apiResponse.yearList || [],
@@ -86,8 +91,8 @@ const Keyword = () => {
       };
 
       console.log('💾 Storing results with API data:', resultsData);
-      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
-
+      localStorage.setItem('searchResults', JSON.stringify(resultsData));
+      localStorage.setItem('SearchHKeyword', searchQuery);
       console.log('🚀 Navigating to results page...');
       navigate('/results');
 
@@ -99,14 +104,76 @@ const Keyword = () => {
     }
   };
 
-  const handleVoiceSearch = () => {
-    setIsListening(!isListening);
-    console.log('Voice search clicked');
-  };
+   useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          const recognitionInstance = new SpeechRecognition();
+    
+          recognitionInstance.continuous = true;
+          recognitionInstance.interimResults = true;
+          recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
+    
+          recognitionInstance.onstart = () => {
+            setIsListening(true);
+          };
+    
+          recognitionInstance.onresult = (event) => {
+            let finalTranscript = '';
+    
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+              }
+            }
+    
+            if (finalTranscript) {
+              setSearchQuery(prev => prev + finalTranscript);
+            }
+          };
+    
+          recognitionInstance.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(false);
+    
+            // Show user-friendly error messages
+            if (event.error === 'not-allowed') {
+              setError('Microphone access denied. Please allow microphone access and try again.');
+            } else if (event.error === 'no-speech') {
+              setError('No speech detected. Please try speaking again.');
+            } else {
+              setError('Speech recognition error. Please try again.');
+            }
+          };
+    
+          recognitionInstance.onend = () => {
+            setIsListening(false);
+          };
+    
+          setRecognition(recognitionInstance);
+        } else {
+          console.warn('Speech recognition not supported in this browser');
+        }
+      }, []);
+    
+  
+    const handleVoiceSearch = () => {
+      if (!recognition) {
+        setError('Speech recognition is not supported in your browser. Please try Chrome, Safari, or Edge.');
+        return;
+      }
+  
+      if (isListening) {
+        recognition.stop();
+      } else {
+        setError(''); // Clear any previous errors
+        recognition.start();
+      }
+    };
 
   const handleClearSearch = () => {
     setSearchQuery('');
     setError('');
+    localStorage.setItem('SearchHKeyword', '');
   };
 
   return (
@@ -136,59 +203,59 @@ const Keyword = () => {
             {/* Main Hero Section */}
             <div className="search-hero">
               <h1 className="hero-title">
-Find exactly what you need- fast and precise with powerful keyword search              </h1>
+                Find exactly what you need- fast and precise with powerful keyword search              </h1>
 
               {/* Search Type Options - Above Search Box */}
               <div className="search-options-above">
                 <div className="radio-group">
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchType" 
-                      value="exact-phrase"
-                      checked={searchType === 'exact-phrase'}
+                    <input
+                      type="radio"
+                      name="searchType"
+                      value="exact"
+                      checked={searchType === 'exact'}
                       onChange={(e) => setSearchType(e.target.value)}
                     />
                     <span className="radio-mark"></span>
                     Exact Phrase
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchType" 
-                      value="all-words"
-                      checked={searchType === 'all-words'}
+                    <input
+                      type="radio"
+                      name="searchType"
+                      value="all"
+                      checked={searchType === 'all'}
                       onChange={(e) => setSearchType(e.target.value)}
                     />
                     <span className="radio-mark"></span>
                     All Words
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchType" 
-                      value="near-words"
-                      checked={searchType === 'near-words'}
+                    <input
+                      type="radio"
+                      name="searchType"
+                      value="near"
+                      checked={searchType === 'near'}
                       onChange={(e) => setSearchType(e.target.value)}
                     />
                     <span className="radio-mark"></span>
                     Near
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="near-words-input"
                       value={nearWordsDistance}
                       onChange={(e) => setNearWordsDistance(e.target.value)}
                       placeholder="5"
-                      disabled={searchType !== 'near-words'}
+                      disabled={searchType !== 'near'}
                     />
                     Words
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchType" 
-                      value="magic-search"
-                      checked={searchType === 'magic-search'}
+                    <input
+                      type="radio"
+                      name="searchType"
+                      value="magic"
+                      checked={searchType === 'magic'}
                       onChange={(e) => setSearchType(e.target.value)}
                     />
                     <span className="radio-mark"></span>
@@ -210,30 +277,53 @@ Find exactly what you need- fast and precise with powerful keyword search       
                       disabled={isLoading}
                     />
                     <div className="input-actions">
+                      {searchQuery.length > 0 && (
+                        <button
+                          type="button"
+                          className={`voice-btn`}
+                          onClick={handleClearSearch}
+                          disabled={isLoading}
+                        >
+                          <i style={{ fontSize: "25px" }} className="bx bx-x"></i>
+                        </button>
+                      )}
                       <button
                         type="button"
                         className={`voice-btn ${isListening ? 'listening' : ''}`}
                         onClick={handleVoiceSearch}
                         disabled={isLoading}
+                        title={isListening ? 'Stop recording' : 'Start voice input'}
                       >
-                        <i className="bx bx-microphone"></i>
+                       {isListening ? (
+                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                        {/* Add a red recording indicator */}
+                        <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                      </svg>
+                    ) : (
+                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                      </svg>
+                    )}
                       </button>
-                    <button
-  type="submit"
-  className="search-btn"
-  disabled={isLoading || !searchQuery.trim()}
-  style={{ background: '#ffffff' }}
->
-  {isLoading ? (
-    <i className="bx bx-loader bx-spin" style={{ color: '#8b5cf6', fontSize: '24px' }}></i>
-  ) : (
-    <img
-      src="/i-case-law-research-04.png"
-      alt="Search"
-      className="search-icon-img"
-    />
-  )}
-</button>
+                      <button
+                        type="submit"
+                        className="search-btn"
+                        disabled={isLoading || !searchQuery.trim()}
+                        style={{ background: '#ffffff' }}
+                      >
+                        {isLoading ? (
+                          <i className="bx bx-loader bx-spin" style={{ color: '#8b5cf6', fontSize: '24px' }}></i>
+                        ) : (
+                          <img
+                            src="/i-search.png"
+                            alt="Search"
+                            className="search-icon-img"
+                          />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </form>
@@ -244,9 +334,9 @@ Find exactly what you need- fast and precise with powerful keyword search       
                 {/* Sort Order Options */}
                 <div className="radio-group">
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="sortOrder" 
+                    <input
+                      type="radio"
+                      name="sortOrder"
                       value="most-relevant"
                       checked={sortOrder === 'most-relevant'}
                       onChange={(e) => setSortOrder(e.target.value)}
@@ -255,9 +345,9 @@ Find exactly what you need- fast and precise with powerful keyword search       
                     Most Relevant
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="sortOrder" 
+                    <input
+                      type="radio"
+                      name="sortOrder"
                       value="most-recent"
                       checked={sortOrder === 'most-recent'}
                       onChange={(e) => setSortOrder(e.target.value)}
@@ -266,9 +356,9 @@ Find exactly what you need- fast and precise with powerful keyword search       
                     Most Recent
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="sortOrder" 
+                    <input
+                      type="radio"
+                      name="sortOrder"
                       value="most-referred"
                       checked={sortOrder === 'most-referred'}
                       onChange={(e) => setSortOrder(e.target.value)}
@@ -277,9 +367,9 @@ Find exactly what you need- fast and precise with powerful keyword search       
                     Most Referred
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="sortOrder" 
+                    <input
+                      type="radio"
+                      name="sortOrder"
                       value="oldest"
                       checked={sortOrder === 'oldest'}
                       onChange={(e) => setSortOrder(e.target.value)}
@@ -293,33 +383,33 @@ Find exactly what you need- fast and precise with powerful keyword search       
                 <div className="radio-group search-in-group">
                   <span className="group-label">Search in:</span>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchIn" 
-                      value="head-notes"
-                      checked={searchIn === 'head-notes'}
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="H"
+                      checked={searchIn === 'H'}
                       onChange={(e) => setSearchIn(e.target.value)}
                     />
                     <span className="radio-mark"></span>
                     Head Notes
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchIn" 
-                      value="full-judgement"
-                      checked={searchIn === 'full-judgement'}
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="F"
+                      checked={searchIn === 'F'}
                       onChange={(e) => setSearchIn(e.target.value)}
                     />
                     <span className="radio-mark"></span>
                     Full Judgement
                   </label>
                   <label className="radio-label">
-                    <input 
-                      type="radio" 
-                      name="searchIn" 
-                      value="both"
-                      checked={searchIn === 'both'}
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="B"
+                      checked={searchIn === 'B'}
                       onChange={(e) => setSearchIn(e.target.value)}
                     />
                     <span className="radio-mark"></span>
@@ -453,7 +543,7 @@ Find exactly what you need- fast and precise with powerful keyword search       
           border: none;
           background: transparent;
           padding: 1rem 1.5rem;
-          font-size: 16px;
+          font-size: 18px;
           outline: none;
           color: #333;
         }

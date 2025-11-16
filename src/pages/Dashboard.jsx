@@ -12,15 +12,15 @@ const Dashboard = () => {
     },
     {
       title: 'AI Search', 
-      description: 'Effortlessly find and understand statutes, rules, and legal provisions using intelligent AI search.',
+      description: 'Instantly finds the exact judgments you need with full context and unmatched accuracy.',
       icon: '/i-ai-search-03.png', 
       link: '/ai-search'
     },
     {
-      title: 'Case Law Research',
-      description: 'Quickly locate and interpret statutes, rules, and regulations with AI-driven search capabilities.',
+      title: 'Keyword Search',
+      description: 'gives you instant, precise results using exact phrase, free word, all words, and near-word matching.',
       icon: '/i-case-law-research-04.png', 
-      link: '#case-law-research'
+      link: '/keyword'
     },
     {
       title: 'Citation Search',
@@ -29,10 +29,16 @@ const Dashboard = () => {
       link: '/citation'
     },
     {
-      title: 'Advance Case Law Search',
+      title: 'Advance Search',
       description: 'Find case laws by keywords, party names, judges, or case numbers across all courts.',
       icon: '/i-Advance Case Law Search-06.png', 
       link: '/search'
+    },
+    {
+      title: 'Nominal Search',
+      description: 'Locate cases by petitioner/respondent names—fast and accurate.',
+      icon: '/i-NominalSearch-06.png', 
+      link: '/Nominal'
     },
     {
       title: 'Virtual Legal Assistant',
@@ -50,7 +56,7 @@ const Dashboard = () => {
       title: 'Database',
       description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
       icon: '/i-database.png', 
-      link: '#virtual-legal-assistant'
+      link: '/database'
     },
      {
       title: 'Legal Dictionary',

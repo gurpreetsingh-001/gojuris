@@ -2,21 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ApiService from '../services/apiService';
-
+var isGJ = false;
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  
+
   // Authentication and user profile states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [logo, setLogo] = useState("/logoLe.png");
+
+
 
   useEffect(() => {
+
+    const domain = window.location.hostname;
+    if (domain.includes("gojuris.ai")) {
+      isGJ = true;
+      setLogo("/logo.png");
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
@@ -34,9 +44,9 @@ const Header = () => {
     console.log('🔍 Checking authentication status...');
     const authenticated = ApiService.isAuthenticated();
     console.log('Auth status:', authenticated);
-    
+
     setIsAuthenticated(authenticated);
-    
+
     if (authenticated) {
       loadUserProfile();
     } else {
@@ -63,37 +73,37 @@ const Header = () => {
           profileData = {
             ...profileData,
             ...userData,
-            displayName: userData.displayName || 
-                        userData.name || 
-                        `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
-                        userData.username ||
-                        profileData.displayName
+            displayName: userData.displayName ||
+              userData.name ||
+              `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+              userData.username ||
+              profileData.displayName
           };
         } catch (e) {
           console.warn('Failed to parse stored user data:', e);
         }
       }
+      else {
 
-      // Try to fetch fresh profile from API
-      try {
-        const apiProfile = await ApiService.getUserProfile();
-        if (apiProfile) {
-          profileData = {
-            ...profileData,
-            ...apiProfile,
-            displayName: apiProfile.displayName || 
-                        apiProfile.name || 
-                        `${apiProfile.firstName || ''} ${apiProfile.lastName || ''}`.trim() ||
-                        apiProfile.username ||
-                        profileData.displayName
-          };
-          
-          // Store updated profile data
-          localStorage.setItem('userData', JSON.stringify(profileData));
+        // Try to fetch fresh profile from API
+        try {
+
+          const apiProfile = await ApiService.getUserProfile();
+          if (apiProfile) {
+            profileData = {
+              ...profileData,
+              ...apiProfile,
+              displayName: apiProfile.displayName,
+              email: apiProfile.email
+            };
+
+            // Store updated profile data
+            localStorage.setItem('userData', JSON.stringify(profileData));
+          }
+        } catch (apiError) {
+          console.warn('Failed to fetch user profile from API:', apiError.message);
+          // Continue with localStorage data
         }
-      } catch (apiError) {
-        console.warn('Failed to fetch user profile from API:', apiError.message);
-        // Continue with localStorage data
       }
 
       setUserProfile(profileData);
@@ -112,33 +122,33 @@ const Header = () => {
 
   const handleSignOut = async () => {
     console.log('🚪 Sign out button clicked');
-    
+
     try {
       // Close dropdown immediately
       setShowAccountDropdown(false);
-      
+
       console.log('🔄 Calling ApiService.logout()...');
-      
+
       // Call logout API
       await ApiService.logout();
-      
+
       console.log('✅ ApiService.logout() completed');
-      
+
       // Force clear all local state immediately
       setIsAuthenticated(false);
       setUserProfile(null);
       setIsLoadingProfile(false);
-      
+
       console.log('🔄 State cleared, navigating to login...');
-      
+
       // Navigate to login
       navigate('/login');
-      
+
       console.log('✅ Navigation completed');
-      
+
     } catch (error) {
       console.error('❌ Sign out error:', error);
-      
+
       // Force logout even if API call fails
       try {
         // Clear storage manually
@@ -147,11 +157,11 @@ const Header = () => {
         localStorage.removeItem('expiresAt');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userData');
-        
+
         setIsAuthenticated(false);
         setUserProfile(null);
         setIsLoadingProfile(false);
-        
+
         navigate('/login');
         console.log('✅ Forced logout completed');
       } catch (clearError) {
@@ -165,7 +175,7 @@ const Header = () => {
   // Handle dropdown item clicks
   const handleDropdownItemClick = (action) => {
     setShowAccountDropdown(false);
-    
+
     switch (action) {
       case 'dashboard':
         navigate('/dashboard');
@@ -193,7 +203,7 @@ const Header = () => {
   // Get user initials for avatar
   const getUserInitials = () => {
     if (!userProfile) return 'U';
-    
+
     const displayName = userProfile.displayName || userProfile.name || userProfile.username;
     if (displayName && displayName.length > 0) {
       const names = displayName.trim().split(' ');
@@ -202,18 +212,18 @@ const Header = () => {
       }
       return names[0][0].toUpperCase();
     }
-    
+
     return userProfile.email ? userProfile.email[0].toUpperCase() : 'U';
   };
 
   // Format display name
   const getDisplayName = () => {
     if (!userProfile) return 'Loading...';
-    
-    return userProfile.displayName || 
-           userProfile.name || 
-           userProfile.username || 
-           (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
+
+    return userProfile.displayName ||
+      userProfile.name ||
+      userProfile.username ||
+      (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
   };
 
   // Get email
@@ -277,32 +287,32 @@ const Header = () => {
     closeOffcanvas();
   };
 
- const navigateToHome = () => {
-  // If already on home page, scroll to hero section
-  if (location.pathname === '/') {
-    const heroElement = document.getElementById('hero');
-    if (heroElement) {
-      const headerOffset = 120; // Account for fixed header + announcement banner
-      const elementPosition = heroElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+  const navigateToHome = () => {
+    // If already on home page, scroll to hero section
+    if (location.pathname === '/') {
+      const heroElement = document.getElementById('hero');
+      if (heroElement) {
+        const headerOffset = 120; // Account for fixed header + announcement banner
+        const elementPosition = heroElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      } else {
+        // Fallback: scroll to top if hero section not found
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
     } else {
-      // Fallback: scroll to top if hero section not found
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      // If on other pages, navigate to home page
+      navigate('/');
     }
-  } else {
-    // If on other pages, navigate to home page
-    navigate('/');
-  }
-  closeOffcanvas();
-};
+    closeOffcanvas();
+  };
 
   const navigateToSearch = () => {
     navigate('/search');
@@ -325,12 +335,12 @@ const Header = () => {
     navigate('/pricing');
     closeOffcanvas();
   };
-  
+
   const navigateToSubscriptions = () => {
     navigate('/pricing');
     closeOffcanvas();
   };
-  
+
   const handleLogoClick = (e) => {
     e.preventDefault();
     navigateToHome();
@@ -366,16 +376,20 @@ const Header = () => {
   return (
     <>
       {/* Announcement Banner - ONLY NEW ADDITION */}
-      <div className="announcement-banner">
-        <span className="blink-text">Legal Eagle is now AI Powered</span>
-      </div>
+      {isGJ ? (
+        <div className="announcement-banner">
+          <span className="blink-text">Legal Eagle is now AI Powered
+          </span>
+        </div>
+      ) : (<></>)}
 
-      <header className={`header navbar navbar-expand-lg fixed-top navbar-sticky w-100 ${isScrolled ? 'scrolled' : ''}`}>
+
+      <header className={isGJ ? `headerTop navbar navbar-expand-lg fixed-top navbar-sticky w-100 ${isScrolled ? 'scrolled' : ''}` : `header navbar navbar-expand-lg fixed-top navbar-sticky w-100 ${isScrolled ? 'scrolled' : ''}`}>
         <div className="container px-3">
           <a href="/" className="navbar-brand pe-3" onClick={handleLogoClick}>
-            <img 
-              src="/logo.png" 
-              alt="GoJuris Logo" 
+            <img
+              src={logo}
+              alt="GoJuris Logo"
               className="d-inline-block align-text-top"
               style={{ height: '60px', width: 'auto', maxWidth: '250px' }}
               onError={(e) => {
@@ -387,8 +401,9 @@ const Header = () => {
                 `;
               }}
             />
+
           </a>
-          
+
           <div className="d-flex align-items-center ms-auto order-lg-3">
             {/* Login/My Account Button */}
             {isAuthenticated ? (
@@ -409,7 +424,7 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                      <div 
+                      <div
                         className="d-flex align-items-center justify-content-center bg-light text-primary rounded-circle"
                         style={{ width: '24px', height: '24px', fontSize: '12px', fontWeight: '600' }}
                       >
@@ -420,22 +435,22 @@ const Header = () => {
                     </>
                   )}
                 </button>
-                
+
                 {showAccountDropdown && (
-                  <div 
+                  <div
                     className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
-                    style={{ 
-                      minWidth: '220px', 
-                      top: '100%', 
-                      right: '0', 
+                    style={{
+                      minWidth: '220px',
+                      top: '100%',
+                      right: '0',
                       zIndex: 9999,
                       pointerEvents: 'auto'
                     }}
                   >
                     <div className="dropdown-header px-3 py-2 border-bottom">
                       <div className="d-flex align-items-center">
-                        <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
-                             style={{ width: '32px', height: '32px' }}>
+                        <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+                          style={{ width: '32px', height: '32px' }}>
                           <span className="text-white fw-semibold" style={{ fontSize: '14px' }}>
                             {getUserInitials()}
                           </span>
@@ -450,8 +465,8 @@ const Header = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                       className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
                       onClick={() => handleDropdownItemClick('dashboard')}
                       style={{ cursor: 'pointer' }}
@@ -459,8 +474,8 @@ const Header = () => {
                       <i className="bx bx-grid-alt me-2 text-primary"></i>
                       <span>Dashboard</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
                       onClick={() => handleDropdownItemClick('profile')}
                       style={{ cursor: 'pointer' }}
@@ -468,8 +483,8 @@ const Header = () => {
                       <i className="bx bx-user-circle me-2 text-primary"></i>
                       <span>View Profile</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
                       onClick={() => handleDropdownItemClick('billing')}
                       style={{ cursor: 'pointer' }}
@@ -477,8 +492,8 @@ const Header = () => {
                       <i className="bx bx-credit-card me-2 text-primary"></i>
                       <span>Billing & Plans</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100"
                       onClick={() => handleDropdownItemClick('history')}
                       style={{ cursor: 'pointer' }}
@@ -486,10 +501,10 @@ const Header = () => {
                       <i className="bx bx-history me-2 text-primary"></i>
                       <span>Search History</span>
                     </button>
-                    
+
                     <div className="border-top my-1"></div>
-                    
-                    <button 
+
+                    <button
                       className="dropdown-item d-flex align-items-center px-3 py-2 border-0 bg-transparent w-100 text-danger"
                       onClick={() => handleDropdownItemClick('signout')}
                       style={{ cursor: 'pointer' }}
@@ -501,7 +516,7 @@ const Header = () => {
                 )}
               </div>
             ) : (
-              <button 
+              <button
                 onClick={navigateToLogin}
                 className="btn btn-primary btn-sm rounded d-none d-md-inline-flex me-3"
                 style={{ whiteSpace: 'nowrap' }}
@@ -511,9 +526,9 @@ const Header = () => {
               </button>
             )}
 
-            <button 
-              type="button" 
-              className="navbar-toggler d-lg-none" 
+            <button
+              type="button"
+              className="navbar-toggler d-lg-none"
               onClick={toggleOffcanvas}
               aria-expanded={isOffcanvasOpen}
               aria-controls="navbarNav"
@@ -527,7 +542,7 @@ const Header = () => {
           <div className="collapse navbar-collapse order-lg-2" id="navbarNav">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <button 
+                <button
                   className={`nav-link btn btn-link ${location.pathname === '/' ? 'active' : ''}`}
                   onClick={navigateToHome}
                 >
@@ -535,7 +550,7 @@ const Header = () => {
                 </button>
               </li>
               <li className="nav-item">
-                <button 
+                <button
                   className={`nav-link btn btn-link ${location.pathname === '/search' ? 'active' : ''}`}
                   onClick={() => scrollToSection('services')}
                 >
@@ -543,36 +558,44 @@ const Header = () => {
                 </button>
               </li>
               <li className="nav-item">
-                <button 
-                  className="nav-link btn btn-link" 
+                <button
+                  className="nav-link btn btn-link"
                   onClick={() => scrollToSection('services')}
                 >
                   COVERAGE
                 </button>
               </li>
               <li className="nav-item">
-                <button 
-                  className="nav-link btn btn-link" 
+                <button
+                  className="nav-link btn btn-link"
                   onClick={() => scrollToSection('llp')}
                 >
                   LATEST
                 </button>
               </li>
               <li className="nav-item">
-                <button 
-                  className="nav-link btn btn-link" 
+                <button
+                  className="nav-link btn btn-link"
                   onClick={() => scrollToSection('cta')}
                 >
                   PRODUCTS
                 </button>
               </li>
               <li className="nav-item">
-                <button 
-                  className="nav-link btn btn-link" 
+                <button
+                  className="nav-link btn btn-link"
                   onClick={navigateToSubscriptions}
                 >
                   SUBSCRIPTIONS
                 </button>
+              </li>
+              <li className="nav-item">
+                <img src="ic_beta_96.png"
+                  style={{
+                    marginLeft: '10px'
+                  }}>
+
+                </img>
               </li>
             </ul>
           </div>
@@ -580,15 +603,15 @@ const Header = () => {
       </header>
 
       {/* Mobile Offcanvas */}
-      <div className={`offcanvas offcanvas-end ${isOffcanvasOpen ? 'show' : ''}`} 
-           tabIndex="-1" 
-           id="navbarNav" 
-           style={{ visibility: isOffcanvasOpen ? 'visible' : 'hidden' }}>
+      <div className={`offcanvas offcanvas-end ${isOffcanvasOpen ? 'show' : ''}`}
+        tabIndex="-1"
+        id="navbarNav"
+        style={{ visibility: isOffcanvasOpen ? 'visible' : 'hidden' }}>
         <div className="offcanvas-header">
           <h5 className="offcanvas-title">Menu</h5>
-          <button 
-            type="button" 
-            className="btn-close" 
+          <button
+            type="button"
+            className="btn-close"
             onClick={closeOffcanvas}
             aria-label="Close"
           ></button>
@@ -596,7 +619,7 @@ const Header = () => {
         <div className="offcanvas-body">
           <ul className="navbar-nav">
             <li className="nav-item">
-              <button 
+              <button
                 className={`nav-link btn btn-link w-100 text-start ${location.pathname === '/' ? 'active' : ''}`}
                 onClick={navigateToHome}
               >
@@ -605,7 +628,7 @@ const Header = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
+              <button
                 className={`nav-link btn btn-link w-100 text-start ${location.pathname === '/search' ? 'active' : ''}`}
                 onClick={() => scrollToSection('about')}
               >
@@ -614,8 +637,8 @@ const Header = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
-                className="nav-link btn btn-link w-100 text-start" 
+              <button
+                className="nav-link btn btn-link w-100 text-start"
                 onClick={() => scrollToSection('video-section')}
               >
                 <i className="bx bx-shield me-2"></i>
@@ -623,8 +646,8 @@ const Header = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
-                className="nav-link btn btn-link w-100 text-start" 
+              <button
+                className="nav-link btn btn-link w-100 text-start"
                 onClick={() => scrollToSection('services')}
               >
                 <i className="bx bx-news me-2"></i>
@@ -632,8 +655,8 @@ const Header = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
-                className="nav-link btn btn-link w-100 text-start" 
+              <button
+                className="nav-link btn btn-link w-100 text-start"
                 onClick={() => scrollToSection('doctors')}
               >
                 <i className="bx bx-package me-2"></i>
@@ -641,23 +664,23 @@ const Header = () => {
               </button>
             </li>
             <li className="nav-item">
-              <button 
-                className="nav-link btn btn-link w-100 text-start" 
+              <button
+                className="nav-link btn btn-link w-100 text-start"
                 onClick={navigateToSubscriptions}
               >
                 <i className="bx bx-credit-card me-2"></i>
                 Subscriptions
               </button>
             </li>
-            
+
             {/* Mobile Authentication Section */}
             <li className="nav-item mt-3">
               {isAuthenticated ? (
                 <div>
                   <div className="px-3 py-2 mb-2 bg-light rounded">
                     <div className="d-flex align-items-center">
-                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
-                           style={{ width: '28px', height: '28px' }}>
+                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+                        style={{ width: '28px', height: '28px' }}>
                         <span className="text-white fw-semibold" style={{ fontSize: '12px' }}>
                           {getUserInitials()}
                         </span>
@@ -668,16 +691,16 @@ const Header = () => {
                       </div>
                     </div>
                   </div>
-                  
-                  <button 
+
+                  <button
                     className="nav-link btn btn-link w-100 text-start"
                     onClick={navigateToDashboard}
                   >
                     <i className="bx bx-grid-alt me-2"></i>
                     Dashboard
                   </button>
-                  
-                  <button 
+
+                  <button
                     className="nav-link btn btn-link w-100 text-start text-danger"
                     onClick={() => handleDropdownItemClick('signout')}
                   >
@@ -686,7 +709,7 @@ const Header = () => {
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={navigateToLogin}
                   className="nav-link btn btn-link w-100 text-start"
                 >
@@ -701,9 +724,9 @@ const Header = () => {
             <div className="d-flex align-items-center justify-content-between">
               <span className="text-muted" style={{ fontSize: '0.875rem' }}>Theme</span>
               <div className="form-check form-switch mode-switch">
-                <input 
-                  type="checkbox" 
-                  className="form-check-input" 
+                <input
+                  type="checkbox"
+                  className="form-check-input"
                   id="theme-mode-mobile"
                   checked={isDarkMode}
                   onChange={toggleTheme}
@@ -716,17 +739,17 @@ const Header = () => {
 
       {/* Backdrop */}
       {isOffcanvasOpen && (
-        <div 
-          className="offcanvas-backdrop fade show" 
+        <div
+          className="offcanvas-backdrop fade show"
           onClick={closeOffcanvas}
         ></div>
       )}
 
       {/* Account dropdown backdrop for mobile */}
       {showAccountDropdown && (
-        <div 
+        <div
           className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ 
+          style={{
             zIndex: 9998,
             pointerEvents: 'none'
           }}
@@ -740,23 +763,32 @@ const Header = () => {
 
       {/* CSS for Announcement Banner - ONLY NEW STYLES */}
       <style jsx>{`
+      .btn-primary
+      {
+        background-color: rgb(139, 92, 246)
+      }
+        .bg-primarynew
+      {
+        background-color: rgb(139, 92, 246)
+      }
         .announcement-banner {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           text-align: center;
-          padding: 10px 0;
+          padding: 5px 0;
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           z-index: 1051;
-          font-size: 14px;
+          font-size: 22px;
           font-weight: 500;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .blink-text {
           animation: blink 1.5s ease-in-out infinite;
+          fontFamily:Oswald;
         }
 
         @keyframes blink {
@@ -769,7 +801,7 @@ const Header = () => {
         }
 
         /* Adjust header position */
-        .header {
+        .headerTop {
           top: 34px !important;
         }
 
@@ -779,7 +811,7 @@ const Header = () => {
             padding: 8px 0;
           }
           
-          .header {
+          .headerTop {
             top: 30px !important;
           }
         }

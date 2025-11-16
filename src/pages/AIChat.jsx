@@ -3,14 +3,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import ApiService from '../services/apiService';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { MoreVertical } from "lucide-react"; // You can replace with any icon you like
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import mammoth from "mammoth";
 
+// PDF.js (Vite-friendly)
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker?url";
+
+GlobalWorkerOptions.workerSrc = pdfWorker;
+
+var isGJ = false;
 const AIChat = () => {
+  const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const [userMessage, setUserMessage] = useState('');
   const navigate = useNavigate();
-
+  const [searchMode, setSearchMode] = useState('Deep');
+  const [searchType, setSearchType] = useState('Continue');
   const [chatHistory, setChatHistory] = useState([]);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -20,15 +31,162 @@ const AIChat = () => {
   const [userProfile, setUserProfile] = useState(null);
   const messagesEndRef = useRef(null);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
-const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this line
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this line
 
 
   const [recognition, setRecognition] = useState(null);
+  const [courts, setCourts] = useState([]);
+  const [selectedCourt, setSelectedCourt] = useState("ALL");
+  const [chatsessionId, setChatsessionId] = useState(null);
+  const [chatsessionsList, setChatsessionsList] = useState(null);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [openShareMenuId, setopenShareMenuId] = useState(false);
+  const menuRefs = useRef({});
+  const [CurrentQuery, setCurrentQuery] = useState("Which legal task can we help you accelerate?");
+  const [pageSearch, setPageSearch] = useState(1);
+  const [pageSizeSearch, setPageSizeSearch] = useState(15);
+  const [chatType, setChatType] = useState('AISearch');
+
+  const [textOutput, setTextOutput] = useState("");
+
+  const onUploadFile = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploading(true); // start loader
+    const file = files[0];
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    // setChatHistory([]);
+    setChatHistory([{
+      type: 'user',
+      text: file.name,
+      isStreaming: true,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+    try {
+     // await new Promise((resolve) => setTimeout(resolve, 20));
+      let text = "";
+
+      if (ext === "txt") {
+        text = await file.text();
+      } else if (ext === "pdf") {
+        text = await extractPdfText(file);
+      } else if (ext === "docx" || ext === "doc") {
+        text = await extractDocxText(file);
+      } else {
+        alert("Unsupported file type!");
+        return;
+      }
+
+      setTextOutput(text);
+
+      setChatsessionId(null);
+      setCurrentQuery("");
+      setCurrentQuery(file.name);
+      setChatType('Summarizer');
+      setMessage('Summarize this case');
+      handleSendAIMessage("Summarize this case", text);
+
+
+    } catch (err) {
+      console.error("File processing error:", err);
+      alert("Failed to read file.");
+    } finally {
+      setIsUploading(false); // stop loader
+    }
+  };
+
+  /* ------------ PDF Extraction ------------- */
+  const extractPdfText = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+
+      reader.onload = async function () {
+        const data = new Uint8Array(this.result);
+        const pdf = await getDocument({ data }).promise;
+
+        let text = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map((x) => x.str).join(" ") + "\n";
+        }
+
+        resolve(text);
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+  /* ------------ DOCX Extraction ------------- */
+  const extractDocxText = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = async (evt) => {
+        const arrayBuffer = evt.target.result;
+
+        mammoth
+          .extractRawText({ arrayBuffer })
+          .then((result) => resolve(result.value))
+          .catch((err) => reject(err));
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+  const toggleMenu = (id) => {
+
+    setOpenMenuId((prev) => (prev === id ? null : id));
+  };
+  const toggleShareMenu = () => {
+    setopenShareMenuId(true);
+  };
+  const handleDelete = async (id) => {
+    await ApiService.deleteChatHistoryBySessionId(id);
+    await loadChatHistory();
+    setOpenMenuId(null);
+  };
+
+  const handleShare = async (id) => {
+    alert(`chat ${id}`);
+    setopenShareMenuId(false);
+  };
+
+
+  const handlePrint = (id) => {
+    alert(`Print chat ${id}`);
+    setOpenMenuId(null);
+  };
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (openMenuId != null) {
+        const ref = menuRefs.current[openMenuId];
+        if (ref && !ref.contains(e.target)) {
+          setOpenMenuId(null);
+        }
+      }
+      setopenShareMenuId(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openMenuId]);
 
   useEffect(() => {
+    const domain = window.location.hostname;
+
+    if (domain.includes("gojuris.ai")) {
+      isGJ = true;
+    }
     document.body.style.paddingTop = '0';
     loadUserProfile();
-
+    loadChatHistory();
+    const data = localStorage.getItem('userp')
+    if (data) {
+      setCourts(JSON.parse(data)?.courts);
+    }
     return () => {
       document.body.style.paddingTop = '';
     };
@@ -38,10 +196,26 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
+
+
   const loadUserProfile = async () => {
     try {
+      const storedUserData = localStorage.getItem('userData');
+      if(!storedUserData) {
       const profile = await ApiService.getUserProfile();
-      setUserProfile(profile);
+      setUserProfile(JSON.parse(profile));
+      }
+      else
+        setUserProfile(JSON.parse(storedUserData));
+    } catch (error) {
+      console.error('❌ Failed to load user profile:', error);
+    }
+  };
+
+  const loadChatHistory = async () => {
+    try {
+      const list = await ApiService.getChatHistorySessions();
+      setChatsessionsList(list.data);
     } catch (error) {
       console.error('❌ Failed to load user profile:', error);
     }
@@ -117,14 +291,99 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
     "Whether anticipatory bail is maintainable in ndps cases?",
     "Cases on CPC, Order 9 Rule 7"
   ];
+  const draftExample = [
+    "Draft a legal notice under Section 138 NI Act for cheque dishonour",
+    "Draft a divorce petition under Section 13 HMA based on cruelty",
+    "Draft a plaint for declaration and cancellation of sale deed"
+  ];
+  const handleInputChange = (field, value) => {
+    if (field == "ChatMode")
+      setSearchMode(value);
+    else if (field == "SearchType")
+      setSearchType(value);
+
+  };
+  const getUserInitials = () => {
+    if (!userProfile) return 'U';
+
+    const displayName = userProfile.displayName || userProfile.name || userProfile.username;
+    if (displayName && displayName.length > 0) {
+      const names = displayName.trim().split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[1][0]).toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+
+    return userProfile.email ? userProfile.email[0].toUpperCase() : 'U';
+  };
+  const loadChatdata = async (sessionId, id) => {
+    const list = await ApiService.getChatHistoryBySessionId(sessionId);
+    setChatsessionId({ id: id, sessionId: sessionId });
+    setChatHistory([]);
+    debugger;
+    const resultsData = {
+      results: [],
+      totalCount: 1,
+      query: list.data.messages[0].content,
+      searchType: 'AI Search',
+      timestamp: new Date().toISOString(),
+      courtsList: [],
+      yearList: [],
+      searchData: {
+        query: list.data.messages[0].content
+      }
+    };
+    localStorage.setItem('searchResults', JSON.stringify(resultsData));
+    list.data.messages.forEach((item, index) => {
+      setChatHistory(prev => [
+        ...prev,
+        {
+          type: item.role,
+          metadata: {
+            isApiResponse: true
+          },
+          text: item.role == 'ai' ? marked.parse(item.content, { breaks: true }).replaceAll("<a ", "<a target='_blank' ") : item.content,
+          timestamp: item.timestamp
+        }
+      ]);
+    });
+
+
+  };
 
   // Handle message sending - ONLY API responses
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    if (!message.trim() || isLoading) return;
+    let newPageSearch = pageSearch;
+    let newPageSize = pageSizeSearch;
+    debugger;
+    if (e.type === "click") {
+      setUserMessage(userMessage);
 
-    const userMessage = message;
+      // Skip 1, start from 2, then increment
+      newPageSearch = pageSearch === 1 ? 4 : pageSearch + 1;
+      newPageSize = 5;
+    } else {
+      newPageSearch = 1;
+      newPageSize = 15;
+    }
+
+    // Update state
+    setPageSearch(newPageSearch);
+    setPageSizeSearch(newPageSize);
+
+
+    if (newPageSearch == 1 && (!message.trim() || isLoading)) return;
+    if (chatType != "AISearch")
+      setUserMessage('');
+    else if (userMessage == "" || searchType == "New")
+      setUserMessage(message + ", ");
+    else
+      setUserMessage(userMessage + message + ", ");
+    setCurrentQuery(message);
+    // userMessage += message;
     setMessage('');
     setIsLoading(true);
     setError('');
@@ -132,7 +391,8 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
     // Add user message to chat
     setChatHistory(prev => [...prev, {
       type: 'user',
-      text: userMessage,
+      text: message,
+      isStreaming: true,
       timestamp: new Date().toLocaleTimeString()
     }]);
 
@@ -149,18 +409,31 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
     try {
       // Step 1: Generate AI Embedding
       console.log('🧠 Generating AI embedding for:', userMessage);
-      const embeddingData = await ApiService.generateEmbedding(userMessage);
+      const finalQuery = searchType == "New" ? message : userMessage + message;
+      var sessionIdchat;
+      if (!chatsessionId) {
+        const sessionData = await ApiService.craeteNewSession(message);
+        setChatsessionId(sessionData?.data);
+        sessionIdchat = sessionData?.data?.id;
+      }
+      else {
+        sessionIdchat = chatsessionId?.id;
+      }
+
+
+      const embeddingData = chatType === "AISearch" ? await ApiService.generateEmbedding(finalQuery) : [];
 
       if (!embeddingData) {
         throw new Error('Failed to generate embedding');
       }
 
-      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data;
+
+      const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data || [];
 
       if (!Array.isArray(embeddingVector)) {
         throw new Error('Invalid embedding format received');
       }
-      
+
       console.log(`✅ Embedding generated: ${embeddingVector.length} dimensions`);
 
       let streamedText = '';
@@ -168,18 +441,37 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
 
       // Step 2: Start AI Chat Stream
       let accumulatedText = "";
+      const resultsData = {
+        results: [],
+        totalCount: 1,
+        query: finalQuery,
+        searchType: 'AI Search',
+        timestamp: new Date().toISOString(),
+        courtsList: [],
+        yearList: [],
+        searchData: {
+          query: finalQuery
+        }
+      };
 
+      console.log('💾 Storing results with API data:', resultsData);
+      localStorage.setItem('searchResults', JSON.stringify(resultsData));
       await ApiService.streamAIChat(
-        userMessage,
+        userMessage + message,
+        [selectedCourt],
         embeddingVector,
         {
           searchType: 'chat',
-          pageSize: 10,
-          page: 0,
+          pageSize: newPageSize,
+          page: newPageSearch,
           sortBy: "relevance",
           sortOrder: "desc",
-          prompt: "Find relevant legal cases"
+          prompt: searchMode,
+          inst: message,
+          sessionId: sessionIdchat
         },
+        chatType,
+        '',
         // ✅ onMessage callback
         (chunkText) => {
           if (!chunkText) return;
@@ -188,8 +480,8 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
           if (accumulatedText.length > 0) {
             const lastChar = accumulatedText.slice(-1);
             const firstChar = chunkText.charAt(0);
-            if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;<>?/\\#*!?\n\r]/)) {
-              accumulatedText += '';
+            if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;<>1234567890?/\\#*!?\n\r]/)) {
+              //accumulatedText += ' ';
             }
           }
           accumulatedText += chunkText;
@@ -205,7 +497,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
             msg.id === aiMessageIndex
               ? {
                 ...msg,
-                text: cleanHtml,
+                text: cleanHtml.replaceAll("<a ", "<a target='_blank' "),
                 isStreaming: true
               }
               : msg
@@ -228,14 +520,14 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
         // onComplete
         () => {
           const finalHtml = DOMPurify.sanitize(
-            marked.parse(accumulatedText.replace("data:", "") || 'No response received.', { breaks: true })
+            marked.parse(accumulatedText || 'No response received.', { breaks: true })
           );
 
           setChatHistory(prev => prev.map(msg =>
             msg.id === aiMessageIndex
               ? {
                 ...msg,
-                text: finalHtml,
+                text: finalHtml.replaceAll("<a ", "<a target='_blank' "),
                 isStreaming: false,
                 metadata: {
                   embeddingGenerated: true,
@@ -250,21 +542,148 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
         }
       );
 
-      const resultsData = {
-        results:  [],
-        totalCount: 1,
-        query: userMessage,
-        searchType: 'AI Search', 
-        timestamp: new Date().toISOString(),
-        courtsList:  [],
-        yearList:  [],
-        searchData: {
-          query: userMessage
-        }
-      };
+      loadChatHistory();
 
-      console.log('💾 Storing results with API data:', resultsData);
-      sessionStorage.setItem('searchResults', JSON.stringify(resultsData));
+    } catch (generalError) {
+      console.error('❌ General Error:', generalError);
+
+      setChatHistory(prev => prev.map(msg =>
+        msg.id === aiMessageIndex
+          ? {
+            ...msg,
+            text: `I encountered an error: ${generalError.message}. Please try again.`,
+            isStreaming: false,
+            isError: true
+          }
+          : msg
+      ));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const getDisplayName = () => {
+    if (!userProfile) return 'Loading...';
+
+    return userProfile.displayName ||
+      userProfile.name ||
+      userProfile.username ||
+      (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
+  };
+  // Handle message sending - ONLY API responses
+  const handleSendAIMessage = async (Umessage, text) => {
+
+    if ((!Umessage.trim() || isLoading)) return;
+    if (chatType != "AISearch")
+      setUserMessage('');
+
+    setUserMessage(Umessage + ", ");
+
+    setCurrentQuery(Umessage);
+    // userMessage += message;
+    setMessage('');
+    setIsLoading(true);
+    setError('');
+
+    // Add user message to chat
+    setChatHistory(prev => [...prev, {
+      type: 'user',
+      text: Umessage,
+      isStreaming: true,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+    let accumulatedText = "";
+    // Create placeholder for AI response
+    const aiMessageIndex = Date.now();
+    setChatHistory(prev => [...prev, {
+      type: 'ai',
+      text: '',
+      isStreaming: true,
+      id: aiMessageIndex,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+
+    try {
+
+      await ApiService.streamAIChat(
+        Umessage,
+        [selectedCourt],
+        [],
+        {
+          sessionId: '0'
+        },
+        'Summarizer',
+        text,
+        // ✅ onMessage callback
+        (chunkText) => {
+          if (!chunkText) return;
+          //chunkText = chunkText.startsWith('data:') ? chunkText.substring(6).trim() : chunkText;
+          // Append chunk safely with spacing
+          if (accumulatedText.length > 0) {
+            const lastChar = accumulatedText.slice(-1);
+            const firstChar = chunkText.charAt(0);
+            if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;<>1234567890?/\\#*!?\n\r]/)) {
+              //accumulatedText += ' ';
+            }
+          }
+          accumulatedText += chunkText;
+
+          // Convert Markdown to HTML
+          const rawHtml = marked.parse(accumulatedText, { breaks: true });
+
+          // Sanitize while keeping formatting
+          const cleanHtml = DOMPurify.sanitize(rawHtml);
+
+          // Update chat history
+          setChatHistory(prev => prev.map(msg =>
+            msg.id === aiMessageIndex
+              ? {
+                ...msg,
+                text: cleanHtml.replaceAll("<a ", "<a target='_blank' "),
+                isStreaming: true
+              }
+              : msg
+          ));
+        },
+        // onError
+        (error) => {
+          console.error('❌ Stream error:', error);
+          setChatHistory(prev => prev.map(msg =>
+            msg.id === aiMessageIndex
+              ? {
+                ...msg,
+                text: accumulatedText || 'Sorry, an error occurred while processing your request.',
+                isStreaming: false,
+                isError: true
+              }
+              : msg
+          ));
+        },
+        // onComplete
+        () => {
+          const finalHtml = DOMPurify.sanitize(
+            marked.parse(accumulatedText || 'No response received.', { breaks: true })
+          );
+
+          setChatHistory(prev => prev.map(msg =>
+            msg.id === aiMessageIndex
+              ? {
+                ...msg,
+                text: finalHtml.replaceAll("<a ", "<a target='_blank' "),
+                isStreaming: false,
+                metadata: {
+                  embeddingGenerated: true,
+                  vectorLength: 0,
+                  isApiResponse: true,
+                  searchType: 'AI Chat (Streaming)',
+                  searchQuery: Umessage
+                }
+              }
+              : msg
+          ));
+        }
+      );
+
+
 
     } catch (generalError) {
       console.error('❌ General Error:', generalError);
@@ -360,11 +779,6 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
     setMessage(question);
   };
 
-  const handleVoiceSearch = () => {
-    setIsListening(!isListening);
-    console.log('Voice search clicked');
-  };
-
   const handleSignOut = () => {
     ApiService.clearTokensAndRedirect();
   };
@@ -380,7 +794,13 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
         <div className="sidebar-content">
           <div className="sidebar-section">
 
-            <button className="new-chat-btn" onClick={() => setChatHistory([])}>
+            <button className="new-chat-btn" onClick={() => {
+              setChatHistory([]);
+              setChatsessionId(null);
+              setCurrentQuery("");
+              setUserMessage("");
+            }
+            }>
               <i className="bx bx-plus"></i>
               New Chat
             </button>
@@ -388,10 +808,58 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
 
           <div className="sidebar-section">
             <div className="section-title">History</div>
-            <div className="history-placeholder">
-              <i className="bx bx-history"></i>
-              <span>No previous chats</span>
-            </div>
+
+            {chatsessionsList?.length > 0 ? (
+              chatsessionsList.map((result) => (
+                <div key={result.id} className="chat-item">
+                  <span
+                    className="chat-title"
+                    title={result.subject}
+                    onClick={() => loadChatdata(result.sessionId, result.id)}
+                  >
+                    {result.subject}
+                  </span>
+
+                  <div
+                    className="menu-icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMenu(result.sessionId);
+                    }}
+                  >
+                    <MoreVertical size={18} />
+                  </div>
+
+                  {openMenuId === result.sessionId && (
+                    <ul
+                      className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
+                      style={{
+                        minWidth: '100px',
+                        top: '100%',
+                        right: '50',
+                        zIndex: 9999,
+                        pointerEvents: 'auto'
+                      }}
+                      ref={(el) => (menuRefs.current[result.sessionId] = el)}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <li onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this chat?")) {
+                          handleDelete(result.sessionId);
+                        }
+                      }}>🗑️ Delete</li>
+                      <li onClick={() => handlePrint(result.sessionId)}>📌 Pin</li>
+
+                    </ul>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="history-placeholder">
+                <i className="bx bx-history"></i>
+                <span>No previous chats</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -408,111 +876,114 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
           <div className="sidebar-header">
             <Link to="/dashboard" className="gojuris-logo">
               <img
-                src="/logo.png"
+                src={isGJ ? "/logo.png" : "/logoLe.png"}
                 alt="GoJuris Logo"
-                style={{ height: '40px', width: 'auto' }}
+                style={{ height: '60px', width: 'auto' }}
               />
             </Link>
           </div>
-
+            <label style={{
+            fontSize : "15px"
+          }
+          }>Welcome : {getDisplayName()}</label>
           {/* Account Dropdown */}
-         {/* Account Dropdown */}
-<div className="d-flex align-items-center gap-2">
-  {/* Dashboard Icon Button - Plain */}
-  <button
-    className="btn btn-link p-0"
-    type="button"
-    onClick={() => navigate('/dashboard')}
-    style={{ border: 'none', background: 'transparent' }}
-    title="Dashboard"
-  >
-    <img 
-      src="/dashboard.png" 
-      alt="Dashboard" 
-      style={{ width: '24px', height: '24px', objectFit: 'contain' }}
-    />
-  </button>
+          {/* Account Dropdown */}
+          <div className="d-flex align-items-center gap-2">
+            {/* Dashboard Icon Button - Plain */}
+            <button
+              className="btn btn-link p-0"
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              style={{ border: 'none', background: 'transparent' }}
+              title="Dashboard"
+            >
+              <img
+                src="/dashboard.png"
+                alt="Dashboard"
+                style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+              />
+            </button>
 
-  {/* Bookmark Icon Button - Plain */}
-  <button
-    className="btn btn-link p-0"
-    type="button"
-    onClick={() => setShowBookmarksModal(true)}
-    style={{ border: 'none', background: 'transparent' }}
-    title="Bookmarks"
-  >
-    <img 
-      src="/bookmark.png" 
-      alt="Bookmarks" 
-      style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-    />
-  </button>
+            {/* Bookmark Icon Button - Plain */}
+            <button
+              className="btn btn-link p-0"
+              type="button"
+              onClick={() => setShowBookmarksModal(true)}
+              style={{ border: 'none', background: 'transparent' }}
+              title="Bookmarks"
+            >
+              <img
+                src="/bookmark.png"
+                alt="Bookmarks"
+                style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+              />
+            </button>
 
-  {/* Settings Button */}
-  <button
-    className="btn btn-outline-secondary btn-sm rounded-circle p-2"
-    type="button"
-    onClick={() => setShowSettingsModal(true)}
-    style={{ width: '40px', height: '40px' }}
-  >
-    <i className="bx bx-cog"></i>
-  </button>
+            {/* Settings Button */}
+            <button
+              className="btn btn-outline-secondary btn-sm rounded-circle p-2"
+              type="button"
+              onClick={() => setShowSettingsModal(true)}
+              style={{ width: '40px', height: '40px' }}
+            >
+              <i className="bx bx-cog"></i>
+            </button>
 
-  <div className="dropdown">
-    <button
-      className="btn btn-primary d-flex align-items-center gap-2 px-3"
-      type="button"
-      onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-    >
-      <i className="bx bx-user"></i>
-      <span>My Account</span>
-      <i className="bx bx-chevron-down"></i>
-    </button>
+            <div className="dropdown">
+              <button
+                className="btn btn-primary d-flex align-items-center gap-2 px-3"
+                type="button"
+                onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+              >
+                <i className="bx bx-user"></i>
+                <span>My Account</span>
+                <i className="bx bx-chevron-down"></i>
+              </button>
 
-    {showAccountDropdown && (
-      <div className="dropdown-menu dropdown-menu-end show" style={{ minWidth: '220px' }}>
-        <div className="dropdown-header">
-          <div className="d-flex align-items-center">
-            <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-              style={{ width: '32px', height: '32px' }}>
-              <i className="bx bx-user text-white"></i>
-            </div>
-            <div>
-              <div className="fw-semibold">
-                {userProfile?.username || userProfile?.name || 'Legal User'}
-              </div>
-              <small className="text-muted">
-                {userProfile?.email || 'user@gojuris.com'}
-              </small>
+              {showAccountDropdown && (
+                <div className="dropdown-menu dropdown-menu-end show" style={{ minWidth: '220px' }}>
+                  <div className="dropdown-header">
+                    <div className="d-flex align-items-center">
+                      <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 text-white fw-bold flex-shrink-0"
+                        style={{ width: '40px', height: '40px', fontSize: '14px' }}>
+                         {getUserInitials()}
+                      </div>
+                      <div>
+                        <div className="fw-semibold">
+                          {userProfile?.displayName || userProfile?.name || 'Legal User'}
+                        </div>
+                        <small className="text-muted">
+                          {userProfile?.email || 'user@gojuris.com'}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="dropdown-divider"></div>
+
+                  <a className="dropdown-item" href="#">
+                    <i className="bx bx-user-circle me-2"></i>View Profile
+                  </a>
+                  <a className="dropdown-item" href="#">
+                    <i className="bx bx-credit-card me-2"></i>Billing & Plans
+                  </a>
+                  <a className="dropdown-item" href="#">
+                    <i className="bx bx-history me-2"></i>Search History
+                  </a>
+                  <div className="dropdown-divider"></div>
+
+                  <button className="dropdown-item text-danger" onClick={handleSignOut}>
+                    <i className="bx bx-log-out me-2"></i>Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-        <div className="dropdown-divider"></div>
-
-        <a className="dropdown-item" href="#">
-          <i className="bx bx-user-circle me-2"></i>View Profile
-        </a>
-        <a className="dropdown-item" href="#">
-          <i className="bx bx-credit-card me-2"></i>Billing & Plans
-        </a>
-        <a className="dropdown-item" href="#">
-          <i className="bx bx-history me-2"></i>Search History
-        </a>
-        <div className="dropdown-divider"></div>
-
-        <button className="dropdown-item text-danger" onClick={handleSignOut}>
-          <i className="bx bx-log-out me-2"></i>Sign Out
-        </button>
-      </div>
-    )}
-  </div>
-</div>
         </div>
 
 
         <div className="chat-content">
           <div className="chat-tagline-container">
-            <h2 className="chat-tagline"> Which legal task can we help you accelerate?</h2>
+            <h2 className="chat-tagline">{CurrentQuery}</h2>
           </div>
           <div className="chat-messages">
             {chatHistory.length === 0 ? (
@@ -530,13 +1001,22 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                 >
                   {/* Ask a question - Purple button */}
                   <button
+                    onClick={() => {
+                      setChatHistory([]);
+                      setChatsessionId(null);
+                      setCurrentQuery("");
+                      setUserMessage("");
+                      setChatType('AISearch');
+                    }
+
+                    }
                     style={{
                       padding: "12px 20px",
                       borderRadius: "8px",
                       display: "flex",
                       alignItems: "center",
                       gap: "10px",
-                      background: "#7C3AED",
+                      background: "var(--gj-primary)",
                       color: "white",
                       border: "none",
                       fontWeight: "500",
@@ -551,6 +1031,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                     onMouseLeave={(e) => {
                       e.target.style.background = "#7C3AED";
                     }}
+                    title='Ask anything—get instant case laws, sections, and legal answers.'
                   >
                     <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
                     <span>Ask a question</span>
@@ -558,7 +1039,13 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
 
                   {/* Generate a draft - Coming Soon */}
                   <button
-                    onClick={() => setShowComingSoonModal(true)}
+                    onClick={() => {
+                      setChatHistory([]);
+                      setChatsessionId(null);
+                      setCurrentQuery("");
+                      setUserMessage("");
+                      setChatType('Draft');
+                    }}
                     style={{
                       padding: "12px 20px",
                       borderRadius: "8px",
@@ -582,14 +1069,19 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                       e.target.style.borderColor = "#d1d5db";
                       e.target.style.color = "#6b7280";
                     }}
+                    title='Create ready-to-file legal drafts from a single command.'
+
                   >
                     <i className="bx bx-envelope" style={{ fontSize: "20px" }}></i>
                     <span>Generate a Draft</span>
                   </button>
 
                   {/* Summarize a case - Coming Soon */}
-                  <button
-                    onClick={() => setShowComingSoonModal(true)}
+
+
+
+                  <label for="fileUpload"
+
                     style={{
                       padding: "12px 20px",
                       borderRadius: "8px",
@@ -613,12 +1105,23 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                       e.target.style.borderColor = "#d1d5db";
                       e.target.style.color = "#6b7280";
                     }}
+                    title='Upload a case file and get instant AI-generated summary, issues, ratio, and headnotes.'
                   >
                     <i className="bx bx-receipt" style={{ fontSize: "20px" }}></i>
-                    <span>Summarize a Case</span>
-                  </button>
 
-                  {/* Upload to summarize - Coming Soon */}
+                    {isUploading ? (
+                      <div style={{ marginTop: "10px", fontWeight: "bold" }}>
+                        ⏳ Uploading...
+                      </div>
+                    ) : (<span>Summarize/Analyze a Case</span>)}
+                  </label>
+                  <input
+                    style={{
+                      display: "none"
+                    }}
+                    type="file" onChange={onUploadFile} id="fileUpload" accept=".pdf,.txt,.docx,.doc" />
+
+                  {/* Upload to summarize - Coming Soon 
                   <button
                     onClick={() => setShowComingSoonModal(true)}
                     style={{
@@ -647,7 +1150,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                   >
                     <i className="bx bx-upload" style={{ fontSize: "20px" }}></i>
                     <span>Upload to Summarize or Ask Questions</span>
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* Coming Soon Modal */}
@@ -711,6 +1214,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                     </div>
                   </div>
                 )}
+
               </>
 
 
@@ -728,7 +1232,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                           className="api-response-content"
                           style={{
                             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                            fontSize: '14px',
+                            fontSize: '17px',
                             lineHeight: '1.6',
                             color: '#000'
                           }}
@@ -740,14 +1244,16 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                           wordWrap: 'break-word',
                           fontFamily: 'inherit',
                           margin: 0,
-                          lineHeight: '1.6'
+                          lineHeight: '1.6',
+                          color: '#8B5CF6',
+                          fontWeight: 'bold'
                         }}>
                           {msg.text}
                         </pre>
                       )}
 
                       {/* Show typing indicator for streaming messages */}
-                      {msg.isStreaming && (
+                      {msg.isStreaming && msg.type === 'ai' && (
                         <div className="typing-indicator" style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -755,9 +1261,9 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                           marginTop: '8px',
                           color: '#8B5CF6'
                         }}>
+                          Loading <div className="typing-dot"></div>
                           <div className="typing-dot"></div>
-                          <div className="typing-dot"></div>
-                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div> 
                         </div>
                       )}
                     </div>
@@ -767,17 +1273,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                 {/* API Loading Indicator */}
                 {isLoading && (
                   <div className="message ai">
-                    <div className="message-avatar">
-                      <i className="bx bx-bot"></i>
-                    </div>
-                    <div className="message-content">
-                      <div className="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                      <small className="text-muted">Processing with AI...</small>
-                    </div>
+
                   </div>
                 )}
 
@@ -808,7 +1304,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
                 flexDirection: "column",
                 gap: "0px"
               }}>
-                {quickQuestions.map((question, index) => (
+                {(chatType === 'AISearch' ? quickQuestions : draftExample).map((question, index) => (
                   <button
                     key={index}
                     onClick={() => handleQuickQuestion(question)}
@@ -855,54 +1351,232 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
           )}
         </div>
 
-        <div className="chat-input-section">
-          <form onSubmit={handleSendMessage} className="chat-form">
-            <div className="chat-input-wrapper">
-              <input
-                type="text"
-                className="chat-input"
-                width={"100vw"}
-                placeholder="Ask your legal question here..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                disabled={isLoading}
-              />
-              <div className="input-buttons">
-                <button
+
+        {chatType != 'Summarizer' ? (
+          <div className="chat-input-section">
+            {chatType === 'AISearch' ? (
+
+
+              <div style={{
+                borderColor: "#8b5cf6"
+              }}>
+                <div>
+                  <div className="radio-options">
+                    <label style={{
+                      color: "#8b5cf6",
+                      fontWeight: 'bold',
+                      marginBottom: '5px',
+                      alignSelf: "center"
+                    }}>Answer Mode :</label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="ChatMode"
+                        value="Long"
+                        checked={searchMode === 'Long'}
+                        onChange={(e) => handleInputChange("ChatMode", e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Detailed
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="ChatMode"
+                        value="Short"
+                        checked={searchMode === 'Short'}
+                        onChange={(e) => handleInputChange("ChatMode", e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Quick
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="ChatMode"
+                        value="Deep"
+                        checked={searchMode === 'Deep'}
+                        onChange={(e) => handleInputChange("ChatMode", e.target.value)}
+                      />
+                      <span className="radio-mark"></span>
+                      Deep
+                    </label>
+                    <select id="lstC" className="court-select"
+                      value={selectedCourt}
+                      onChange={(e) => setSelectedCourt(e.target.value)}>
+                      {courts.map((court) => (
+                        <option key={court.key} value={court.key}>
+                          {court.value}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{
+                    position: 'absolute',
+                    right: "33px",
+                    bottom: "80px"
+                  }} class="d-flex"
+
+                  >
+                    {/*  <button
+                  className="btn btn-link p-0"
                   type="button"
-                  className={`voice-btn ${isListening ? 'listening' : ''}`}
-                  onClick={toggleVoiceRecognition}
-                  disabled={isLoading}
-                  title={isListening ? 'Stop recording' : 'Start voice input'}
+                  
+                  style={{ border: 'none', background: 'transparent' }}
+                  title="Share"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleShareMenu();
+                  }}
                 >
-                  {isListening ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                      {/* Add a red recording indicator */}
-                      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
-                    </svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                    </svg>
-                  )}
-                </button>
-                <button
-                  type="submit"
-                  className="send-btn"
-                  disabled={isLoading || !message.trim()}
-                >
-                  <i className="bx bx-send"></i>
-                </button>
+                  <img
+                    src="/i-chat-share-64.png"
+                    alt="Share"
+                    style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                  />
+                </button> */}
+                    {openShareMenuId === true && (
+                      <ul
+                        className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
+                        style={{
+                          minWidth: '100px',
+                          top: '0%', // 👈 below the button
+                          right: '100px',
+                          zIndex: 9999,
+                          pointerEvents: 'auto'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <li onClick={() => handleShare("Share")}>🔗 Share</li>
+                        <li onClick={() => handleShare("Print")}>🖨️ Print</li>
+                        <li onClick={() => handleShare("PDF")}>📄 PDF</li>
+
+                      </ul>
+                    )}
+                    <button
+                      style={{
+                        padding: "5px 20px",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        background: "var(--gj-primary)",
+                        color: "white",
+                        border: "none",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        whiteSpace: "nowrap",
+                        marginBottom: "5px",
+                        marginLeft: "10px"
+
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = "#6D28D9";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "#7C3AED";
+                      }}
+                      onClick={handleSendMessage}
+                      disabled={chatHistory.length < 1}
+                    >
+                      <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
+                      <span>Load More Results</span>
+                    </button>
+
+                  </div>
+                </div>
               </div>
-            </div>
-          </form>
+            ) : (<></>)}
+            <form onSubmit={handleSendMessage} className="chat-form">
+              <div className="chat-input-wrapper">
+                <textarea
+                  row="4"
+
+                  className="chat-input"
+                  width={"100vw"}
+                  placeholder={chatType === 'AISearch' ? "Ask your legal question here..." : "Describe your issue to generate a legal draft instantly"}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled={isLoading}
+                />
+
+                <div className="input-buttons">
+
+                  <button
+                    type="button"
+                    className={`voice-btn ${isListening ? 'listening' : ''}`}
+                    onClick={toggleVoiceRecognition}
+                    disabled={isLoading}
+                    title={isListening ? 'Stop recording' : 'Start voice input'}
+                  >
+                    {isListening ? (
+                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                        {/* Add a red recording indicator */}
+                        <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                      </svg>
+                    ) : (
+                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    type="submit"
+                    className="send-btn"
+                    disabled={isLoading || !message.trim()}
+                  >
+                    <i className="bx bx-send"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+            {chatHistory.length > 0 && 1 == 2 && (
+              <div className="radio-options">
+                <label style={{
+                  color: "#8b5cf6",
+                  fontWeight: 'bold',
+                  alignSelf: "center"
+                }}>Search Options :</label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="SearchType"
+                    value="Continue"
+                    checked={searchType === 'Continue'}
+                    onChange={(e) => handleInputChange("SearchType", e.target.value)}
+                  />
+                  <span className="radio-mark"></span>
+                  Proceed with Current Output
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="SearchType"
+                    value="New"
+                    checked={searchType === 'New'}
+                    onChange={(e) => handleInputChange("SearchType", e.target.value)}
+                  />
+                  <span className="radio-mark"></span>
+                  Search Entire Database
+                </label>
+
+
+              </div>
+            )}
+          </div>
+        ) : (<></>)}
+        <div style={{
+          padding: "4px 30px"
+        }}>
         </div>
+
       </div>
-
-
       {/* Settings Modal */}
       {showSettingsModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
@@ -927,56 +1601,56 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
       )}
 
       {/* Bookmarks Modal */}
-{showBookmarksModal && (
-  <>
-    <div 
-      className="position-fixed top-0 start-0 w-100 h-100"
-      style={{ zIndex: 9998, backgroundColor: 'rgba(0,0,0,0.5)' }}
-      onClick={() => setShowBookmarksModal(false)}
-    ></div>
-    <div 
-      className="modal fade show d-block" 
-      style={{ zIndex: 9999 }}
-    >
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header border-0">
-            <div className="d-flex align-items-center">
-              <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
-                   style={{ width: '40px', height: '40px' }}>
-                <img 
-                  src="/bookmark.png" 
-                  alt="Bookmarks" 
-                  style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-                />
+      {showBookmarksModal && (
+        <>
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{ zIndex: 9998, backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={() => setShowBookmarksModal(false)}
+          ></div>
+          <div
+            className="modal fade show d-block"
+            style={{ zIndex: 9999 }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header border-0">
+                  <div className="d-flex align-items-center">
+                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                      style={{ width: '40px', height: '40px' }}>
+                      <img
+                        src="/bookmark.png"
+                        alt="Bookmarks"
+                        style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                      />
+                    </div>
+                    <h4 className="modal-title mb-0">Bookmarks</h4>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowBookmarksModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body text-center py-5">
+                  <i className="bx bx-bookmark text-muted" style={{ fontSize: '4rem' }}></i>
+                  <h3 className="text-muted mb-3">No Bookmarks Yet</h3>
+                  <p className="text-muted">Save important cases and documents here for quick access later.</p>
+                </div>
+                <div className="modal-footer border-0 justify-content-center">
+                  <button
+                    type="button"
+                    className="btn btn-primary px-4"
+                    onClick={() => setShowBookmarksModal(false)}
+                  >
+                    Got it
+                  </button>
+                </div>
               </div>
-              <h4 className="modal-title mb-0">Bookmarks</h4>
             </div>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() => setShowBookmarksModal(false)}
-            ></button>
           </div>
-          <div className="modal-body text-center py-5">
-            <i className="bx bx-bookmark text-muted" style={{ fontSize: '4rem' }}></i>
-            <h3 className="text-muted mb-3">No Bookmarks Yet</h3>
-            <p className="text-muted">Save important cases and documents here for quick access later.</p>
-          </div>
-          <div className="modal-footer border-0 justify-content-center">
-            <button 
-              type="button" 
-              className="btn btn-primary px-4"
-              onClick={() => setShowBookmarksModal(false)}
-            >
-              Got it
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </>
-)}
+        </>
+      )}
 
       {/* Click outside handlers */}
       {showAccountDropdown && (
@@ -989,12 +1663,141 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
 
       {/* Component Styles */}
       <style jsx>{`
+      /* Sidebar Section */
+.sidebar-section {
+  padding-top: 10px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+   margin-top: 8px;
+  color: #444;
+}
+
+/* Chat item container */
+.chat-item {
+  display: flex;
+  
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 1px;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.chat-item:hover {
+  background-color: #f3f4f6;
+}
+
+/* Chat subject text */
+.chat-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: #333;
+  z-index: 1;
+  transition: color 0.2s;
+}
+.chat-title:hover {
+  color: #000;
+}
+/* Three-dot menu icon */
+.menu-icon {
+  flex-shrink: 0;
+  margin-left: 8px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.menu-icon:hover {
+  color: #000;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  width: 140px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  padding: 4px 0;
+  opacity: 0;
+  transform: translateY(-5px);
+  animation: fadeInMenu 0.15s ease-out forwards;
+}
+
+/* Dropdown items */
+.dropdown-menu li {
+  list-style: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-menu li:hover {
+  background-color: #f3f4f6;
+}
+
+/* Fade animation */
+@keyframes fadeInMenu {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Empty history placeholder */
+.history-placeholder {
+  text-align: center;
+  color: #888;
+  padding: 16px 0;
+}
+
+
         .typing-indicator {
           display: flex;
           gap: 4px;
           align-items: center;
         }
-
+        h3 {
+        font-size: 1.4rem;
+        }
+        strong
+        {
+        font-size: 19px;
+        }
+        .truncate-text11 {
+  display: inline-block;       /* or block */
+  width: 85%;            /* set your desired width */
+  white-space: nowrap;         /* prevent text from wrapping */
+  overflow: hidden;            /* hide overflowing text */
+  text-overflow: ellipsis;     /* show ... when truncated */
+  vertical-align: middle;      /* optional alignment */
+  padding-top : 7px;
+}
         .typing-indicator span {
           height: 8px;
           width: 8px;
@@ -1042,7 +1845,10 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
         .quick-questions-scroll::-webkit-scrollbar {
           display: none;
         }
-
+        .chat-input-section1
+        {
+          border-top: 1px solid #6c53ef;
+        }
         .quick-question-btn-inline {
           background: white;
           border: 1px solid #E5E7EB;
@@ -1070,15 +1876,16 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
         .chat-input-wrapper {
           position: relative;
           display: flex;
-          align-items: center;
+          align-items: top;
         }
 
         .chat-input {
           flex: 1;
-          padding-right: 80px;
+          
           border: 2px solid #8b5cf6;
           border-radius: 25px;
-          padding: 12px 20px;
+          padding: 5px 5px 5px 5px;
+          padding-right: 80px;
           font-size: 14px;
           outline: none;
         }
@@ -1090,12 +1897,28 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
         .input-buttons {
           position: absolute;
           right: 8px;
-          bottom:4px;
+          bottom:12px;
           display: flex;
           gap: 4px;
           align-items: center;
         }
 
+        .radio-options {
+          display: flex;
+          gap: 1.5rem; /* Reduced from 2rem */
+          margin: 0.25rem; /* Reduced from 0.5rem */
+        }
+          .checkbox-label,
+        .radio-label {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem; /* Reduced from 0.5rem */
+          cursor: pointer;
+          font-size: 0.9rem; /* Reduced from 0.875rem */
+          color: rgb(139, 92, 246);
+          user-select: none;
+          font-weight: 700;
+        }
         .voice-btn, .send-btn {
           background: none;
           border: none;
@@ -1155,13 +1978,23 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
           font-family: inherit;
           margin: 0;
           text-align:right;
+          font-size: 17px;
         }
-          .api-response-content {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
-}
+    
+        .court-select {
+          padding: 6px 30px 6px 12px;
+          border: 1px solid rgb(139, 92, 246);;
+          border-radius: 4px;
+          paddind-bottom : "5px";
+          font-size: 14px;
+          background: white;
+          cursor: pointer;
+          color: rgb(139, 92, 246);
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 8px center;
+        }
 
 .api-response-content p:first-child {
   margin-top: 0;
@@ -1256,15 +2089,15 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
 /* Tagline styling */
 .chat-tagline-container {
   text-align: left;
-  padding: 0rem 0.5rem 0rem 0.5rem;
-  margin-bottom: 1rem;
+  padding: .5rem 0.5rem .5rem 0.5rem;
 }
 
 .chat-tagline {
   font-size: 1.75rem;
-  font-weight: 600;
+  font-weight: 300;
   color: var(--gj-dark);
   margin: 0;
+  margin-top: 5px;
   line-height: 1.3;
   letter-spacing: -0.025em;
 }
@@ -1276,7 +2109,7 @@ const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this
   }
   
   .chat-tagline-container {
-    padding: 1.5rem 1rem 0.75rem;
+    padding: .5rem 1rem 0.5rem;
   }
 }
 

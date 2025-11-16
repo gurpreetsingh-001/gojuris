@@ -1,6 +1,7 @@
 // src/services/apiService.js - COMPLETE FILE WITH ALL FUNCTIONALITY
 class ApiService {
   constructor() {
+   // this.baseURL = 'http://localhost:8001';
     this.baseURL = 'https://api.gojuris.ai';
     this.defaultTimeout = 30000;
   }
@@ -778,6 +779,85 @@ class ApiService {
     }
   }
 
+  // Get user info function
+  async craeteNewSession (message) {
+    try {
+      const response = await fetch(`${this.baseURL}/ChatHistory/create-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': '*/*'
+        },
+        body: JSON.stringify({
+          message: message
+        })
+      });
+
+      const data = await response.json();
+      return { success: response.ok, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get user info function
+  async getChatHistorySessions () {
+    try {
+      const response = await fetch(`${this.baseURL}/ChatHistory/historylist`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': '*/*'
+        }
+      });
+
+      const data = await response.json();
+      return { success: response.ok, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get user info function
+  // Get user info function
+  async getChatHistoryBySessionId (sessionId) {
+    try {
+      const response = await fetch(`${this.baseURL}/ChatHistory/history/${sessionId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': '*/*'
+        }
+      });
+
+      const data = await response.json();
+      return { success: response.ok, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteChatHistoryBySessionId (sessionId) {
+    try {
+      const response = await fetch(`${this.baseURL}/ChatHistory/delete-session/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': '*/*'
+        }
+      });
+
+      const data = await response.json();
+      return { success: response.ok, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   // AI Search using /Judgement/Search with queryVector (as per developer note)
   // Add this method to your existing ApiService class
 
@@ -921,25 +1001,37 @@ class ApiService {
   }
   // ================ STREAMING AI CHAT METHOD ================
   // ================ STREAMING AI CHAT METHOD ================
-  async streamAIChat(userQuery, embeddingVector, options = {}, onMessage, onError, onComplete) {
+  async streamAIChat(userQuery,UserCourt, embeddingVector, options = {},chatType, textOutput, onMessage, onError, onComplete) {
     console.log('🌊 Starting AI Chat Stream...');
-    const payload = {
+    const payload =chatType ==='AISearch' ?  {
       requests: [
         {
           query: userQuery,
-          queryVector: embeddingVector
+          queryVector: embeddingVector,
+          mainkeys: UserCourt
         }
       ],
+      
       sortBy: options.sortBy || "relevance",
       sortOrder: options.sortOrder || "desc",
       page: options.page || 1,
       pageSize: options.pageSize || 5,
       inst: options.inst || "",
-      prompt: options.prompt || "Find relevant legal cases"
-    };
+      prompt: options.prompt || "Find relevant legal cases",
+      sessionId : options.sessionId,
+    }
+    :
+    {
+      q: userQuery,
+      sessionId : options.sessionId,
+      textOutput : textOutput,
+      type : chatType
+    }
+    ;
 
     try {
-      const response = await fetch(`${this.baseURL}/Judgement/AIChat`, {
+      const chatapi = chatType === 'AISearch' ? "/Judgement/AIChat" : "/AI/AIGenerate";
+      const response = await fetch(`${this.baseURL}${chatapi}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -964,24 +1056,15 @@ class ApiService {
             break;
           }
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n\n');
-          buffer = lines.pop() || ''; // keep incomplete line
+          const data = decoder.decode(value, { stream: true });
 
-          for (const line of lines) {
-            if (!line.trim()) continue;
-
-            if (line.startsWith('data: ')) {
-              const data = line.substring(6).trim();
-              if (data === '[DONE]') {
-                if (onComplete) onComplete();
-                return;
-              }
-              if (data && onMessage) {
-                // Send raw chunk to React for accumulation
-                onMessage(data);
-              }
-            }
+          if (data.toString() === '[DONE]') {
+            if (onComplete) onComplete();
+            return;
+          }
+          if (data && onMessage) {
+            // Send raw chunk to React for accumulation
+            onMessage(data.toString());
           }
         }
       } finally {
@@ -1107,7 +1190,11 @@ class ApiService {
 
       case "keyword":
         if (typeof data === "string") return { query: data };
-        return this.cleanObject({ query: data.query });
+        return this.cleanObject({ query: data.query, type: data.type, querySlop: data.querySlop, searchIn: data.searchIn });
+
+      case "Nominal":
+        if (typeof data === "string") return { party: data };
+        return this.cleanObject({ party: data.party, searchIn: data.searchIn });
 
       default:
         throw new Error(`Unknown search type: ${type}`);
@@ -1131,9 +1218,65 @@ class ApiService {
         ? "Citation search by journal, year, volume, and page"
         : "Find relevant legal cases using AI/Keyword search"),
     });
+    localStorage.setItem('searchPayload', JSON.stringify(payload));
+    //console.log('Final Payload:', JSON.stringify(payload, null, 2));
 
-    console.log('Final Payload:', JSON.stringify(payload, null, 2));
+    try {
+      const response = await fetch(`${this.baseURL}/Judgement/Search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Search Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Search Response:', result);
+      return result;
+
+    } catch (error) {
+      console.error(`❌ ${type.toUpperCase()} Search Error:`, error);
+      throw new Error(`${type} search failed: ${error.message}`);
+    }
+  }
+
+  async executeAllSearch(payload) {
+    
+    localStorage.setItem('searchPayload', JSON.stringify(payload));
+    //console.log('Final Payload:', JSON.stringify(payload, null, 2));
+
+    try {
+      const response = await fetch(`${this.baseURL}/Judgement/Search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Search Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Search Response:', result);
+      return result;
+
+    } catch (error) {
+      console.error(`❌ ${type.toUpperCase()} Search Error:`, error);
+      throw new Error(`${type} search failed: ${error.message}`);
+    }
+  }
+
+  async executeSearchFilter(payload) {
     try {
       const response = await fetch(`${this.baseURL}/Judgement/Search`, {
         method: 'POST',
@@ -1165,7 +1308,10 @@ class ApiService {
   }
 
   async searchKeyword(query, options = {}) {
-    return this.executeSearch("keyword", typeof query === "string" ? query : { query }, options);
+    return this.executeSearch("keyword",query , options);
+  }
+  async searchNominal(query, options = {}) {
+    return this.executeSearch("Nominal",query , options);
   }
 
   async searchCitation(citationData, options = {}) {
@@ -1173,21 +1319,21 @@ class ApiService {
   }
 
   // ================ USER PERMISSIONS API ================
-async getUserPermissions() {
-  try {
-    console.log('🔐 Fetching user permissions (courts, acts, others)');
-    
-    const data = await this.makeRequest('/User/GetUserPermissions', {
-      method: 'GET'
-    });
-    
-    console.log('✅ User permissions loaded:', data);
-    return data;
-  } catch (error) {
-    console.error('❌ Failed to fetch user permissions:', error);
-    throw error;
+  async getUserPermissions() {
+    try {
+      console.log('🔐 Fetching user permissions (courts, acts, others)');
+
+      const data = await this.makeRequest('/User/GetUserPermissions', {
+        method: 'GET'
+      });
+
+      console.log('✅ User permissions loaded:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ Failed to fetch user permissions:', error);
+      throw error;
+    }
   }
-}
 }
 
 // Create singleton instance

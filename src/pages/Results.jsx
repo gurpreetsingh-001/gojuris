@@ -5,24 +5,24 @@ import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ApiService from '../services/apiService';
 
+
+
 // Searchable Dropdown Component
-const SearchableDropdown = ({ 
-  items, 
-  selectedItem, 
-  onSelect, 
-  isOpen, 
-  onToggle, 
+const SearchableDropdown = ({
+  items,
+  selectedItem,
+  onSelect,
+  isOpen,
+  onToggle,
   placeholder,
   icon,
   className = ""
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-
   // Filter items based on search term
   const filteredItems = items.filter(item =>
     item.toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   // Clear search term when dropdown closes
   React.useEffect(() => {
     if (!isOpen) {
@@ -36,13 +36,14 @@ const SearchableDropdown = ({
     onToggle(false);
   };
 
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
   const handleSearchKeyDown = (e) => {
     e.stopPropagation();
-    
+
     if (e.key === 'Enter' && filteredItems.length > 0) {
       handleItemSelect(filteredItems[0]);
     }
@@ -50,7 +51,7 @@ const SearchableDropdown = ({
 
   return (
     <div className={`dropdown-container ${className}`}>
-      <button 
+      <button
         className="filter-btn dropdown-toggle"
         onClick={(e) => {
           e.preventDefault();
@@ -61,7 +62,7 @@ const SearchableDropdown = ({
         {icon && <i className={`${icon} me-1`}></i>}
         {selectedItem}
       </button>
-      
+
       {isOpen && (
         <div className="dropdown-menu searchable-dropdown" style={{ display: 'block' }}>
           {/* Search Input */}
@@ -117,12 +118,12 @@ const Results = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [embeddingVector, setEmbeddingVector] = useState(null);
   const [searchData, setSearchData] = useState(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [resultsPerPage] = useState(25);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   // Filter states
   const [refineText, setRefineText] = useState('');
   const [selectedYear, setSelectedYear] = useState('All Years');
@@ -135,23 +136,34 @@ const Results = () => {
   // API response data
   const [apiCourtsList, setApiCourtsList] = useState([]);
   const [apiYearsList, setApiYearsList] = useState([]);
+  const [openSortMenuId, setOpenSortMenuId] = useState(false);
+  const [sortMode, setSortMode] = useState("");
+  const [isAi, setIsAi] = useState(false);
 
+  const handleSort = (item) => {
+    setSortMode(item)
+    setOpenSortMenuId(false);
+    handlePageChange(1, item);
+  };
+  const toggleSortMenu = () => {
+    setOpenSortMenuId(true);
+  };
   useEffect(() => {
     document.body.style.paddingTop = '0';
     return () => {
       document.body.style.paddingTop = '';
     };
   }, []);
-    
+
   useEffect(() => {
     // Load search results from sessionStorage
-    const savedResults = sessionStorage.getItem('searchResults');
-    
+    const savedResults = localStorage.getItem('searchResults');
+
     if (savedResults) {
       try {
         const resultsData = JSON.parse(savedResults);
         const results = resultsData.results || [];
-        
+        debugger;
         setAllResults(results);
         setFilteredResults(results);
         setDisplayedResults(results);
@@ -160,10 +172,10 @@ const Results = () => {
         setSearchType(resultsData.searchType || 'Search');
         setEmbeddingVector(resultsData.embeddingVector || null);
         setSearchData(resultsData.searchData || null);
-        
+
         // NEW: Extract filters from API response
         extractFiltersFromApiResponse(resultsData);
-        
+
       } catch (error) {
         console.error('Failed to parse search results:', error);
         setAllResults([]);
@@ -173,84 +185,62 @@ const Results = () => {
     } else {
       navigate('/ai-search');
     }
-    
+
     setIsLoading(false);
   }, [navigate]);
 
   // NEW: Extract filter options from API response
   // Updated extractFiltersFromApiResponse function in Results.jsx
-const extractFiltersFromApiResponse = (resultsData) => {
-  console.log('🔍 Extracting filters from API response:', resultsData);
-  
-  // Extract years from yearList (API response format)
-  if (resultsData.yearList && Array.isArray(resultsData.yearList)) {
-    const years = resultsData.yearList
-      .map(item => item.key)
-      .sort((a, b) => b - a); // Sort newest first
-    
-    setApiYearsList(resultsData.yearList);
-    setAvailableYears(['All Years', ...years]);
-    console.log('📅 Available years from API:', years);
-  } else {
-    // Fallback: extract from results
-    extractFiltersFromResults(resultsData.results || []);
-  }
-  
-  // Extract courts from courtsList (API response format)
-  if (resultsData.courtsList && Array.isArray(resultsData.courtsList)) {
-    // Enhanced court mapping with more comprehensive list
-    const courtMap = {
-      'SC': 'Supreme Court Of India',
-      'PHHC': 'Punjab And Haryana High Court',
-      'JK': 'Jammu And Kashmir High Court', 
-      'BOM': 'Bombay High Court',
-      'DEL': 'Delhi High Court',
-      'CAL': 'Calcutta High Court',
-      'MAD': 'Madras High Court',
-      'KAR': 'Karnataka High Court',
-      'AP': 'Andhra Pradesh High Court',
-      'TEL': 'Telangana High Court',
-      'GUJ': 'Gujarat High Court',
-      'RAJ': 'Rajasthan High Court',
-      'MP': 'Madhya Pradesh High Court',
-      'CHH': 'Chhattisgarh High Court',
-      'ORI': 'Orissa High Court',
-      'JHA': 'Jharkhand High Court',
-      'BIH': 'Patna High Court',
-      'ALL': 'Allahabad High Court',
-      'UK': 'Uttarakhand High Court',
-      'HP': 'Himachal Pradesh High Court',
-      'MAN': 'Manipur High Court',
-      'MEG': 'Meghalaya High Court',
-      'TRI': 'Tripura High Court',
-      'SIK': 'Sikkim High Court',
-      'GAU': 'Gauhati High Court',
-      'KER': 'Kerala High Court'
-    };
-    
-    const courts = resultsData.courtsList
-      .map(item => {
-        const courtName = courtMap[item.key] || item.key;
-        return {
-          key: item.key,
-          name: courtName,
-          count: item.count
-        };
-      })
-      .sort((a, b) => b.count - a.count); // Sort by count (highest first)
-    
-    setApiCourtsList(resultsData.courtsList);
-    
-    // Use only the court names for the dropdown
-    const courtNames = courts.map(court => court.name);
-    setAvailableCourts(['All Courts', ...courtNames]);
-    
-    console.log('🏛️ Available courts from API:', courts);
-  } else {
-    // Fallback: extract from results
-    extractFiltersFromResults(resultsData.results || []);
-  }
-};
+  const extractFiltersFromApiResponse = (resultsData) => {
+    console.log('🔍 Extracting filters from API response:', resultsData);
+    setIsAi(resultsData.searchType == "AI Search");
+    // Extract years from yearList (API response format)
+    if (resultsData.yearList && Array.isArray(resultsData.yearList)) {
+      const years = resultsData.yearList
+        .map(item => resultsData.searchType == "AI Search" ? item.key : `${item.key} (${item.count})`)
+        .sort((a, b) => b - a); // Sort newest first
+      setApiYearsList(resultsData.yearList);
+      setAvailableYears(['All Years', ...years]);
+      console.log('📅 Available years from API:', years);
+    } else {
+      // Fallback: extract from results
+      extractFiltersFromResults(resultsData.results || []);
+    }
+
+    // Extract courts from courtsList (API response format)
+    if (resultsData.courtsList && Array.isArray(resultsData.courtsList)) {
+      // Enhanced court mapping with more comprehensive list
+      const data = localStorage.getItem('userp')
+
+      var courtMap = JSON.parse(data)?.courts;
+
+
+
+      const merged = resultsData.courtsList
+        .map(k => {
+          const match = courtMap.find(p => p.key === k.key);
+          return match ? { ...k, value: match.value } : null;
+        })
+        .filter(Boolean);
+
+      // 2️⃣ Sort by value
+      merged.sort((a, b) => a.value.localeCompare(b.value));
+
+      // 3️⃣ Convert to string format "value(count)"
+      const courtNames = merged.map(item => resultsData.searchType == "AI Search" ? `${item.value}` : `${item.value} (${item.count})`);// (${item.count})
+
+      setApiCourtsList(resultsData.courtsList);
+
+      // Use only the court names for the dropdown
+      // const courtNames = courts.map(court => court.name);
+      setAvailableCourts(['All Courts', ...courtNames]);
+
+      //console.log('🏛️ Available courts from API:', courts);
+    } else {
+      // Fallback: extract from results
+      extractFiltersFromResults(resultsData.results || []);
+    }
+  };
 
   // Extract unique years and courts with normalization (fallback)
   const extractFiltersFromResults = (results) => {
@@ -263,7 +253,7 @@ const extractFiltersFromApiResponse = (resultsData) => {
         try {
           const dateStr = result.date.toString();
           let year = null;
-          
+
           if (dateStr.length === 8) {
             year = dateStr.substring(0, 4);
           } else if (dateStr.includes('/')) {
@@ -274,7 +264,7 @@ const extractFiltersFromApiResponse = (resultsData) => {
           } else if (dateStr.includes('-')) {
             year = dateStr.split('-')[0];
           }
-          
+
           if (year && year.length === 4 && !isNaN(year)) {
             years.add(year);
           }
@@ -303,150 +293,118 @@ const extractFiltersFromApiResponse = (resultsData) => {
   // Apply filters with better logic
   useEffect(() => {
     const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
-    
+
     if (hasFilters) {
       // When filters are applied, we need to go back to page 1 and search the full dataset
       // This is because we can't filter API results locally - we only have 25 results at a time
-      
+
       if (currentPage > 1) {
         console.log('Filter applied on page > 1, resetting to page 1');
         setCurrentPage(1);
         return; // Let the page change handle the filtering
       }
-      
-      // Apply filters to page 1 results
-      let filtered = [...allResults];
-
-      // Apply refine text filter
-      if (refineText && refineText.trim()) {
-        const searchTerm = refineText.trim().toLowerCase();
-        filtered = filtered.filter(result => {
-          const title = formatResultTitle(result).toLowerCase();
-          const court = (result.court || '').toLowerCase();
-          const content = formatResultContent(result).toLowerCase();
-          const date = formatDate(result).toLowerCase();
-          
-          return title.includes(searchTerm) || 
-                 court.includes(searchTerm) || 
-                 content.includes(searchTerm) ||
-                 date.includes(searchTerm);
-        });
+      else {
+        handlePageChange(1);
       }
+      //setFilteredResults(filtered);
 
-      // Apply year filter
-      if (selectedYear && selectedYear !== 'All Years') {
-        filtered = filtered.filter(result => {
-          if (!result.date) return false;
-          
-          try {
-            const dateStr = result.date.toString();
-            let resultYear = null;
-            
-            if (dateStr.length === 8) {
-              resultYear = dateStr.substring(0, 4);
-            } else if (dateStr.includes('/')) {
-              const parts = dateStr.split('/');
-              if (parts.length === 3) {
-                resultYear = parts[2];
-              }
-            } else if (dateStr.includes('-')) {
-              resultYear = dateStr.split('-')[0];
-            }
-            
-            return resultYear === selectedYear;
-          } catch (error) {
-            return false;
-          }
-        });
-      }
 
-      // Apply court filter with normalization
-      // In pages/Results.jsx - Update the court filtering logic in the useEffect
-// Apply court filter with API court mapping
-if (selectedCourt && selectedCourt !== 'All Courts') {
-  filtered = filtered.filter(result => {
-    if (!result.court) return false;
-    
-    // Create reverse mapping from display names to API abbreviations
-    const displayToApiMap = {
-      'Supreme Court Of India': ['SC', 'SUPREME COURT OF INDIA'],
-      'Bombay High Court': ['BOM', 'BOMBAY HIGH COURT'],
-      'Punjab And Haryana High Court': ['PHHC', 'PUNJAB AND HARYANA HIGH COURT', 'PUNJAB & HARYANA HIGH COURT'],
-      'Jammu And Kashmir High Court': ['JK', 'JAMMU AND KASHMIR HIGH COURT', 'JAMMU & KASHMIR HIGH COURT'],
-      'Delhi High Court': ['DEL', 'DELHI HIGH COURT'],
-      'Calcutta High Court': ['CAL', 'CALCUTTA HIGH COURT'],
-      'Madras High Court': ['MAD', 'MADRAS HIGH COURT'],
-      'Karnataka High Court': ['KAR', 'KARNATAKA HIGH COURT'],
-      'Andhra Pradesh High Court': ['AP', 'ANDHRA PRADESH HIGH COURT'],
-      'Telangana High Court': ['TEL', 'TELANGANA HIGH COURT'],
-      'Gujarat High Court': ['GUJ', 'GUJARAT HIGH COURT'],
-      'Rajasthan High Court': ['RAJ', 'RAJASTHAN HIGH COURT'],
-      'Madhya Pradesh High Court': ['MP', 'MADHYA PRADESH HIGH COURT'],
-      'Chhattisgarh High Court': ['CHH', 'CHHATTISGARH HIGH COURT'],
-      'Orissa High Court': ['ORI', 'ORISSA HIGH COURT'],
-      'Jharkhand High Court': ['JHA', 'JHARKHAND HIGH COURT'],
-      'Patna High Court': ['BIH', 'PATNA HIGH COURT'],
-      'Allahabad High Court': ['ALL', 'ALLAHABAD HIGH COURT'],
-      'Uttarakhand High Court': ['UK', 'UTTARAKHAND HIGH COURT'],
-      'Himachal Pradesh High Court': ['HP', 'HIMACHAL PRADESH HIGH COURT'],
-      'Manipur High Court': ['MAN', 'MANIPUR HIGH COURT'],
-      'Meghalaya High Court': ['MEG', 'MEGHALAYA HIGH COURT'],
-      'Tripura High Court': ['TRI', 'TRIPURA HIGH COURT'],
-      'Sikkim High Court': ['SIK', 'SIKKIM HIGH COURT'],
-      'Gauhati High Court': ['GAU', 'GAUHATI HIGH COURT'],
-      'Kerala High Court': ['KER', 'KERALA HIGH COURT']
-    };
-    
-    const resultCourtUpper = result.court.toUpperCase().trim();
-    const possibleMatches = displayToApiMap[selectedCourt] || [selectedCourt.toUpperCase()];
-    
-    // Check if result court matches any of the possible variations
-    return possibleMatches.some(match => 
-      resultCourtUpper.includes(match) || match.includes(resultCourtUpper)
-    );
-  });
-}
-
-      console.log(`Filters applied: ${filtered.length} results from ${allResults.length} total`);
-      setFilteredResults(filtered);
     } else {
       // No filters - use all results
-      setFilteredResults(allResults);
+      handlePageChange(1);
+
     }
-  }, [refineText, selectedYear, selectedCourt, allResults, currentPage]);
+  }, [selectedYear, selectedCourt]); //, allResults, currentPage
 
   // Update pagination to handle filter resets
   useEffect(() => {
     const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
-    
     if (hasFilters) {
       // Use filtered results for pagination (local only)
-      const total = Math.ceil(filteredResults.length / resultsPerPage);
-      setTotalPages(total);
-      
+      const total = Math.ceil(totalResults / resultsPerPage);
+
+      setTotalPages(total > 400 ? 400 : total);
+
       const startIndex = (currentPage - 1) * resultsPerPage;
       const endIndex = startIndex + resultsPerPage;
-      setDisplayedResults(filteredResults.slice(startIndex, endIndex));
+      //setDisplayedResults(filteredResults.slice(startIndex, endIndex));
     } else {
       // Use total API results for pagination
       const total = Math.ceil(totalResults / resultsPerPage);
-      setTotalPages(total);
-      
+      setTotalPages(total > 400 ? 400 : total);
+
       // Only update displayedResults if we're on page 1 or if we just cleared filters
       if (currentPage === 1 && allResults.length > 0) {
-        setDisplayedResults(allResults);
+        //setDisplayedResults(allResults);
       }
     }
   }, [filteredResults, currentPage, resultsPerPage, totalResults]);
 
   // Handle pagination with API calls
-  const handlePageChange = async (page) => {
-    if (page >= 1 && page <= totalPages && !isLoading) {
+  const handlePageChange = async (page, sortm) => {
+    debugger;
+    if (page >= 1 && !isLoading) {
       setIsLoading(true);
-      
+
       try {
         const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
-        
+        var payload = JSON.parse(localStorage.getItem('searchPayload'));
+        payload.page = page;
+        if (selectedYear && selectedYear !== 'All Years') {
+          payload.requests[0].yearFrom = selectedYear.split('(')[0].trim();
+          payload.requests[0].yearTo = selectedYear.split('(')[0].trim();
+        }
+        if (selectedCourt && selectedCourt !== 'All Courts') {
+          const data = localStorage.getItem('userp');
+          var courtMap = JSON.parse(data)?.courts;
+          const match = courtMap.find(p => p.value === selectedCourt.split('(')[0].trim());
+          payload.requests[0].mainkeys = [match.key];
+        }
+        if (!sortm && sortMode != "") {
+          payload.sortBy = sortMode === 'most-relevant' ? 'rele' :
+            sortMode === 'most-recent' ? 'year' :
+              sortMode === 'most-referred' ? 'rele' : 'year';
+          payload.sortOrder = sortMode === 'oldest' ? 'asc' : 'desc';
+
+        }
+        if (sortm) {
+          payload.sortBy = sortm === 'most-relevant' ? 'rele' :
+            sortm === 'most-recent' ? 'year' :
+              sortm === 'most-referred' ? 'rele' : 'year';
+          payload.sortOrder = sortm === 'oldest' ? 'asc' : 'desc';
+
+        }
+        if (refineText.trim()) {
+          payload.requests.push({ query: refineText.trim() });
+        }
+        const apiResponse = await ApiService.executeSearchFilter(
+          payload
+        );
+        setTotalResults(apiResponse.total);
+        const total = Math.ceil(apiResponse.total / resultsPerPage);
+        setTotalPages(total > 400 ? 400 : total);
+        setDisplayedResults(apiResponse.hits || []);
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      } catch (error) {
+        console.error('Pagination failed:', error);
+        const startIndex = (page - 1) * resultsPerPage;
+        const endIndex = startIndex + resultsPerPage;
+        setDisplayedResults(allResults.slice(startIndex, endIndex));
+        setCurrentPage(page);
+      }
+
+      setIsLoading(false);
+    }
+  };
+  const handlePageChangebyc = async (page) => {
+    if (page >= 1 && page <= totalPages && !isLoading) {
+      setIsLoading(true);
+
+      try {
+        const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
+
         if (hasFilters) {
           const startIndex = (page - 1) * resultsPerPage;
           const endIndex = startIndex + resultsPerPage;
@@ -455,8 +413,8 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
         } else {
           if (embeddingVector && searchType === 'AI Search') {
             const apiResponse = await ApiService.searchWithAI(
-              searchQuery, 
-              embeddingVector, 
+              searchQuery,
+              embeddingVector,
               {
                 pageSize: 25,
                 page: page,
@@ -464,7 +422,7 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
                 sortOrder: "desc"
               }
             );
-            
+
             setDisplayedResults(apiResponse.hits || []);
             setCurrentPage(page);
           }
@@ -478,7 +436,7 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
                 sortOrder: "desc"
               }
             );
-            
+
             setDisplayedResults(apiResponse.hits || []);
             setCurrentPage(page);
           }
@@ -492,7 +450,7 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
                 sortOrder: "desc"
               }
             );
-            
+
             setDisplayedResults(apiResponse.hits || []);
             setCurrentPage(page);
           } else {
@@ -502,9 +460,9 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
             setCurrentPage(page);
           }
         }
-        
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        
+
       } catch (error) {
         console.error('Pagination failed:', error);
         const startIndex = (page - 1) * resultsPerPage;
@@ -512,13 +470,14 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
         setDisplayedResults(allResults.slice(startIndex, endIndex));
         setCurrentPage(page);
       }
-      
+
       setIsLoading(false);
     }
   };
 
   const handleRefineSearch = () => {
     setCurrentPage(1);
+    handlePageChange(1);
   };
 
   const handleClearFilters = () => {
@@ -531,10 +490,10 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
   const generatePaginationButtons = () => {
     const buttons = [];
     const maxVisible = 5;
-    
+
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage + 1 < maxVisible) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
@@ -557,7 +516,7 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
   // Format functions
   const formatResultContent = (result) => {
     let content = '';
-    
+
     if (result.headnoteAll) {
       content = result.headnoteAll;
     } else if (result.newHeadnote) {
@@ -571,7 +530,7 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
     } else {
       content = 'Content not available';
     }
-    
+
     return content.length > 800 ? content.substring(0, 800) + '...' : content;
   };
 
@@ -579,11 +538,11 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
     if (result.appellant && result.respondent) {
       return `${result.appellant} vs ${result.respondent}`;
     }
-    
-    if (result.keycode) {
-      return `Case ${result.keycode}`;
+
+    if (result.id) {
+      return `Case ${result.id}`;
     }
-    
+
     return 'Legal Case';
   };
 
@@ -610,44 +569,44 @@ if (selectedCourt && selectedCourt !== 'All Courts') {
   };
 
   // In Results.jsx - Update the handleJudgementClick function
-const handleJudgementClick = (keycode, event) => {
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-  
-  if (keycode) {
-    // Store navigation data for judgement page
-    const currentIndex = displayedResults.findIndex(result => result.keycode === keycode);
-    const navigationData = {
-      currentIndex: currentIndex,
-      results: displayedResults.map(result => ({
-        keycode: result.keycode,
-        title: formatResultTitle(result),
-        court: result.court,
-        date: result.date
-      })),
-      searchQuery: searchQuery,
-      totalResults: totalResults,
-      currentPage: currentPage
-    };
-    
-    sessionStorage.setItem('judgementNavigation', JSON.stringify(navigationData));
-    navigate(`/judgement/${keycode}`);
-  }
-};
+  const handleJudgementClick = (keycode, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (keycode) {
+      // Store navigation data for judgement page
+      const currentIndex = displayedResults.findIndex(result => result.id === keycode);
+      const navigationData = {
+        currentIndex: currentIndex,
+        results: displayedResults.map(result => ({
+          keycode: result.id,
+          title: formatResultTitle(result),
+          court: result.court,
+          date: result.date
+        })),
+        searchQuery: searchQuery,
+        totalResults: totalResults,
+        currentPage: currentPage
+      };
+
+      sessionStorage.setItem('judgementNavigation', JSON.stringify(navigationData));
+      navigate(`/judgement/${keycode}`);
+    }
+  };
 
   const highlightText = (text, query) => {
     if (!text || !query) return { __html: text };
-    
+
     const words = query.toLowerCase().split(' ').filter(word => word.length > 2);
     let highlightedText = text;
-    
+
     words.forEach(word => {
       const regex = new RegExp(`(${word})`, 'gi');
       highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
     });
-    
+
     return { __html: highlightedText };
   };
 
@@ -669,12 +628,12 @@ const handleJudgementClick = (keycode, event) => {
   }
 
   const hasFilters = refineText.trim() || selectedYear !== 'All Years' || selectedCourt !== 'All Courts';
-  const currentDisplayCount = hasFilters ? filteredResults.length : totalResults;
+  const currentDisplayCount = totalResults;
 
   return (
     <div className="gojuris-layout">
       <Sidebar />
-      
+
       <div className="gojuris-main">
         <Navbar />
 
@@ -704,15 +663,15 @@ const handleJudgementClick = (keycode, event) => {
                 Previous
               </button>
             )}
-            
+
             {generatePaginationButtons()}
-            
+
             {currentPage < totalPages && (
               <button className="page-btn" onClick={() => handlePageChange(currentPage + 1)}>
                 Next
               </button>
             )}
-            
+
             {totalPages > 1 && (
               <button className="page-btn" onClick={() => handlePageChange(totalPages)}>
                 Last
@@ -722,20 +681,20 @@ const handleJudgementClick = (keycode, event) => {
 
           <div className="filter-actions">
             <div className="search-type-field">
-              <input 
-                type="text" 
-                placeholder="Type to search in results" 
+              <input
+                type="text"
+                placeholder="Type to search in results"
                 className="act-search-input"
                 value={refineText}
                 onChange={(e) => setRefineText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleRefineSearch()}
               />
             </div>
-            
+
             <button className="refine-btn" onClick={handleRefineSearch}>
               Refine
             </button>
-            
+
             {/* NEW: Searchable Year Dropdown */}
             <SearchableDropdown
               items={availableYears}
@@ -771,16 +730,40 @@ const handleJudgementClick = (keycode, event) => {
               placeholder="courts"
               icon="bx bx-building"
             />
-            
+
             <button className="filter-btn">
               <i className="bx bx-history me-1"></i>
               Search History
             </button>
-            
-            <button className="filter-btn dropdown-toggle">
-              <i className="bx bx-sort me-1"></i>
-              Most Relevance
-            </button>
+            <div class="position-relative">
+              <button className="filter-btn dropdown-toggle" onClick={(e) => {
+                e.stopPropagation();
+                toggleSortMenu();
+              }}
+                disabled={isAi}>
+                <i className="bx bx-sort me-1"></i>
+                Sort Result
+              </button>
+
+              {openSortMenuId === true && (
+                <ul
+                  className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
+                  style={{
+                    minWidth: '150px',
+                    top: '100%',
+                    right: '0',
+                    zIndex: 9999,
+                    pointerEvents: 'auto',
+                    padding: "5px"
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <li onClick={() => handleSort("most-relevant")}> Most Relevant</li>
+                  <li onClick={() => handleSort("most-recent")}> Most Recent</li>
+                  <li onClick={() => handleSort("oldest")}> Oldest</li>
+                </ul>
+              )}
+            </div>
           </div>
         </div>
 
@@ -791,7 +774,7 @@ const handleJudgementClick = (keycode, event) => {
                 <i className="bx bx-search-alt" style={{ fontSize: '3rem', color: 'var(--gj-gray)' }}></i>
                 <h4 className="mt-3">No Results Found</h4>
                 <p className="text-muted">Try adjusting your search filters</p>
-                <button 
+                <button
                   className="btn btn-primary mt-3"
                   onClick={handleClearFilters}
                 >
@@ -801,24 +784,26 @@ const handleJudgementClick = (keycode, event) => {
             </div>
           ) : (
             displayedResults.map((result, index) => (
-              <div key={result.keycode || index} className="result-item">
+              <div key={result.id || index} className="result-item">
                 <div className="result-header">
-                  <h3 
-                    className="result-title" 
-                    onClick={(e) => handleJudgementClick(result.keycode, e)} 
-                    style={{ 
-                      cursor: result.keycode ? 'pointer' : 'default',
-                      color: result.keycode ? 'var(--gj-primary)' : 'inherit'
+                  <h3
+                    className="result-title"
+                    onClick={(e) => handleJudgementClick(result.id, e)}
+                    style={{
+                      cursor: result.id ? 'pointer' : 'default',
+                      color: result.id ? 'var(--gj-primary)' : 'inherit'
                     }}
-                    title={result.keycode ? 'Click to view full judgement' : ''}
+                    title={result.id ? 'Click to view full judgement' : ''}
                   >
                     <div className="result-title-with-accuracy">
                       <span>
                         {((currentPage - 1) * resultsPerPage) + index + 1}. {formatResultTitle(result)}
                       </span>
-                      <span className="accuracy-badge">
-                        Accuracy: {(result.accuracyPercentage || 0).toFixed(1)}%
-                      </span>
+                      {result.accuracyPercentage > 0 && (
+                        <span className="accuracy-badge">
+                          Accuracy: {(result.accuracyPercentage || 0).toFixed(1)}%
+                        </span>
+                      )}
                     </div>
                   </h3>
                 </div>
@@ -832,75 +817,75 @@ const handleJudgementClick = (keycode, event) => {
                     <i className="bx bx-calendar"></i>
                     {formatDate(result)}
                   </span>
-                  {result.keycode && (
+                  {result.id && (
                     <span>
                       <i className="bx bx-file"></i>
-                      {result.keycode}
+                      {result.fullequivicit}
                     </span>
                   )}
                 </div>
 
-                <div 
+                <div
                   className="result-content"
-                  dangerouslySetInnerHTML={{__html: formatResultContent(result)}}
+                  dangerouslySetInnerHTML={{ __html: formatResultContent(result) }}
                 />
 
-               {result.keycode && (
-  <div className="result-actions" style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: '1rem'
-  }}>
-    {/* Left Side - Read Full Judgement Button */}
-    <button 
-      className="read-judgement"
-      onClick={(e) => handleJudgementClick(result.keycode, e)}
-    >
-      <i className="bx bx-book-open"></i>
-      Read Full Judgement
-    </button>
+                {result.id && (
+                  <div className="result-actions" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '1rem'
+                  }}>
+                    {/* Left Side - Read Full Judgement Button */}
+                    <button
+                      className="read-judgement"
+                      onClick={(e) => handleJudgementClick(result.id, e)}
+                    >
+                      <i className="bx bx-book-open"></i>
+                      Read Full Judgement
+                    </button>
 
-    {/* Right Side - Action Buttons */}
-    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-      {/* Bookmark Button */}
-      <button
-        className="action-btn bookmark-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          // Bookmark functionality - you can customize this
-          const bookmarked = localStorage.getItem(`bookmark_${result.keycode}`);
-          if (bookmarked) {
-            localStorage.removeItem(`bookmark_${result.keycode}`);
-            e.target.closest('button').classList.remove('bookmarked');
-            alert('Bookmark removed!');
-          } else {
-            localStorage.setItem(`bookmark_${result.keycode}`, JSON.stringify({
-              keycode: result.keycode,
-              title: formatResultTitle(result),
-              court: result.court,
-              date: result.date
-            }));
-            e.target.closest('button').classList.add('bookmarked');
-            alert('Bookmarked successfully!');
-          }
-        }}
-        title="Bookmark"
-      >
-        <img 
-          src="/bookmarkresults.png" 
-          alt="Bookmark" 
-          style={{ width: '40px', height: '40px' }}
-        />
-      </button>
+                    {/* Right Side - Action Buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {/* Bookmark Button */}
+                      <button
+                        className="action-btn bookmark-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Bookmark functionality - you can customize this
+                          const bookmarked = localStorage.getItem(`bookmark_${result.id}`);
+                          if (bookmarked) {
+                            localStorage.removeItem(`bookmark_${result.id}`);
+                            e.target.closest('button').classList.remove('bookmarked');
+                            alert('Bookmark removed!');
+                          } else {
+                            localStorage.setItem(`bookmark_${result.id}`, JSON.stringify({
+                              keycode: result.id,
+                              title: formatResultTitle(result),
+                              court: result.court,
+                              date: result.date
+                            }));
+                            e.target.closest('button').classList.add('bookmarked');
+                            alert('Bookmarked successfully!');
+                          }
+                        }}
+                        title="Bookmark"
+                      >
+                        <img
+                          src="/bookmarkresults.png"
+                          alt="Bookmark"
+                          style={{ width: '40px', height: '40px' }}
+                        />
+                      </button>
 
-      {/* Print Button */}
-      <button
-        className="action-btn print-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          // Print functionality
-          const printContent = `
+                      {/* Print Button */}
+                      <button
+                        className="action-btn print-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Print functionality
+                          const printContent = `
             <html>
               <head>
                 <title>${formatResultTitle(result)}</title>
@@ -915,7 +900,7 @@ const handleJudgementClick = (keycode, event) => {
                 <div class="meta">
                   <p><strong>Court:</strong> ${formatCourt(result)}</p>
                   <p><strong>Date:</strong> ${formatDate(result)}</p>
-                  <p><strong>Keycode:</strong> ${result.keycode}</p>
+                  <p><strong>Keycode:</strong> ${result.id}</p>
                 </div>
                 <div class="content">
                   ${formatResultContent(result)}
@@ -923,50 +908,50 @@ const handleJudgementClick = (keycode, event) => {
               </body>
             </html>
           `;
-          const printWindow = window.open('', '_blank');
-          printWindow.document.write(printContent);
-          printWindow.document.close();
-          printWindow.print();
-        }}
-        title="Print"
-      >
-        <i className="bx bx-printer" style={{ fontSize: '20px' }}></i>
-      </button>
+                          const printWindow = window.open('', '_blank');
+                          printWindow.document.write(printContent);
+                          printWindow.document.close();
+                          printWindow.print();
+                        }}
+                        title="Print"
+                      >
+                        <i className="bx bx-printer" style={{ fontSize: '20px' }}></i>
+                      </button>
 
-      {/* Share Button */}
-      <button
-        className="action-btn share-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          // Share functionality
-          const shareData = {
-            title: formatResultTitle(result),
-            text: `Check out this case: ${formatResultTitle(result)}`,
-            url: `${window.location.origin}/judgement/${result.keycode}`
-          };
+                      {/* Share Button */}
+                      <button
+                        className="action-btn share-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Share functionality
+                          const shareData = {
+                            title: formatResultTitle(result),
+                            text: `Check out this case: ${formatResultTitle(result)}`,
+                            url: `${window.location.origin}/judgement/${result.id}`
+                          };
 
-          if (navigator.share) {
-            // Use native share if available
-            navigator.share(shareData)
-              .catch((error) => console.log('Share cancelled'));
-          } else {
-            // Fallback - copy to clipboard
-            const textToCopy = `${shareData.title}\n${shareData.url}`;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-              alert('Link copied to clipboard!');
-            }).catch(() => {
-              // Final fallback - show URL in alert
-              prompt('Copy this link:', shareData.url);
-            });
-          }
-        }}
-        title="Share"
-      >
-        <i className="bx bx-share-alt" style={{ fontSize: '20px' }}></i>
-      </button>
-    </div>
-  </div>
-)}
+                          if (navigator.share) {
+                            // Use native share if available
+                            navigator.share(shareData)
+                              .catch((error) => console.log('Share cancelled'));
+                          } else {
+                            // Fallback - copy to clipboard
+                            const textToCopy = `${shareData.title}\n${shareData.url}`;
+                            navigator.clipboard.writeText(textToCopy).then(() => {
+                              alert('Link copied to clipboard!');
+                            }).catch(() => {
+                              // Final fallback - show URL in alert
+                              prompt('Copy this link:', shareData.url);
+                            });
+                          }
+                        }}
+                        title="Share"
+                      >
+                        <i className="bx bx-share-alt" style={{ fontSize: '20px' }}></i>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}

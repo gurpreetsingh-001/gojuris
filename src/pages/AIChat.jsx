@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import ApiService from '../services/apiService';
 import { Link, useNavigate } from 'react-router-dom';
-import { MoreVertical } from "lucide-react"; // You can replace with any icon you like
+import { MoreVertical, Menu, X } from "lucide-react"; // Added Menu and X
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import mammoth from "mammoth";
@@ -31,8 +31,10 @@ const AIChat = () => {
   const [userProfile, setUserProfile] = useState(null);
   const messagesEndRef = useRef(null);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
-  const [showBookmarksModal, setShowBookmarksModal] = useState(false); // Add this line
-
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false);
+  
+  // NEW: Sidebar toggle state for mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [recognition, setRecognition] = useState(null);
   const [courts, setCourts] = useState([]);
@@ -43,20 +45,42 @@ const AIChat = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [openShareMenuId, setopenShareMenuId] = useState(false);
   const menuRefs = useRef({});
-  const [CurrentQuery, setCurrentQuery] = useState("Which legal task can we help you accelerate?");
+  const [CurrentQuery, setCurrentQuery] = useState("Which legal task can we help you accelerate?");
   const [pageSearch, setPageSearch] = useState(1);
   const [pageSizeSearch, setPageSizeSearch] = useState(15);
   const [chatType, setChatType] = useState('AISearch');
 
   const [textOutput, setTextOutput] = useState("");
 
+  // NEW: Toggle sidebar function
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // NEW: Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isSidebarOpen && window.innerWidth <= 768) {
+        const sidebar = document.querySelector('.ai-chat-sidebar');
+        const hamburger = document.querySelector('.hamburger-btn');
+        
+        if (sidebar && !sidebar.contains(event.target) && 
+            hamburger && !hamburger.contains(event.target)) {
+          setIsSidebarOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSidebarOpen]);
+
   const onUploadFile = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    setIsUploading(true); // start loader
+    setIsUploading(true);
     const file = files[0];
     const ext = (file.name.split(".").pop() || "").toLowerCase();
-    // setChatHistory([]);
     setChatHistory([{
       type: 'user',
       text: file.name,
@@ -64,7 +88,6 @@ const AIChat = () => {
       timestamp: new Date().toLocaleTimeString()
     }]);
     try {
-     // await new Promise((resolve) => setTimeout(resolve, 20));
       let text = "";
 
       if (ext === "txt") {
@@ -87,16 +110,14 @@ const AIChat = () => {
       setMessage('Summarize this case');
       handleSendAIMessage("Summarize this case", text);
 
-
     } catch (err) {
       console.error("File processing error:", err);
       alert("Failed to read file.");
     } finally {
-      setIsUploading(false); // stop loader
+      setIsUploading(false);
     }
   };
 
-  /* ------------ PDF Extraction ------------- */
   const extractPdfText = (file) =>
     new Promise((resolve) => {
       const reader = new FileReader();
@@ -118,7 +139,6 @@ const AIChat = () => {
       reader.readAsArrayBuffer(file);
     });
 
-  /* ------------ DOCX Extraction ------------- */
   const extractDocxText = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -136,12 +156,13 @@ const AIChat = () => {
     });
 
   const toggleMenu = (id) => {
-
     setOpenMenuId((prev) => (prev === id ? null : id));
   };
+
   const toggleShareMenu = () => {
     setopenShareMenuId(true);
   };
+
   const handleDelete = async (id) => {
     await ApiService.deleteChatHistoryBySessionId(id);
     await loadChatHistory();
@@ -153,13 +174,11 @@ const AIChat = () => {
     setopenShareMenuId(false);
   };
 
-
   const handlePrint = (id) => {
     alert(`Print chat ${id}`);
     setOpenMenuId(null);
   };
 
-  // close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (openMenuId != null) {
@@ -196,14 +215,12 @@ const AIChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
-
-
   const loadUserProfile = async () => {
     try {
       const storedUserData = localStorage.getItem('userData');
       if(!storedUserData) {
-      const profile = await ApiService.getUserProfile();
-      setUserProfile(JSON.parse(profile));
+        const profile = await ApiService.getUserProfile();
+        setUserProfile(JSON.parse(profile));
       }
       else
         setUserProfile(JSON.parse(storedUserData));
@@ -228,7 +245,7 @@ const AIChat = () => {
 
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
-      recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
+      recognitionInstance.lang = 'en-US';
 
       recognitionInstance.onstart = () => {
         setIsListening(true);
@@ -252,7 +269,6 @@ const AIChat = () => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
 
-        // Show user-friendly error messages
         if (event.error === 'not-allowed') {
           setError('Microphone access denied. Please allow microphone access and try again.');
         } else if (event.error === 'no-speech') {
@@ -281,7 +297,7 @@ const AIChat = () => {
     if (isListening) {
       recognition.stop();
     } else {
-      setError(''); // Clear any previous errors
+      setError('');
       recognition.start();
     }
   };
@@ -291,18 +307,20 @@ const AIChat = () => {
     "Whether anticipatory bail is maintainable in ndps cases?",
     "Cases on CPC, Order 9 Rule 7"
   ];
+
   const draftExample = [
     "Draft a legal notice under Section 138 NI Act for cheque dishonour",
     "Draft a divorce petition under Section 13 HMA based on cruelty",
     "Draft a plaint for declaration and cancellation of sale deed"
   ];
+
   const handleInputChange = (field, value) => {
     if (field == "ChatMode")
       setSearchMode(value);
     else if (field == "SearchType")
       setSearchType(value);
-
   };
+
   const getUserInitials = () => {
     if (!userProfile) return 'U';
 
@@ -317,11 +335,12 @@ const AIChat = () => {
 
     return userProfile.email ? userProfile.email[0].toUpperCase() : 'U';
   };
+
   const loadChatdata = async (sessionId, id) => {
     const list = await ApiService.getChatHistoryBySessionId(sessionId);
     setChatsessionId({ id: id, sessionId: sessionId });
     setChatHistory([]);
-    debugger;
+    
     const resultsData = {
       results: [],
       totalCount: 1,
@@ -335,6 +354,7 @@ const AIChat = () => {
       }
     };
     localStorage.setItem('searchResults', JSON.stringify(resultsData));
+    
     list.data.messages.forEach((item, index) => {
       setChatHistory(prev => [
         ...prev,
@@ -349,20 +369,20 @@ const AIChat = () => {
       ]);
     });
 
-
+    // NEW: Close sidebar on mobile after loading chat
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
-  // Handle message sending - ONLY API responses
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
     let newPageSearch = pageSearch;
     let newPageSize = pageSizeSearch;
-    debugger;
+    
     if (e.type === "click") {
       setUserMessage(userMessage);
-
-      // Skip 1, start from 2, then increment
       newPageSearch = pageSearch === 1 ? 4 : pageSearch + 1;
       newPageSize = 5;
     } else {
@@ -370,10 +390,8 @@ const AIChat = () => {
       newPageSize = 15;
     }
 
-    // Update state
     setPageSearch(newPageSearch);
     setPageSizeSearch(newPageSize);
-
 
     if (newPageSearch == 1 && (!message.trim() || isLoading)) return;
     if (chatType != "AISearch")
@@ -383,12 +401,10 @@ const AIChat = () => {
     else
       setUserMessage(userMessage + message + ", ");
     setCurrentQuery(message);
-    // userMessage += message;
     setMessage('');
     setIsLoading(true);
     setError('');
 
-    // Add user message to chat
     setChatHistory(prev => [...prev, {
       type: 'user',
       text: message,
@@ -396,7 +412,6 @@ const AIChat = () => {
       timestamp: new Date().toLocaleTimeString()
     }]);
 
-    // Create placeholder for AI response
     const aiMessageIndex = Date.now();
     setChatHistory(prev => [...prev, {
       type: 'ai',
@@ -407,7 +422,6 @@ const AIChat = () => {
     }]);
 
     try {
-      // Step 1: Generate AI Embedding
       console.log('🧠 Generating AI embedding for:', userMessage);
       const finalQuery = searchType == "New" ? message : userMessage + message;
       var sessionIdchat;
@@ -420,13 +434,11 @@ const AIChat = () => {
         sessionIdchat = chatsessionId?.id;
       }
 
-
       const embeddingData = chatType === "AISearch" ? await ApiService.generateEmbedding(finalQuery) : [];
 
       if (!embeddingData) {
         throw new Error('Failed to generate embedding');
       }
-
 
       const embeddingVector = embeddingData.embedding || embeddingData.vector || embeddingData.data || [];
 
@@ -438,8 +450,6 @@ const AIChat = () => {
 
       let streamedText = '';
       let hasError = false;
-
-      // Step 2: Start AI Chat Stream
       let accumulatedText = "";
       const resultsData = {
         results: [],
@@ -456,6 +466,7 @@ const AIChat = () => {
 
       console.log('💾 Storing results with API data:', resultsData);
       localStorage.setItem('searchResults', JSON.stringify(resultsData));
+      
       await ApiService.streamAIChat(
         userMessage + message,
         [selectedCourt],
@@ -472,27 +483,19 @@ const AIChat = () => {
         },
         chatType,
         '',
-        // ✅ onMessage callback
         (chunkText) => {
           if (!chunkText) return;
-          //chunkText = chunkText.startsWith('data:') ? chunkText.substring(6).trim() : chunkText;
-          // Append chunk safely with spacing
           if (accumulatedText.length > 0) {
             const lastChar = accumulatedText.slice(-1);
             const firstChar = chunkText.charAt(0);
             if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;<>1234567890?/\\#*!?\n\r]/)) {
-              //accumulatedText += ' ';
             }
           }
           accumulatedText += chunkText;
 
-          // Convert Markdown to HTML
           const rawHtml = marked.parse(accumulatedText, { breaks: true });
-
-          // Sanitize while keeping formatting
           const cleanHtml = DOMPurify.sanitize(rawHtml);
 
-          // Update chat history
           setChatHistory(prev => prev.map(msg =>
             msg.id === aiMessageIndex
               ? {
@@ -503,7 +506,6 @@ const AIChat = () => {
               : msg
           ));
         },
-        // onError
         (error) => {
           console.error('❌ Stream error:', error);
           setChatHistory(prev => prev.map(msg =>
@@ -517,7 +519,6 @@ const AIChat = () => {
               : msg
           ));
         },
-        // onComplete
         () => {
           const finalHtml = DOMPurify.sanitize(
             marked.parse(accumulatedText || 'No response received.', { breaks: true })
@@ -561,6 +562,7 @@ const AIChat = () => {
       setIsLoading(false);
     }
   };
+
   const getDisplayName = () => {
     if (!userProfile) return 'Loading...';
 
@@ -569,30 +571,26 @@ const AIChat = () => {
       userProfile.username ||
       (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
   };
-  // Handle message sending - ONLY API responses
-  const handleSendAIMessage = async (Umessage, text) => {
 
+  const handleSendAIMessage = async (Umessage, text) => {
     if ((!Umessage.trim() || isLoading)) return;
     if (chatType != "AISearch")
       setUserMessage('');
 
     setUserMessage(Umessage + ", ");
-
     setCurrentQuery(Umessage);
-    // userMessage += message;
     setMessage('');
     setIsLoading(true);
     setError('');
 
-    // Add user message to chat
     setChatHistory(prev => [...prev, {
       type: 'user',
       text: Umessage,
       isStreaming: true,
       timestamp: new Date().toLocaleTimeString()
     }]);
+    
     let accumulatedText = "";
-    // Create placeholder for AI response
     const aiMessageIndex = Date.now();
     setChatHistory(prev => [...prev, {
       type: 'ai',
@@ -603,7 +601,6 @@ const AIChat = () => {
     }]);
 
     try {
-
       await ApiService.streamAIChat(
         Umessage,
         [selectedCourt],
@@ -613,27 +610,19 @@ const AIChat = () => {
         },
         'Summarizer',
         text,
-        // ✅ onMessage callback
         (chunkText) => {
           if (!chunkText) return;
-          //chunkText = chunkText.startsWith('data:') ? chunkText.substring(6).trim() : chunkText;
-          // Append chunk safely with spacing
           if (accumulatedText.length > 0) {
             const lastChar = accumulatedText.slice(-1);
             const firstChar = chunkText.charAt(0);
             if (!lastChar.match(/\s/) && !firstChar.match(/[\s\.,;<>1234567890?/\\#*!?\n\r]/)) {
-              //accumulatedText += ' ';
             }
           }
           accumulatedText += chunkText;
 
-          // Convert Markdown to HTML
           const rawHtml = marked.parse(accumulatedText, { breaks: true });
-
-          // Sanitize while keeping formatting
           const cleanHtml = DOMPurify.sanitize(rawHtml);
 
-          // Update chat history
           setChatHistory(prev => prev.map(msg =>
             msg.id === aiMessageIndex
               ? {
@@ -644,7 +633,6 @@ const AIChat = () => {
               : msg
           ));
         },
-        // onError
         (error) => {
           console.error('❌ Stream error:', error);
           setChatHistory(prev => prev.map(msg =>
@@ -658,7 +646,6 @@ const AIChat = () => {
               : msg
           ));
         },
-        // onComplete
         () => {
           const finalHtml = DOMPurify.sanitize(
             marked.parse(accumulatedText || 'No response received.', { breaks: true })
@@ -683,8 +670,6 @@ const AIChat = () => {
         }
       );
 
-
-
     } catch (generalError) {
       console.error('❌ General Error:', generalError);
 
@@ -703,14 +688,11 @@ const AIChat = () => {
     }
   };
 
-
-  // Helper function to process search results
   const processSearchResults = (searchResults, userMessage) => {
     if (!searchResults) {
       return 'No response received from the legal database.';
     }
 
-    // Check for direct response
     if (searchResults.response && typeof searchResults.response === 'string') {
       return searchResults.response;
     }
@@ -723,7 +705,6 @@ const AIChat = () => {
       return searchResults.summary;
     }
 
-    // Check for results array
     if (searchResults.results && Array.isArray(searchResults.results)) {
       const results = searchResults.results;
       if (results.length > 0) {
@@ -733,11 +714,9 @@ const AIChat = () => {
       }
     }
 
-    // Fallback - show raw response for debugging
     return `I received a response but couldn't parse it properly. Please try rephrasing your question.\n\nDebug info: ${JSON.stringify(searchResults, null, 2).substring(0, 500)}...`;
   };
 
-  // Format search results if API returns raw data
   const formatSearchResults = (results, query) => {
     if (!Array.isArray(results) || results.length === 0) {
       return 'No legal cases found for your query.';
@@ -787,20 +766,28 @@ const AIChat = () => {
     <div className="ai-chat-layout-with-nav">
       <Sidebar />
 
-      {/* Chat Sidebar */}
-      <div className="ai-chat-sidebar">
+      {/* NEW: Sidebar Overlay for mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-overlay active"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-
+      {/* Chat Sidebar - NEW: Added dynamic class */}
+      <div className={`ai-chat-sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-content">
           <div className="sidebar-section">
-
             <button className="new-chat-btn" onClick={() => {
               setChatHistory([]);
               setChatsessionId(null);
               setCurrentQuery("");
               setUserMessage("");
-            }
-            }>
+              // NEW: Close sidebar on mobile when starting new chat
+              if (window.innerWidth <= 768) {
+                setIsSidebarOpen(false);
+              }
+            }}>
               <i className="bx bx-plus"></i>
               New Chat
             </button>
@@ -849,7 +836,6 @@ const AIChat = () => {
                         }
                       }}>🗑️ Delete</li>
                       <li onClick={() => handlePrint(result.sessionId)}>📌 Pin</li>
-
                     </ul>
                   )}
                 </div>
@@ -873,6 +859,15 @@ const AIChat = () => {
       {/* Main Chat Area */}
       <div className="ai-chat-main">
         <div className="chat-header">
+          {/* NEW: Hamburger Menu Button */}
+          <button 
+            className="hamburger-btn"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
           <div className="sidebar-header">
             <Link to="/dashboard" className="gojuris-logo">
               <img
@@ -882,14 +877,11 @@ const AIChat = () => {
               />
             </Link>
           </div>
-            <label style={{
-            fontSize : "15px"
-          }
-          }>Welcome : {getDisplayName()}</label>
-          {/* Account Dropdown */}
-          {/* Account Dropdown */}
+          <label style={{ fontSize : "15px" }}>
+            Welcome : {getDisplayName()}
+          </label>
+
           <div className="d-flex align-items-center gap-2">
-            {/* Dashboard Icon Button - Plain */}
             <button
               className="btn btn-link p-0"
               type="button"
@@ -904,7 +896,6 @@ const AIChat = () => {
               />
             </button>
 
-            {/* Bookmark Icon Button - Plain */}
             <button
               className="btn btn-link p-0"
               type="button"
@@ -919,7 +910,6 @@ const AIChat = () => {
               />
             </button>
 
-            {/* Settings Button */}
             <button
               className="btn btn-outline-secondary btn-sm rounded-circle p-2"
               type="button"
@@ -980,14 +970,12 @@ const AIChat = () => {
           </div>
         </div>
 
-
         <div className="chat-content">
           <div className="chat-tagline-container">
             <h2 className="chat-tagline">{CurrentQuery}</h2>
           </div>
           <div className="chat-messages">
             {chatHistory.length === 0 ? (
-
               <>
                 <div
                   style={{
@@ -999,7 +987,6 @@ const AIChat = () => {
                     overflowX: "auto"
                   }}
                 >
-                  {/* Ask a question - Purple button */}
                   <button
                     onClick={() => {
                       setChatHistory([]);
@@ -1007,9 +994,7 @@ const AIChat = () => {
                       setCurrentQuery("");
                       setUserMessage("");
                       setChatType('AISearch');
-                    }
-
-                    }
+                    }}
                     style={{
                       padding: "12px 20px",
                       borderRadius: "8px",
@@ -1037,7 +1022,6 @@ const AIChat = () => {
                     <span>Ask a question</span>
                   </button>
 
-                  {/* Generate a draft - Coming Soon */}
                   <button
                     onClick={() => {
                       setChatHistory([]);
@@ -1070,18 +1054,12 @@ const AIChat = () => {
                       e.target.style.color = "#6b7280";
                     }}
                     title='Create ready-to-file legal drafts from a single command.'
-
                   >
                     <i className="bx bx-envelope" style={{ fontSize: "20px" }}></i>
                     <span>Generate a Draft</span>
                   </button>
 
-                  {/* Summarize a case - Coming Soon */}
-
-
-
-                  <label for="fileUpload"
-
+                  <label htmlFor="fileUpload"
                     style={{
                       padding: "12px 20px",
                       borderRadius: "8px",
@@ -1108,7 +1086,6 @@ const AIChat = () => {
                     title='Upload a case file and get instant AI-generated summary, issues, ratio, and headnotes.'
                   >
                     <i className="bx bx-receipt" style={{ fontSize: "20px" }}></i>
-
                     {isUploading ? (
                       <div style={{ marginTop: "10px", fontWeight: "bold" }}>
                         ⏳ Uploading...
@@ -1116,44 +1093,14 @@ const AIChat = () => {
                     ) : (<span>Summarize/Analyze a Case</span>)}
                   </label>
                   <input
-                    style={{
-                      display: "none"
-                    }}
-                    type="file" onChange={onUploadFile} id="fileUpload" accept=".pdf,.txt,.docx,.doc" />
-
-                  {/* Upload to summarize - Coming Soon 
-                  <button
-                    onClick={() => setShowComingSoonModal(true)}
-                    style={{
-                      padding: "12px 20px",
-                      borderRadius: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      background: "transparent",
-                      color: "#6b7280",
-                      border: "1px solid #d1d5db",
-                      fontWeight: "400",
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      whiteSpace: "nowrap"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.borderColor = "#8B5CF6";
-                      e.target.style.color = "#8B5CF6";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.borderColor = "#d1d5db";
-                      e.target.style.color = "#6b7280";
-                    }}
-                  >
-                    <i className="bx bx-upload" style={{ fontSize: "20px" }}></i>
-                    <span>Upload to Summarize or Ask Questions</span>
-                  </button> */}
+                    style={{ display: "none" }}
+                    type="file" 
+                    onChange={onUploadFile} 
+                    id="fileUpload" 
+                    accept=".pdf,.txt,.docx,.doc" 
+                  />
                 </div>
 
-                {/* Coming Soon Modal */}
                 {showComingSoonModal && (
                   <div
                     className="modal fade show d-block"
@@ -1214,11 +1161,7 @@ const AIChat = () => {
                     </div>
                   </div>
                 )}
-
               </>
-
-
-
             ) : (
               <div className="message-list">
                 {chatHistory.map((msg, index) => (
@@ -1252,7 +1195,6 @@ const AIChat = () => {
                         </pre>
                       )}
 
-                      {/* Show typing indicator for streaming messages */}
                       {msg.isStreaming && msg.type === 'ai' && (
                         <div className="typing-indicator" style={{
                           display: 'inline-flex',
@@ -1270,11 +1212,8 @@ const AIChat = () => {
                   </div>
                 ))}
 
-                {/* API Loading Indicator */}
                 {isLoading && (
-                  <div className="message ai">
-
-                  </div>
+                  <div className="message ai"></div>
                 )}
 
                 <div ref={messagesEndRef} />
@@ -1282,18 +1221,13 @@ const AIChat = () => {
             )}
           </div>
 
-
-          {/* Quick Questions - Updated with numbering and reduced gap */}
           {chatHistory.length === 0 && (
-            <div style={{
-              padding: "24px 16px",
-              maxWidth: "800px"
-            }}>
+            <div>
               <h3 style={{
                 fontSize: "18px",
                 fontWeight: "600",
                 color: "#1a1a1a",
-                marginBottom: "12px",
+                marginBottom: "0px",
                 textAlign: "left"
               }}>
                 Examples
@@ -1337,7 +1271,6 @@ const AIChat = () => {
             </div>
           )}
 
-          {/* API Error Display */}
           {error && (
             <div className="alert alert-danger mx-3" role="alert">
               <i className="bx bx-error-circle me-2"></i>
@@ -1351,15 +1284,10 @@ const AIChat = () => {
           )}
         </div>
 
-
         {chatType != 'Summarizer' ? (
           <div className="chat-input-section">
             {chatType === 'AISearch' ? (
-
-
-              <div style={{
-                borderColor: "#8b5cf6"
-              }}>
+              <div style={{ borderColor: "#8b5cf6" }}>
                 <div>
                   <div className="radio-options">
                     <label style={{
@@ -1416,32 +1344,13 @@ const AIChat = () => {
                     position: 'absolute',
                     right: "33px",
                     bottom: "80px"
-                  }} class="d-flex"
-
-                  >
-                    {/*  <button
-                  className="btn btn-link p-0"
-                  type="button"
-                  
-                  style={{ border: 'none', background: 'transparent' }}
-                  title="Share"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleShareMenu();
-                  }}
-                >
-                  <img
-                    src="/i-chat-share-64.png"
-                    alt="Share"
-                    style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-                  />
-                </button> */}
+                  }} className="d-flex">
                     {openShareMenuId === true && (
                       <ul
                         className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
                         style={{
                           minWidth: '100px',
-                          top: '0%', // 👈 below the button
+                          top: '0%',
                           right: '100px',
                           zIndex: 9999,
                           pointerEvents: 'auto'
@@ -1451,7 +1360,6 @@ const AIChat = () => {
                         <li onClick={() => handleShare("Share")}>🔗 Share</li>
                         <li onClick={() => handleShare("Print")}>🖨️ Print</li>
                         <li onClick={() => handleShare("PDF")}>📄 PDF</li>
-
                       </ul>
                     )}
                     <button
@@ -1471,7 +1379,6 @@ const AIChat = () => {
                         whiteSpace: "nowrap",
                         marginBottom: "5px",
                         marginLeft: "10px"
-
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.background = "#6D28D9";
@@ -1485,16 +1392,15 @@ const AIChat = () => {
                       <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
                       <span>Load More Results</span>
                     </button>
-
                   </div>
                 </div>
               </div>
             ) : (<></>)}
+            
             <form onSubmit={handleSendMessage} className="chat-form">
               <div className="chat-input-wrapper">
                 <textarea
-                  row="4"
-
+                  rows="4"
                   className="chat-input"
                   width={"100vw"}
                   placeholder={chatType === 'AISearch' ? "Ask your legal question here..." : "Describe your issue to generate a legal draft instantly"}
@@ -1504,7 +1410,6 @@ const AIChat = () => {
                 />
 
                 <div className="input-buttons">
-
                   <button
                     type="button"
                     className={`voice-btn ${isListening ? 'listening' : ''}`}
@@ -1516,7 +1421,6 @@ const AIChat = () => {
                       <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
                         <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                        {/* Add a red recording indicator */}
                         <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
                       </svg>
                     ) : (
@@ -1536,6 +1440,7 @@ const AIChat = () => {
                 </div>
               </div>
             </form>
+            
             {chatHistory.length > 0 && 1 == 2 && (
               <div className="radio-options">
                 <label style={{
@@ -1565,19 +1470,14 @@ const AIChat = () => {
                   <span className="radio-mark"></span>
                   Search Entire Database
                 </label>
-
-
               </div>
             )}
           </div>
         ) : (<></>)}
-        <div style={{
-          padding: "4px 30px"
-        }}>
-        </div>
-
+        
+        <div style={{ padding: "4px 30px" }}></div>
       </div>
-      {/* Settings Modal */}
+
       {showSettingsModal && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
           <div className="modal-dialog modal-dialog-centered">
@@ -1600,7 +1500,6 @@ const AIChat = () => {
         </div>
       )}
 
-      {/* Bookmarks Modal */}
       {showBookmarksModal && (
         <>
           <div
@@ -1608,10 +1507,7 @@ const AIChat = () => {
             style={{ zIndex: 9998, backgroundColor: 'rgba(0,0,0,0.5)' }}
             onClick={() => setShowBookmarksModal(false)}
           ></div>
-          <div
-            className="modal fade show d-block"
-            style={{ zIndex: 9999 }}
-          >
+          <div className="modal fade show d-block" style={{ zIndex: 9999 }}>
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-header border-0">
@@ -1652,7 +1548,6 @@ const AIChat = () => {
         </>
       )}
 
-      {/* Click outside handlers */}
       {showAccountDropdown && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100"
@@ -1661,143 +1556,166 @@ const AIChat = () => {
         ></div>
       )}
 
-      {/* Component Styles */}
       <style jsx>{`
-      /* Sidebar Section */
-.sidebar-section {
-  padding-top: 10px;
-  font-family: "Segoe UI", sans-serif;
-}
+        .sidebar-section {
+          padding-top: 10px;
+          font-family: "Segoe UI", sans-serif;
+        }
 
-.section-title {
-  font-weight: 600;
-  margin-bottom: 8px;
-   margin-top: 8px;
-  color: #444;
-}
+        .section-title {
+          font-weight: 600;
+          margin-bottom: 8px;
+          margin-top: 8px;
+          color: #444;
+        }
 
-/* Chat item container */
-.chat-item {
-  display: flex;
-  
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 1px;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  transition: background-color 0.2s ease;
-}
+        .chat-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 6px 1px;
+          border-radius: 6px;
+          cursor: pointer;
+          position: relative;
+          transition: background-color 0.2s ease;
+        }
 
-.chat-item:hover {
-  background-color: #f3f4f6;
-}
+        .chat-item:hover {
+          background-color: #f3f4f6;
+        }
 
-/* Chat subject text */
-.chat-title {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 14px;
-  color: #333;
-  z-index: 1;
-  transition: color 0.2s;
-}
-.chat-title:hover {
-  color: #000;
-}
-/* Three-dot menu icon */
-.menu-icon {
-  flex-shrink: 0;
-  margin-left: 8px;
-  color: #666;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-.menu-icon:hover {
-  color: #000;
-}
-
-/* Dropdown menu */
-.dropdown-menu {
-  position: absolute;
-  top: 32px;
-  right: 0;
-  width: 140px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  padding: 4px 0;
-  opacity: 0;
-  transform: translateY(-5px);
-  animation: fadeInMenu 0.15s ease-out forwards;
-}
-
-/* Dropdown items */
-.dropdown-menu li {
-  list-style: none;
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.dropdown-menu li:hover {
-  background-color: #f3f4f6;
-}
-
-/* Fade animation */
-@keyframes fadeInMenu {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
+          /* FIX: Dropdown z-index issue */
+  .ai-chat-layout-with-nav .chat-header {
+    position: relative;
+    z-index: 1000;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .ai-chat-layout-with-nav .chat-header .dropdown {
+    position: relative;
+    z-index: 1001;
   }
-}
 
-/* Empty history placeholder */
-.history-placeholder {
-  text-align: center;
-  color: #888;
-  padding: 16px 0;
-}
+  .ai-chat-layout-with-nav .chat-header .dropdown-menu {
+    position: absolute;
+    z-index: 1002 !important;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+  }
 
+  /* Ensure dropdown appears above everything */
+  .dropdown-menu.show {
+    z-index: 9999 !important;
+  }
+
+  /* Make sure the backdrop/overlay appears correctly */
+  .position-fixed.top-0.start-0.w-100.h-100 {
+    z-index: 9998 !important;
+  }
+
+        .chat-title {
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 14px;
+          color: #333;
+          z-index: 1;
+          transition: color 0.2s;
+        }
+
+        .chat-title:hover {
+          color: #000;
+        }
+
+        .menu-icon {
+          flex-shrink: 0;
+          margin-left: 8px;
+          color: #666;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.2s;
+        }
+
+        .menu-icon:hover {
+          color: #000;
+        }
+
+        .dropdown-menu {
+          position: absolute;
+          top: 32px;
+          right: 0;
+          width: 140px;
+          background: #fff;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          z-index: 100;
+          padding: 4px 0;
+          opacity: 0;
+          transform: translateY(-5px);
+          animation: fadeInMenu 0.15s ease-out forwards;
+        }
+
+        .dropdown-menu li {
+          list-style: none;
+          padding: 8px 12px;
+          font-size: 14px;
+          color: #333;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+        }
+
+        .dropdown-menu li:hover {
+          background-color: #f3f4f6;
+        }
+
+        @keyframes fadeInMenu {
+          from {
+            opacity: 0;
+            transform: translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .history-placeholder {
+          text-align: center;
+          color: #888;
+          padding: 16px 0;
+        }
 
         .typing-indicator {
           display: flex;
           gap: 4px;
           align-items: center;
         }
+
         h3 {
-        font-size: 1.4rem;
+          font-size: 1.4rem;
         }
-        strong
-        {
-        font-size: 19px;
+
+        strong {
+          font-size: 19px;
         }
+
         .truncate-text11 {
-  display: inline-block;       /* or block */
-  width: 85%;            /* set your desired width */
-  white-space: nowrap;         /* prevent text from wrapping */
-  overflow: hidden;            /* hide overflowing text */
-  text-overflow: ellipsis;     /* show ... when truncated */
-  vertical-align: middle;      /* optional alignment */
-  padding-top : 7px;
-}
+          display: inline-block;
+          width: 85%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+          padding-top: 7px;
+        }
+
         .typing-indicator span {
           height: 8px;
           width: 8px;
@@ -1845,10 +1763,11 @@ const AIChat = () => {
         .quick-questions-scroll::-webkit-scrollbar {
           display: none;
         }
-        .chat-input-section1
-        {
+
+        .chat-input-section1 {
           border-top: 1px solid #6c53ef;
         }
+
         .quick-question-btn-inline {
           background: white;
           border: 1px solid #E5E7EB;
@@ -1871,9 +1790,7 @@ const AIChat = () => {
         .quick-question-btn-inline:disabled {
           opacity: 0.6;
           cursor: not-allowed;
-        }
-
-        .chat-input-wrapper {
+        }.chat-input-wrapper {
           position: relative;
           display: flex;
           align-items: top;
@@ -1881,7 +1798,6 @@ const AIChat = () => {
 
         .chat-input {
           flex: 1;
-          
           border: 2px solid #8b5cf6;
           border-radius: 25px;
           padding: 5px 5px 5px 5px;
@@ -1903,22 +1819,20 @@ const AIChat = () => {
           align-items: center;
         }
 
-        .radio-options {
-          display: flex;
-          gap: 1.5rem; /* Reduced from 2rem */
-          margin: 0.25rem; /* Reduced from 0.5rem */
-        }
-          .checkbox-label,
+       
+
+        .checkbox-label,
         .radio-label {
           display: flex;
           align-items: center;
-          gap: 0.375rem; /* Reduced from 0.5rem */
+          gap: 0.375rem;
           cursor: pointer;
-          font-size: 0.9rem; /* Reduced from 0.875rem */
+          font-size: 0.9rem;
           color: rgb(139, 92, 246);
           user-select: none;
           font-weight: 700;
         }
+
         .voice-btn, .send-btn {
           background: none;
           border: none;
@@ -1983,9 +1897,8 @@ const AIChat = () => {
     
         .court-select {
           padding: 6px 30px 6px 12px;
-          border: 1px solid rgb(139, 92, 246);;
+          border: 1px solid rgb(139, 92, 246);
           border-radius: 4px;
-          paddind-bottom : "5px";
           font-size: 14px;
           background: white;
           cursor: pointer;
@@ -1996,130 +1909,136 @@ const AIChat = () => {
           background-position: right 8px center;
         }
 
-.api-response-content p:first-child {
-  margin-top: 0;
-}
+        .api-response-content p:first-child {
+          margin-top: 0;
+        }
 
-.api-response-content p:last-child {
-  margin-bottom: 0;
-}
+        .api-response-content p:last-child {
+          margin-bottom: 0;
+        }
 
-.api-response-content a:hover {
-  border-bottom: 1px solid #3498db;
-}
+        .api-response-content a:hover {
+          border-bottom: 1px solid #3498db;
+        }
 
-.api-response-content ul ul {
-  margin: 0.3em 0;
-  padding-left: 1.2em;
-}
-  .typing-indicator {
-    display: inline-flex;
-    align-items: center;
-  }
+        .api-response-content ul ul {
+          margin: 0.3em 0;
+          padding-left: 1.2em;
+        }
+
+        .typing-indicator {
+          display: inline-flex;
+          align-items: center;
+        }
   
-  .typing-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: #8B5CF6;
-    animation: typing 1.4s infinite ease-in-out;
-    animation-fill-mode: both;
-  }
+        .typing-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background-color: #8B5CF6;
+          animation: typing 1.4s infinite ease-in-out;
+          animation-fill-mode: both;
+        }
   
-  .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-  .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-  .typing-dot:nth-child(3) { animation-delay: 0s; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
   
-  @keyframes typing {
-    0%, 80%, 100% {
-      transform: scale(0.8);
-      opacity: 0.6;
+        @keyframes typing {
+          0%, 80%, 100% {
+            transform: scale(0.8);
+            opacity: 0.6;
+          }
+          40% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        .voice-btn.listening {
+          color: #EF4444 !important;
+          background-color: rgba(239, 68, 68, 0.1) !important;
+          animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+          0% { 
+            transform: scale(1); 
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+          }
+          70% { 
+            transform: scale(1.05); 
+            box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+          }
+          100% { 
+            transform: scale(1); 
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+          }
+        }
+
+        .voice-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .voice-btn.listening::after {
+          content: '';
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          width: 8px;
+          height: 8px;
+          background: #EF4444;
+          border-radius: 50%;
+          animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+
+        .chat-tagline-container {
+          text-align: left;
+          padding: .5rem 0.5rem .5rem 0.5rem;
+        }
+
+        .chat-tagline {
+          font-size: 1.75rem;
+          font-weight: 300;
+          color: var(--gj-dark);
+          margin: 0;
+          margin-top: 5px;
+          line-height: 1.3;
+          letter-spacing: -0.025em;
+        }
+
+        @media (max-width: 768px) {
+          .chat-tagline {
+            font-size: 1.4rem;
+          }
+          
+          .chat-tagline-container {
+            padding: .5rem 1rem 0.5rem;
+          }
+            .ai-chat-layout-with-nav .chat-header {
+      z-index: 1050;
     }
-    40% {
-      transform: scale(1);
-      opacity: 1;
+
+    .ai-chat-layout-with-nav .chat-header .dropdown-menu {
+      position: fixed;
+      top: 60px;
+      right: 10px;
+      left: auto;
+      min-width: 200px;
     }
-  }
+        }
 
-  .voice-btn.listening {
-  color: #EF4444 !important;
-  background-color: rgba(239, 68, 68, 0.1) !important;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { 
-    transform: scale(1); 
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-  }
-  70% { 
-    transform: scale(1.05); 
-    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-  }
-  100% { 
-    transform: scale(1); 
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-  }
-}
-
-.voice-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Add visual indicator when listening */
-.voice-btn.listening::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  background: #EF4444;
-  border-radius: 50%;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-  /* Add this to your existing style jsx block */
-
-/* Tagline styling */
-.chat-tagline-container {
-  text-align: left;
-  padding: .5rem 0.5rem .5rem 0.5rem;
-}
-
-.chat-tagline {
-  font-size: 1.75rem;
-  font-weight: 300;
-  color: var(--gj-dark);
-  margin: 0;
-  margin-top: 5px;
-  line-height: 1.3;
-  letter-spacing: -0.025em;
-}
-
-/* Responsive tagline */
-@media (max-width: 768px) {
-  .chat-tagline {
-    font-size: 1.4rem;
-  }
-  
-  .chat-tagline-container {
-    padding: .5rem 1rem 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat-tagline {
-    font-size: 1.2rem;
-  }
-}
-
-
+        @media (max-width: 480px) {
+          .chat-tagline {
+            font-size: 1.2rem;
+          }
+        }
       `}</style>
     </div>
   );

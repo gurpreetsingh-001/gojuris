@@ -4077,6 +4077,10 @@ footer hr {
     background: #1e293b;
   }
 }
+.navbar-brand-label
+{
+  font-size: 15px;
+}
 
 /* Responsive Breakpoints */
 
@@ -4092,6 +4096,7 @@ footer hr {
     min-width: 200px;
   }
   
+ 
   .search-row {
     flex-direction: row;
     align-items: center;
@@ -4295,6 +4300,7 @@ footer hr {
   
   .navbar-brand {
     font-size: 1.1rem;
+    padding-left:65px !important;
   }
   
   .navbar-brand img {
@@ -4315,6 +4321,11 @@ footer hr {
     width: 60px;
   }
   
+   .navbar-brand-label
+  {
+    text-align: center;
+    width: 100%;
+  }
   .gojuris-main {
     margin-left: 60px;
     width: calc(100% - 60px);
@@ -4334,17 +4345,250 @@ footer hr {
     font-size: 16px;
   }
   
-  .ai-chat-layout-with-nav .ai-chat-sidebar {
+  /* .ai-chat-layout-with-nav .ai-chat-sidebar {
     display: none;
   }
   
   .ai-chat-layout-with-nav .ai-chat-main {
     margin-left: 60px;
     width: calc(100% - 60px);
+  } */
+
+  /* Hamburger button */
+.hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--gj-primary);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  padding: 0;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+  background: rgba(var(--gj-primary-rgb), 0.1);
+}
+
+.hamburger-btn:active {
+  background: rgba(var(--gj-primary-rgb), 0.2);
+}
+
+/* Mobile sidebar styles */
+.ai-chat-layout-with-nav .ai-chat-sidebar {
+  position: fixed;
+  left: -280px; /* Hidden by default */
+  top: 0;
+  height: 100vh;
+  width: 280px;
+  z-index: 1050;
+  transition: left 0.3s ease;
+  display: flex;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Show sidebar when open */
+.ai-chat-layout-with-nav .ai-chat-sidebar.sidebar-open {
+  left: 60px;
+}
+
+/* Overlay styles */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Main content adjustment */
+.ai-chat-layout-with-nav .ai-chat-main {
+  margin-left: 60px;
+  width: calc(100% - 60px);
+}
+
+.ai-chat-layout-with-nav .chat-header {
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ai-chat-layout-with-nav .chat-header .sidebar-header {
+  flex: 1;
+}
+  
+   /* MOBILE HEADER FIX */
+  .ai-chat-layout-with-nav .chat-header {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+    /* Hamburger button on mobile */
+  .hamburger-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border: none;
+    background: transparent;
+    color: var(--gj-primary);
+    cursor: pointer;
+    border-radius: 8px;
+   
+    padding: 0;
+    margin-right: 0;
+    flex-shrink: 0;
+  }
+  /* Logo container - make it flexible */
+  .ai-chat-layout-with-nav .chat-header .sidebar-header {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-right: auto;
   }
   
+  .ai-chat-layout-with-nav .chat-header .gojuris-logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .ai-chat-layout-with-nav .chat-header .gojuris-logo img {
+    height: 40px !important;
+    width: auto;
+    max-width: 120px;
+    object-fit: contain;
+  }
+  
+  /* Welcome text - hide or make very compact on mobile */
+  .ai-chat-layout-with-nav .chat-header label {
+    display: none !important;
+  }
+  
+  /* Right side buttons container */
+  .ai-chat-layout-with-nav .chat-header .d-flex.align-items-center.gap-2 {
+    display: flex !important;
+    align-items: center;
+    gap: 0.25rem !important;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  
+  /* Hide some buttons on mobile or make them smaller */
+  .ai-chat-layout-with-nav .chat-header .btn-link img {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Make account dropdown button compact */
+  .ai-chat-layout-with-nav .chat-header .dropdown .btn {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .ai-chat-layout-with-nav .chat-header .dropdown .btn span {
+    display: none !important;
+  }
+  
+  .ai-chat-layout-with-nav .chat-header .dropdown .btn .bx-chevron-down {
+    margin-left: 0 !important;
+  }
+  
+  /* Settings button - make smaller */
+  .ai-chat-layout-with-nav .chat-header .btn-outline-secondary {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0.25rem !important;
+  }
+  
+  /* Adjust header height */
   .ai-chat-layout-with-nav .chat-header {
-    padding: 0.25rem 1rem;
+    min-height: 56px;
+    max-height: 56px;
+  }
+
+  /* FIX: Answer Mode Section for Mobile */
+  .radio-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  /* Answer Mode Label */
+  .radio-options > label:first-child {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #8b5cf6;
+    margin-bottom: 0.25rem;
+    align-self: flex-start;
+  }
+
+  /* Radio options container */
+  .radio-options-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  /* Individual radio labels */
+  .radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: rgb(139, 92, 246);
+    font-weight: 600;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  /* Court select dropdown */
+  .court-select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Chat input section adjustment */
+  .ai-chat-layout-with-nav .chat-input-section {
+    padding: 0.5rem;
+  }
+
+  /* Make the entire answer mode area scrollable if needed */
+  .chat-input-section > div:first-child {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .ai-chat-layout-with-nav .chat-content {
@@ -4412,7 +4656,18 @@ footer hr {
   .navbar-brand img {
     height: 40px;
   }
-  
+  .radio-options {
+    padding: 0.5rem;
+  }
+
+  .radio-label {
+    font-size: 0.75rem;
+  }
+
+  .court-select {
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
   .tab-btn {
     min-width: 70px;
     padding: 10px 6px;
@@ -4429,6 +4684,21 @@ footer hr {
   .ai-chat-layout-with-nav .quick-question-btn {
     font-size: 0.75rem;
     padding: 0.5rem 0.75rem;
+  }
+    .ai-chat-layout-with-nav .chat-header .gojuris-logo img {
+    height: 35px !important;
+    max-width: 100px !important;
+  }
+  
+  .hamburger-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+  
+  /* Hide dashboard button on very small screens */
+  .ai-chat-layout-with-nav .chat-header .d-flex.align-items-center.gap-2 > button:first-child {
+    display: none !important;
   }
   
   .gojuris-text-compact {
@@ -4927,6 +5197,8 @@ footer hr {
   .search-main-heading {
     font-size: 1.25rem;
   }
+
+
 }
 
 /* Hero Section - Simple and Clean */
@@ -5466,4 +5738,325 @@ body {
 
 [data-theme="dark"] .searchable-results-dropdown .dropdown-item:hover {
   background: #334155;
+}
+
+
+/* Hide hamburger on desktop */
+@media (min-width: 769px) {
+  .hamburger-btn {
+    display: none !important;
+  }
+  
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
+
+/* Smooth animations */
+.ai-chat-sidebar {
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-overlay {
+  transition: opacity 0.3s ease;
+}
+
+/* Accessibility improvements */
+.hamburger-btn:focus {
+  outline: 2px solid var(--gj-primary);
+  outline-offset: 2px;
+}
+
+.hamburger-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+
+
+/* Desktop Answer Mode - Horizontal Layout */
+.radio-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.20rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  flex-wrap: wrap;
+}
+
+.radio-options > label:first-child {
+  color: #8b5cf6;
+  font-weight: bold;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: rgb(139, 92, 246);
+  user-select: none;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.radio-label input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.court-select {
+  padding: 6px 30px 6px 12px;
+  border: 1px solid rgb(139, 92, 246);
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  color: rgb(139, 92, 246);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  flex-shrink: 0;
+  min-width: 150px;
+}
+
+@media (max-width: 768px) {
+  .radio-options {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .radio-options > label:first-child {
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
+
+  .radio-label {
+    font-size: 0.85rem;
+  }
+
+  .court-select {
+    width: 100%;
+    margin-top: 0.25rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .radio-options {
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  .radio-label {
+    font-size: 0.85rem;
+  }
+}
+
+
+/*left side bar////////////////////////*/
+/* ========================================
+   NAVIGATION HAMBURGER - MOBILE ONLY
+   ======================================== */
+
+/* Hamburger Button - Hidden on desktop */
+.nav-hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: var(--gj-primary);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  font-size: 24px;
+}
+
+.nav-hamburger-btn:hover {
+  background: #6D28D9;
+  transform: scale(1.05);
+}
+
+.nav-hamburger-btn:active {
+  transform: scale(0.95);
+}
+
+/* Overlay for mobile sidebar */
+.nav-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1049;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Desktop - Everything stays exactly the same */
+@media (min-width: 769px) {
+  .nav-hamburger-btn {
+    display: none !important;
+  }
+  
+  .nav-sidebar-overlay {
+    display: none !important;
+  }
+  
+  .sidebar-nav-open {
+    /* No effect on desktop */
+  }
+}
+
+/* Mobile ONLY - Add slide behavior */
+@media (max-width: 768px) {
+  /* Show hamburger button */
+  .nav-hamburger-btn {
+    display: flex !important;
+  }
+
+  /* Hide sidebar by default, show on open */
+  .gojuris-sidebar {
+    position: fixed !important;
+    left: -70px !important;
+    top: 0;
+    height: 100vh;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 1050 !important;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+        padding-top: 40px !important; /* ADD THIS LINE */
+
+  }
+
+  /* Show sidebar when open class is added */
+  .gojuris-sidebar.sidebar-nav-open {
+    left: 0 !important;
+  }
+
+  /* Adjust main content area to full width */
+  .gojuris-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Adjust AI Chat specific layouts */
+  .ai-chat-layout-with-nav .ai-chat-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .ai-chat-layout-with-nav .ai-chat-sidebar {
+    left: -280px !important;
+        padding-top: 65px !important; /* Add space for hamburger */
+
+  }
+
+  .ai-chat-layout-with-nav .ai-chat-sidebar.sidebar-open {
+    left: 0 !important;
+  }
+
+  /* Adjust chat header hamburger to not overlap */
+  .ai-chat-layout-with-nav .chat-header .hamburger-btn {
+    margin-left: 50px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 374.98px) {
+  .nav-hamburger-btn {
+    width: 40px;
+    height: 40px;
+    top: 12px;
+    left: 12px;
+    font-size: 20px;
+  }
+}
+
+
+
+/*********************** SEARCH ICON IN AI SEARCH PAGE8*****************************/
+/* Mobile - Fix search icon positioning */
+@media (max-width: 768px) {
+  /* Search box container */
+  .search-box,
+  .search-input-wrapper,
+  .search-container {
+    position: relative;
+    width: 100%;
+  }
+
+  /* Search input field */
+  .search-input,
+  input[type="search"],
+  .search-box input {
+    width: 100%;
+    padding-right: 1px !important; /* Make space for icons */
+    padding-left: 1rem;
+  }
+
+  /* Icons container - position inside search box */
+  .search-icons,
+  .search-actions,
+  .input-icons {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+  }
+
+  /* Individual icons */
+  .search-icon,
+  .voice-icon,
+  .clear-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* If using specific class for the loading/search button */
+  .search-submit-btn,
+  .search-icon-btn {
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

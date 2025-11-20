@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ApiService from '../services/apiService';
 import { Link } from 'react-router-dom';
+import { AlignCenter } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -140,10 +141,7 @@ const Navbar = () => {
             />
           </Link>
 
-          <label style={{
-            fontSize : "15px"
-          }
-          }>Welcome : {getDisplayName()}</label>
+          <label className="navbar-brand-label" >Welcome : {getDisplayName()}</label>
 
           {/* Right side buttons */}
           <div className="d-flex align-items-center gap-2">

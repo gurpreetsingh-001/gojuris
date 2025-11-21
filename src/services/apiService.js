@@ -1,7 +1,7 @@
 // src/services/apiService.js - COMPLETE FILE WITH ALL FUNCTIONALITY
 class ApiService {
   constructor() {
-   // this.baseURL = 'http://localhost:8001';
+    // this.baseURL = 'http://localhost:8001';
     this.baseURL = 'https://api.gojuris.ai';
     this.defaultTimeout = 30000;
   }
@@ -780,7 +780,7 @@ class ApiService {
   }
 
   // Get user info function
-  async craeteNewSession (message) {
+  async craeteNewSession (message, type) {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/create-session`, {
         method: 'POST',
@@ -790,7 +790,8 @@ class ApiService {
           'Accept': '*/*'
         },
         body: JSON.stringify({
-          message: message
+          message: message,
+          type: type
         })
       });
 
@@ -843,6 +844,24 @@ class ApiService {
   async deleteChatHistoryBySessionId (sessionId) {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/delete-session/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': '*/*'
+        }
+      });
+
+      const data = await response.json();
+      return { success: response.ok, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteAllChatSessions () {
+    try {
+      const response = await fetch(`${this.baseURL}/ChatHistory/delete-allsession`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -32,7 +32,7 @@ const AIChat = () => {
   const messagesEndRef = useRef(null);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [showBookmarksModal, setShowBookmarksModal] = useState(false);
-  
+
   // NEW: Sidebar toggle state for mobile
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -57,15 +57,25 @@ const AIChat = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const deleteAllChat = async () => {
+    await ApiService.deleteAllChatSessions();
+    await loadChatHistory();
+    setChatType('AISearch');
+    setUserMessage('');
+    setChatHistory([]);
+    setChatsessionId(null);
+    setCurrentQuery("");
+  };
+
   // NEW: Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isSidebarOpen && window.innerWidth <= 768) {
         const sidebar = document.querySelector('.ai-chat-sidebar');
         const hamburger = document.querySelector('.hamburger-btn');
-        
-        if (sidebar && !sidebar.contains(event.target) && 
-            hamburger && !hamburger.contains(event.target)) {
+
+        if (sidebar && !sidebar.contains(event.target) &&
+          hamburger && !hamburger.contains(event.target)) {
           setIsSidebarOpen(false);
         }
       }
@@ -108,7 +118,7 @@ const AIChat = () => {
       setCurrentQuery(file.name);
       setChatType('Summarizer');
       setMessage('Summarize this case');
-      handleSendAIMessage("Summarize this case", text);
+      handleSendAIMessage("Summarize this case", text, file.name);
 
     } catch (err) {
       console.error("File processing error:", err);
@@ -218,7 +228,7 @@ const AIChat = () => {
   const loadUserProfile = async () => {
     try {
       const storedUserData = localStorage.getItem('userData');
-      if(!storedUserData) {
+      if (!storedUserData) {
         const profile = await ApiService.getUserProfile();
         setUserProfile(JSON.parse(profile));
       }
@@ -336,11 +346,11 @@ const AIChat = () => {
     return userProfile.email ? userProfile.email[0].toUpperCase() : 'U';
   };
 
-  const loadChatdata = async (sessionId, id) => {
+  const loadChatdata = async (sessionId, id, type) => {
     const list = await ApiService.getChatHistoryBySessionId(sessionId);
     setChatsessionId({ id: id, sessionId: sessionId });
     setChatHistory([]);
-    
+    setChatType(type);
     const resultsData = {
       results: [],
       totalCount: 1,
@@ -354,7 +364,7 @@ const AIChat = () => {
       }
     };
     localStorage.setItem('searchResults', JSON.stringify(resultsData));
-    
+
     list.data.messages.forEach((item, index) => {
       setChatHistory(prev => [
         ...prev,
@@ -380,7 +390,7 @@ const AIChat = () => {
 
     let newPageSearch = pageSearch;
     let newPageSize = pageSizeSearch;
-    
+
     if (e.type === "click") {
       setUserMessage(userMessage);
       newPageSearch = pageSearch === 1 ? 4 : pageSearch + 1;
@@ -426,7 +436,7 @@ const AIChat = () => {
       const finalQuery = searchType == "New" ? message : userMessage + message;
       var sessionIdchat;
       if (!chatsessionId) {
-        const sessionData = await ApiService.craeteNewSession(message);
+        const sessionData = await ApiService.craeteNewSession(message, chatType);
         setChatsessionId(sessionData?.data);
         sessionIdchat = sessionData?.data?.id;
       }
@@ -466,7 +476,7 @@ const AIChat = () => {
 
       console.log('💾 Storing results with API data:', resultsData);
       localStorage.setItem('searchResults', JSON.stringify(resultsData));
-      
+
       await ApiService.streamAIChat(
         userMessage + message,
         [selectedCourt],
@@ -572,7 +582,7 @@ const AIChat = () => {
       (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
   };
 
-  const handleSendAIMessage = async (Umessage, text) => {
+  const handleSendAIMessage = async (Umessage, text, fileName) => {
     if ((!Umessage.trim() || isLoading)) return;
     if (chatType != "AISearch")
       setUserMessage('');
@@ -589,7 +599,7 @@ const AIChat = () => {
       isStreaming: true,
       timestamp: new Date().toLocaleTimeString()
     }]);
-    
+
     let accumulatedText = "";
     const aiMessageIndex = Date.now();
     setChatHistory(prev => [...prev, {
@@ -600,13 +610,23 @@ const AIChat = () => {
       timestamp: new Date().toLocaleTimeString()
     }]);
 
+    var sessionIdchat;
+    if (!chatsessionId) {
+      const sessionData = await ApiService.craeteNewSession(fileName, 'Summarizer');
+      setChatsessionId(sessionData?.data);
+      sessionIdchat = sessionData?.data?.id;
+    }
+    else {
+      sessionIdchat = chatsessionId?.id;
+    }
+
     try {
       await ApiService.streamAIChat(
         Umessage,
         [selectedCourt],
         [],
         {
-          sessionId: '0'
+          sessionId: sessionIdchat
         },
         'Summarizer',
         text,
@@ -669,7 +689,7 @@ const AIChat = () => {
           ));
         }
       );
-
+      loadChatHistory();
     } catch (generalError) {
       console.error('❌ General Error:', generalError);
 
@@ -768,7 +788,7 @@ const AIChat = () => {
 
       {/* NEW: Sidebar Overlay for mobile */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="sidebar-overlay active"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -794,7 +814,20 @@ const AIChat = () => {
           </div>
 
           <div className="sidebar-section">
-            <div className="section-title">History</div>
+            <div className="section-title">History
+              <button
+                className="deleteAll-btn"
+                onClick={() => {
+
+                  if (window.confirm("Are you sure you want to delete all chat history?")) {
+                    deleteAllChat();
+                  }
+                }}
+
+              >
+                Delete All
+              </button>
+            </div>
 
             {chatsessionsList?.length > 0 ? (
               chatsessionsList.map((result) => (
@@ -802,7 +835,7 @@ const AIChat = () => {
                   <span
                     className="chat-title"
                     title={result.subject}
-                    onClick={() => loadChatdata(result.sessionId, result.id)}
+                    onClick={() => loadChatdata(result.sessionId, result.id, result.type)}
                   >
                     {result.subject}
                   </span>
@@ -860,7 +893,7 @@ const AIChat = () => {
       <div className="ai-chat-main">
         <div className="chat-header">
           {/* NEW: Hamburger Menu Button */}
-          <button 
+          <button
             className="hamburger-btn"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
@@ -877,7 +910,7 @@ const AIChat = () => {
               />
             </Link>
           </div>
-          <label style={{ fontSize : "15px" }}>
+          <label style={{ fontSize: "15px" }}>
             Welcome : {getDisplayName()}
           </label>
 
@@ -936,7 +969,7 @@ const AIChat = () => {
                     <div className="d-flex align-items-center">
                       <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 text-white fw-bold flex-shrink-0"
                         style={{ width: '40px', height: '40px', fontSize: '14px' }}>
-                         {getUserInitials()}
+                        {getUserInitials()}
                       </div>
                       <div>
                         <div className="fw-semibold">
@@ -1094,10 +1127,10 @@ const AIChat = () => {
                   </label>
                   <input
                     style={{ display: "none" }}
-                    type="file" 
-                    onChange={onUploadFile} 
-                    id="fileUpload" 
-                    accept=".pdf,.txt,.docx,.doc" 
+                    type="file"
+                    onChange={onUploadFile}
+                    id="fileUpload"
+                    accept=".pdf,.txt,.docx,.doc"
                   />
                 </div>
 
@@ -1205,7 +1238,7 @@ const AIChat = () => {
                         }}>
                           Loading <div className="typing-dot"></div>
                           <div className="typing-dot"></div>
-                          <div className="typing-dot"></div> 
+                          <div className="typing-dot"></div>
                         </div>
                       )}
                     </div>
@@ -1396,7 +1429,7 @@ const AIChat = () => {
                 </div>
               </div>
             ) : (<></>)}
-            
+
             <form onSubmit={handleSendMessage} className="chat-form">
               <div className="chat-input-wrapper">
                 <textarea
@@ -1440,7 +1473,7 @@ const AIChat = () => {
                 </div>
               </div>
             </form>
-            
+
             {chatHistory.length > 0 && 1 == 2 && (
               <div className="radio-options">
                 <label style={{
@@ -1474,7 +1507,7 @@ const AIChat = () => {
             )}
           </div>
         ) : (<></>)}
-        
+
         <div style={{ padding: "4px 30px" }}></div>
       </div>
 
@@ -1641,6 +1674,21 @@ const AIChat = () => {
 
         .menu-icon:hover {
           color: #000;
+        }
+        .deleteAll-btn
+        {
+          isplay: flex;
+          align-items: center;
+          gap: 0.375rem; /* Reduced from 0.5rem */
+          padding: 0.625rem 1.5rem; /* Reduced from 0.875rem 2rem */
+          border: none;
+          border-radius: 6px; /* Reduced from 8px */
+          font-size: 0.9rem; /* Reduced from 0.875rem */
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .dropdown-menu {

@@ -70,7 +70,7 @@ const AIChat = () => {
   };
 
   useEffect(() => {
-    if (research) {
+    if (research && userMessage ) {
       handleSendMessage();
     }
   }, [research]);
@@ -1350,7 +1350,7 @@ const AIChat = () => {
         </div>
 
         {chatType != 'Summarizer' ? (
-          <div className="chat-input-section">
+          <div className="chat-input-section" >
             {chatType === 'AISearch' ? (
               <div style={{ borderColor: "#8b5cf6" }}>
                 <div>
@@ -1363,6 +1363,7 @@ const AIChat = () => {
                     }}>Answer Mode :</label>
                     <label className="radio-label">
                       <input
+                        disabled={isLoading}
                         type="radio"
                         name="ChatMode"
                         value="Long"
@@ -1377,6 +1378,7 @@ const AIChat = () => {
                         type="radio"
                         name="ChatMode"
                         value="Short"
+                        disabled={isLoading}
                         checked={searchMode === 'Short'}
                         onChange={(e) => handleInputChange("ChatMode", e.target.value)}
                       />
@@ -1388,6 +1390,7 @@ const AIChat = () => {
                         type="radio"
                         name="ChatMode"
                         value="Deep"
+                        disabled={isLoading}
                         checked={searchMode === 'Deep'}
                         onChange={(e) => handleInputChange("ChatMode", e.target.value)}
                       />
@@ -1396,6 +1399,7 @@ const AIChat = () => {
                     </label>
                     <select id="lstC" className="court-select"
                       value={selectedCourt}
+                      disabled={isLoading}
                       onChange={(e) => {
                         setSelectedCourt(e.target.value);
                         setResearch(e.target.value);
@@ -1455,7 +1459,7 @@ const AIChat = () => {
                         e.target.style.background = "#7C3AED";
                       }}
                       onClick={handleSendMessage}
-                      disabled={chatHistory.length < 1}
+                      disabled={isLoading || chatHistory.length < 1}
                     >
                       <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
                       <span>Load More Results</span>

@@ -49,6 +49,8 @@ const AIChat = () => {
   const [pageSearch, setPageSearch] = useState(1);
   const [pageSizeSearch, setPageSizeSearch] = useState(15);
   const [chatType, setChatType] = useState('AISearch');
+  const [research, setResearch] = useState(null);
+
 
   const [textOutput, setTextOutput] = useState("");
 
@@ -66,6 +68,12 @@ const AIChat = () => {
     setChatsessionId(null);
     setCurrentQuery("");
   };
+
+  useEffect(() => {
+    if (research) {
+      handleSendMessage();
+    }
+  }, [research]);
 
   // NEW: Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -118,7 +126,7 @@ const AIChat = () => {
       setCurrentQuery(file.name);
       setChatType('Summarizer');
       setMessage('Summarize this case');
-      handleSendAIMessage("Summarize this case", text, file.name);
+      handleSendAIMessage("Summarize this case", text, file.name, 'Summarizer');
 
     } catch (err) {
       console.error("File processing error:", err);
@@ -324,11 +332,24 @@ const AIChat = () => {
     "Draft a plaint for declaration and cancellation of sale deed"
   ];
 
+  function handleClick(e) {
+    const q = e.target.closest(".question-item");
+    if (q) {
+      const text = q.innerText
+      // Call your React function
+      setCurrentQuery("");
+      //setMessage(text.replaceAll('\n', ''));
+      setUserMessage(text.replaceAll('\n', ''));
+      setResearch(text);
+    }
+  }
+
   const handleInputChange = (field, value) => {
     if (field == "ChatMode")
       setSearchMode(value);
     else if (field == "SearchType")
       setSearchType(value);
+    setResearch(value);
   };
 
   const getUserInitials = () => {
@@ -373,7 +394,8 @@ const AIChat = () => {
           metadata: {
             isApiResponse: true
           },
-          text: item.role == 'ai' ? marked.parse(item.content, { breaks: true }).replaceAll("<a ", "<a target='_blank' ") : item.content,
+          text: item.role == 'ai' ? marked.parse(item.content, { breaks: true }).replaceAll("<a ", "<a target='_blank' ").replaceAll(':::question', "<span class='question-item'>")
+            .replaceAll(':::', '</span>') : item.content,
           timestamp: item.timestamp
         }
       ]);
@@ -386,12 +408,13 @@ const AIChat = () => {
   };
 
   const handleSendMessage = async (e) => {
-    e.preventDefault();
+
+    if (e)
+      e.preventDefault();
 
     let newPageSearch = pageSearch;
     let newPageSize = pageSizeSearch;
-
-    if (e.type === "click") {
+    if (e && e?.type === "click") {
       setUserMessage(userMessage);
       newPageSearch = pageSearch === 1 ? 4 : pageSearch + 1;
       newPageSize = 5;
@@ -403,11 +426,13 @@ const AIChat = () => {
     setPageSearch(newPageSearch);
     setPageSizeSearch(newPageSize);
 
-    if (newPageSearch == 1 && (!message.trim() || isLoading)) return;
+    if (e && newPageSearch == 1 && (!message.trim() || isLoading)) return;
     if (chatType != "AISearch")
       setUserMessage('');
-    else if (userMessage == "" || searchType == "New")
-      setUserMessage(message + ", ");
+    else if (userMessage == "" || searchType == "New") {
+      if (e)
+        setUserMessage(message + ", ");
+    }
     else
       setUserMessage(userMessage + message + ", ");
     setCurrentQuery(message);
@@ -417,7 +442,7 @@ const AIChat = () => {
 
     setChatHistory(prev => [...prev, {
       type: 'user',
-      text: message,
+      text: e ? message : userMessage.replace(", ,",''),
       isStreaming: true,
       timestamp: new Date().toLocaleTimeString()
     }]);
@@ -488,7 +513,7 @@ const AIChat = () => {
           sortBy: "relevance",
           sortOrder: "desc",
           prompt: searchMode,
-          inst: message,
+          inst: e ? message : userMessage.replace(", ,",''),
           sessionId: sessionIdchat
         },
         chatType,
@@ -510,7 +535,9 @@ const AIChat = () => {
             msg.id === aiMessageIndex
               ? {
                 ...msg,
-                text: cleanHtml.replaceAll("<a ", "<a target='_blank' "),
+                text: cleanHtml.replaceAll("<a ", "<a target='_blank' ")
+                  .replaceAll(':::question', "<span class='question-item'>")
+                  .replaceAll(':::', '</span>'),
                 isStreaming: true
               }
               : msg
@@ -538,7 +565,9 @@ const AIChat = () => {
             msg.id === aiMessageIndex
               ? {
                 ...msg,
-                text: finalHtml.replaceAll("<a ", "<a target='_blank' "),
+                text: finalHtml.replaceAll("<a ", "<a target='_blank' ")
+                  .replaceAll(':::question', "<span class='question-item'>")
+                  .replaceAll(':::', '</span>'),
                 isStreaming: false,
                 metadata: {
                   embeddingGenerated: true,
@@ -582,7 +611,7 @@ const AIChat = () => {
       (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
   };
 
-  const handleSendAIMessage = async (Umessage, text, fileName) => {
+  const handleSendAIMessage = async (Umessage, text, fileName, type) => {
     if ((!Umessage.trim() || isLoading)) return;
     if (chatType != "AISearch")
       setUserMessage('');
@@ -612,7 +641,7 @@ const AIChat = () => {
 
     var sessionIdchat;
     if (!chatsessionId) {
-      const sessionData = await ApiService.craeteNewSession(fileName, 'Summarizer');
+      const sessionData = await ApiService.craeteNewSession(fileName, type);
       setChatsessionId(sessionData?.data);
       sessionIdchat = sessionData?.data?.id;
     }
@@ -628,7 +657,7 @@ const AIChat = () => {
         {
           sessionId: sessionIdchat
         },
-        'Summarizer',
+        type,
         text,
         (chunkText) => {
           if (!chunkText) return;
@@ -647,7 +676,9 @@ const AIChat = () => {
             msg.id === aiMessageIndex
               ? {
                 ...msg,
-                text: cleanHtml.replaceAll("<a ", "<a target='_blank' "),
+                text: cleanHtml.replaceAll("<a ", "<a target='_blank' ")
+                  .replaceAll(':::question', "<span class='question-item'>")
+                  .replaceAll(':::', '</span>'),
                 isStreaming: true
               }
               : msg
@@ -1213,6 +1244,7 @@ const AIChat = () => {
                             color: '#000'
                           }}
                           dangerouslySetInnerHTML={{ __html: msg.text }}
+                          onClick={handleClick}
                         />
                       ) : (
                         <pre style={{
@@ -1364,7 +1396,10 @@ const AIChat = () => {
                     </label>
                     <select id="lstC" className="court-select"
                       value={selectedCourt}
-                      onChange={(e) => setSelectedCourt(e.target.value)}>
+                      onChange={(e) => {
+                        setSelectedCourt(e.target.value);
+                        setResearch(e.target.value);
+                      } }>
                       {courts.map((court) => (
                         <option key={court.key} value={court.key}>
                           {court.value}
@@ -1376,7 +1411,7 @@ const AIChat = () => {
                   <div style={{
                     position: 'absolute',
                     right: "33px",
-                    bottom: "80px"
+                    bottom: "90px"
                   }} className="d-flex">
                     {openShareMenuId === true && (
                       <ul
@@ -1397,7 +1432,7 @@ const AIChat = () => {
                     )}
                     <button
                       style={{
-                        padding: "5px 20px",
+                        padding: "10px",
                         borderRadius: "8px",
                         display: "flex",
                         alignItems: "center",
@@ -1433,7 +1468,7 @@ const AIChat = () => {
             <form onSubmit={handleSendMessage} className="chat-form">
               <div className="chat-input-wrapper">
                 <textarea
-                  rows="4"
+                  rows="2"
                   className="chat-input"
                   width={"100vw"}
                   placeholder={chatType === 'AISearch' ? "Ask your legal question here..." : "Describe your issue to generate a legal draft instantly"}
@@ -1867,7 +1902,18 @@ const AIChat = () => {
           align-items: center;
         }
 
-       
+       .question-item {
+        display: inline-block;
+        color: #8B5CF6;               /* blue-600 */
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s ease, box-shadow 0.2s ease;
+        font-weight: 500;
+      }
+      .question-item:hover {
+        box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+      }
 
         .checkbox-label,
         .radio-label {

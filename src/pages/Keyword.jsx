@@ -18,6 +18,7 @@ const Keyword = () => {
   const [nearWordsDistance, setNearWordsDistance] = useState('5'); // for Near-Input text-Words option
   const [sortOrder, setSortOrder] = useState('most-relevant'); // most-relevant, most-recent, most-referred, oldest
   const [searchIn, setSearchIn] = useState('B'); // head-notes, full-judgement, both
+  const [searchInCourt, setSearchInCourt] = useState('ALL'); // ALL, SC, ...
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -60,7 +61,7 @@ const Keyword = () => {
       };
       
 
-      const apiResponse = await ApiService.searchKeyword({query: searchQuery, type: searchType, querySlop: nearWordsDistance, searchIn: searchIn}, searchOptions);
+      const apiResponse = await ApiService.searchKeyword({query: searchQuery, type: searchType, querySlop: nearWordsDistance, searchIn: searchIn, mainkeys: [searchInCourt]}, searchOptions);
 
       const searchResults = apiResponse.hits || [];
       const totalCount = apiResponse.total || 0;
@@ -86,7 +87,8 @@ const Keyword = () => {
           searchType,
           sortOrder,
           searchIn,
-          nearWordsDistance
+          nearWordsDistance,
+          mainkeys: [searchInCourt]
         }
       };
 
@@ -414,6 +416,33 @@ const Keyword = () => {
                     />
                     <span className="radio-mark"></span>
                     Both
+                  </label>
+                </div>
+
+                {/* Search In Court Options */}
+                <div className="radio-group search-in-group">
+                  <span className="group-label">Search in:</span>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchInCourt"
+                      value="SC"
+                      checked={searchInCourt === 'SC'}
+                      onChange={(e) => setSearchInCourt(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Supreme Court
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchInCourt"
+                      value="ALL"
+                      checked={searchInCourt === 'ALL'}
+                      onChange={(e) => setSearchInCourt(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    All Courts
                   </label>
                 </div>
               </div>

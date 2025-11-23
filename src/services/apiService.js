@@ -780,7 +780,7 @@ class ApiService {
   }
 
   // Get user info function
-  async craeteNewSession (message, type) {
+  async craeteNewSession(message, type) {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/create-session`, {
         method: 'POST',
@@ -803,7 +803,7 @@ class ApiService {
   }
 
   // Get user info function
-  async getChatHistorySessions () {
+  async getChatHistorySessions() {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/historylist`, {
         method: 'GET',
@@ -823,7 +823,7 @@ class ApiService {
 
   // Get user info function
   // Get user info function
-  async getChatHistoryBySessionId (sessionId) {
+  async getChatHistoryBySessionId(sessionId) {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/history/${sessionId}`, {
         method: 'GET',
@@ -841,7 +841,7 @@ class ApiService {
     }
   }
 
-  async deleteChatHistoryBySessionId (sessionId) {
+  async deleteChatHistoryBySessionId(sessionId) {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/delete-session/${sessionId}`, {
         method: 'DELETE',
@@ -859,7 +859,7 @@ class ApiService {
     }
   }
 
-  async deleteAllChatSessions () {
+  async deleteAllChatSessions() {
     try {
       const response = await fetch(`${this.baseURL}/ChatHistory/delete-allsession`, {
         method: 'DELETE',
@@ -1020,9 +1020,9 @@ class ApiService {
   }
   // ================ STREAMING AI CHAT METHOD ================
   // ================ STREAMING AI CHAT METHOD ================
-  async streamAIChat(userQuery,UserCourt, embeddingVector, options = {},chatType, textOutput, onMessage, onError, onComplete) {
+  async streamAIChat(userQuery, UserCourt, embeddingVector, options = {}, chatType, textOutput, onMessage, onError, onComplete) {
     console.log('🌊 Starting AI Chat Stream...');
-    const payload =chatType ==='AISearch' ?  {
+    const payload = chatType === 'AISearch' ? {
       requests: [
         {
           query: userQuery,
@@ -1030,23 +1030,23 @@ class ApiService {
           mainkeys: UserCourt
         }
       ],
-      
+
       sortBy: options.sortBy || "relevance",
       sortOrder: options.sortOrder || "desc",
       page: options.page || 1,
       pageSize: options.pageSize || 5,
       inst: options.inst || "",
       prompt: options.prompt || "Find relevant legal cases",
-      sessionId : options.sessionId,
+      sessionId: options.sessionId,
     }
-    :
-    {
-      q: userQuery,
-      sessionId : options.sessionId,
-      textOutput : textOutput,
-      type : chatType
-    }
-    ;
+      :
+      {
+        q: userQuery,
+        sessionId: options.sessionId,
+        textOutput: textOutput,
+        type: chatType
+      }
+      ;
 
     try {
       const chatapi = chatType === 'AISearch' ? "/Judgement/AIChat" : "/AI/AIGenerate";
@@ -1205,11 +1205,12 @@ class ApiService {
         return this.cleanObject({
           query: data.query,
           queryVector: data.embeddingVector,
+          mainkeys: data.mainkeys
         });
 
       case "keyword":
         if (typeof data === "string") return { query: data };
-        return this.cleanObject({ query: data.query, type: data.type, querySlop: data.querySlop, searchIn: data.searchIn });
+        return this.cleanObject({ query: data.query, type: data.type, querySlop: data.querySlop, searchIn: data.searchIn, mainkeys: data.mainkeys });
 
       case "Nominal":
         if (typeof data === "string") return { party: data };
@@ -1266,7 +1267,7 @@ class ApiService {
   }
 
   async executeAllSearch(payload) {
-    
+
     localStorage.setItem('searchPayload', JSON.stringify(payload));
     //console.log('Final Payload:', JSON.stringify(payload, null, 2));
 
@@ -1322,15 +1323,15 @@ class ApiService {
   }
 
   // Wrappers
-  async searchWithAI(query, embeddingVector, options = {}) {
-    return this.executeSearch("ai", { query, embeddingVector }, options);
+  async searchWithAI(query, embeddingVector, mainkeys, options = {}) {
+    return this.executeSearch("ai", { query, embeddingVector, mainkeys }, options);
   }
 
   async searchKeyword(query, options = {}) {
-    return this.executeSearch("keyword",query , options);
+    return this.executeSearch("keyword", query, options);
   }
   async searchNominal(query, options = {}) {
-    return this.executeSearch("Nominal",query , options);
+    return this.executeSearch("Nominal", query, options);
   }
 
   async searchCitation(citationData, options = {}) {

@@ -25,6 +25,8 @@ const Judgement = () => {
   const contentionsRef = useRef(null);
   const dispositionRef = useRef(null);
   const judgmentOrderRef = useRef(null);
+  const [marks, setMarks] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -47,9 +49,28 @@ const Judgement = () => {
   useEffect(() => {
     if (judgmentData) {
       scrollToSection(issueRef, 'issue');
+      const allRefs = [issueRef, lawPointsRef, factsRef, contentionsRef, headnotesRef, judgmentOrderRef]; // add all your refs here
+      const allMarks = allRefs.reduce((acc, ref) => {
+        if (ref.current) {
+          const marks = ref.current.querySelectorAll("mark");
+          acc.push(...marks);
+        }
+        return acc;
+      }, []);
+
+      setMarks(allMarks);
+      setCurrentIndex(-1);
     }
+
   }, [judgmentData]);
 
+  const scrollToNextMark = () => {
+    if (marks.length === 0) return;
+
+    const nextIndex = (currentIndex + 1) % marks.length;
+    marks[nextIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+    setCurrentIndex(nextIndex);
+  };
   // Add this useEffect in your Judgement component
 
   // In Judgement.jsx - Add keyboard navigation
@@ -228,6 +249,11 @@ const Judgement = () => {
                 {tab.label}
               </button>
             ))}
+            <button
+            className='nav-tab active'
+              onClick={() => scrollToNextMark()}>
+              Show Hits
+            </button>
           </div>
         </div>
         <GoogleTranslate />

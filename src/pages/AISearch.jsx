@@ -12,6 +12,7 @@ const AISearch = () => {
   const [error, setError] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState(null);
+  const [searchIn, setSearchIn] = useState('ALL');
 
   useEffect(() => {
     document.body.style.paddingTop = '0';
@@ -50,7 +51,7 @@ const AISearch = () => {
       console.log(`✅ Embedding vector length: ${embeddingVector.length}`);
 
       // Step 2: AI Search
-      const apiResponse = await ApiService.searchWithAI(searchQuery, embeddingVector, {
+      const apiResponse = await ApiService.searchWithAI(searchQuery, embeddingVector, [searchIn], {
         pageSize: 25,
         page: 1,
         sortBy: "relevance",
@@ -83,7 +84,8 @@ const AISearch = () => {
         embeddingVector: embeddingVector,
         searchData: {
           query: searchQuery,
-          embeddingVector: embeddingVector
+          embeddingVector: embeddingVector,
+          mainkeys: [searchIn]
         }
       };
 
@@ -103,56 +105,56 @@ const AISearch = () => {
   };
 
   useEffect(() => {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognitionInstance = new SpeechRecognition();
-  
-        recognitionInstance.continuous = true;
-        recognitionInstance.interimResults = true;
-        recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
-  
-        recognitionInstance.onstart = () => {
-          setIsListening(true);
-        };
-  
-        recognitionInstance.onresult = (event) => {
-          let finalTranscript = '';
-  
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
-            }
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'en-US'; // You can change this to your preferred language
+
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionInstance.onresult = (event) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
           }
-  
-          if (finalTranscript) {
-            setSearchQuery(prev => prev + finalTranscript);
-          }
-        };
-  
-        recognitionInstance.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          setIsListening(false);
-  
-          // Show user-friendly error messages
-          if (event.error === 'not-allowed') {
-            setError('Microphone access denied. Please allow microphone access and try again.');
-          } else if (event.error === 'no-speech') {
-            setError('No speech detected. Please try speaking again.');
-          } else {
-            setError('Speech recognition error. Please try again.');
-          }
-        };
-  
-        recognitionInstance.onend = () => {
-          setIsListening(false);
-        };
-  
-        setRecognition(recognitionInstance);
-      } else {
-        console.warn('Speech recognition not supported in this browser');
-      }
-    }, []);
-  
+        }
+
+        if (finalTranscript) {
+          setSearchQuery(prev => prev + finalTranscript);
+        }
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+
+        // Show user-friendly error messages
+        if (event.error === 'not-allowed') {
+          setError('Microphone access denied. Please allow microphone access and try again.');
+        } else if (event.error === 'no-speech') {
+          setError('No speech detected. Please try speaking again.');
+        } else {
+          setError('Speech recognition error. Please try again.');
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recognitionInstance);
+    } else {
+      console.warn('Speech recognition not supported in this browser');
+    }
+  }, []);
+
 
   const handleVoiceSearch = () => {
     if (!recognition) {
@@ -234,19 +236,19 @@ const AISearch = () => {
                         disabled={isListening}
                         title={isListening ? 'Stop recording' : 'Start voice input'}
                       >
-                       {isListening ? (
-                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                        {/* Add a red recording indicator */}
-                        <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
-                      </svg>
-                    ) : (
-                      <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                      </svg>
-                    )}
+                        {isListening ? (
+                          <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                            {/* Add a red recording indicator */}
+                            <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                          </svg>
+                        ) : (
+                          <svg width="50" height="50" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                          </svg>
+                        )}
                       </button>
                       <button
                         type="submit"
@@ -267,6 +269,34 @@ const AISearch = () => {
                     </div>
                   </div>
                 </form>
+              </div>
+              <div className="search-options-below">
+                {/* Search In Court Options */}
+                <div className="radio-group search-in-group">
+                  <span className="group-label">Search in:</span>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="SC"
+                      checked={searchIn === 'SC'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    Supreme Court
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="searchIn"
+                      value="ALL"
+                      checked={searchIn === 'ALL'}
+                      onChange={(e) => setSearchIn(e.target.value)}
+                    />
+                    <span className="radio-mark"></span>
+                    All Courts
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -296,6 +326,92 @@ const AISearch = () => {
         .gojuris-layout {
           display: flex;
           min-height: 100vh;
+        }
+          .search-in-group {
+          border-top: 1px solid #e5e7eb;
+          padding-top: 1rem;
+          margin-top: 1rem;
+        }
+          .radio-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          justify-content: center;
+          align-items: center;
+          margin: 0.5rem 0;
+        }
+
+        .search-in-group {
+          border-top: 1px solid #e5e7eb;
+          padding-top: 1rem;
+          margin-top: 1rem;
+        }
+
+        .group-label {
+          font-weight: 600;
+          color: #374151;
+          margin-right: 1rem;
+        }
+
+        .radio-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          color: #374151;
+          user-select: none;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.375rem;
+          transition: background-color 0.2s ease;
+        }
+
+        .radio-label:hover {
+          background-color: #f9fafb;
+        }
+
+        .radio-label input[type="radio"] {
+          width: 18px;
+          height: 18px;
+          margin: 0;
+          opacity: 0;
+          position: absolute;
+          z-index: -1;
+        }
+
+        .radio-mark {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #d1d5db;
+          border-radius: 50%;
+          background: white;
+          transition: all 0.2s ease;
+          position: relative;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+
+        .radio-label:hover .radio-mark {
+          border-color: var(--gj-primary);
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-mark {
+          border-color: var(--gj-primary);
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-mark::after {
+          content: '';
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background: var(--gj-primary);
+          border-radius: 50%;
+          top: 3px;
+          left: 3px;
+        }
+
+        .radio-label input[type="radio"]:focus + .radio-mark {
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
         .gojuris-main {

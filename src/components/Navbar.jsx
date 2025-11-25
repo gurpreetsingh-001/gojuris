@@ -123,7 +123,7 @@ const Navbar = () => {
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom position-relative">
-        <div className="container-fluid px-3">
+        <div className="container-fluid px-33">
           {/* Left side - Logo */}
           <Link to="/dashboard" className="navbar-brand p-0 m-0">
             <img
@@ -144,7 +144,7 @@ const Navbar = () => {
           <label className="navbar-brand-label" >Welcome : {getDisplayName()}</label>
 
           {/* Right side buttons */}
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-22">
             {/* Dashboard Icon Button - Plain */}
             <button
               className="btn btn-link p-0"
@@ -202,7 +202,7 @@ const Navbar = () => {
                 ) : (
                   <>
                     <i className="bx bx-user"></i>
-                    <span>My Account</span>
+                    <span className='myac' >My Account</span>
                   </>
                 )}
                 <i className="bx bx-chevron-down"></i>

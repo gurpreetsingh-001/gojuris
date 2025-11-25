@@ -13,30 +13,30 @@ html {
 /* Updated Color Scheme - Purple as Primary */
 :root {
   /* Primary Colors - Purple is now primary */
-  --gj-primary: #AD54b3;           
+  --gj-primary: #AD54b3;
   --gj-primary-rgb: 139, 92, 246;
-  --gj-secondary: #00CED1;         
+  --gj-secondary: #00CED1;
   --gj-secondary-rgb: 0, 206, 209;
-  --gj-tertiary: #6366f1;          
+  --gj-tertiary: #6366f1;
   --gj-tertiary-rgb: 99, 102, 241;
-  --gj-accent: #20B2AA;            
+  --gj-accent: #20B2AA;
   --gj-accent-rgb: 32, 178, 170;
-  --gj-accent-2: #d946ef;          
+  --gj-accent-2: #d946ef;
   --gj-accent-2-rgb: 217, 70, 239;
-  
+
   /* Updated Gradients with Purple as Primary */
   --gj-gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #6366f1 100%);
   --gj-gradient-secondary: linear-gradient(135deg, #6366f1 0%, #00CED1 50%, #20B2AA 100%);
   --gj-gradient-accent: linear-gradient(45deg, #8b5cf6, #d946ef, #6366f1, #00CED1);
   --gj-gradient-bhh: linear-gradient(135deg, #eee0f0 0%, #e0d8f0c0 50%, #dad0efc0 100%);
-  
+
   /* Neutral Colors */
   --gj-light: #ffffff;
   --gj-dark: #1e293b;
   --gj-gray: #64748b;
   --gj-border: #e2e8f0;
   --gj-background: #f8fafc;
-  
+
   /* Updated from original */
   --si-primary: var(--gj-primary);
   --si-primary-rgb: var(--gj-primary-rgb);
@@ -351,15 +351,15 @@ html {
 }
 
 /* Theme labels styling */
-.mode-switch + span,
-.mode-switch ~ span {
+.mode-switch+span,
+.mode-switch~span {
   font-size: 0.875rem;
   color: var(--si-dark);
   user-select: none;
 }
 
-[data-bs-theme="dark"] .mode-switch + span,
-[data-bs-theme="dark"] .mode-switch ~ span {
+[data-bs-theme="dark"] .mode-switch+span,
+[data-bs-theme="dark"] .mode-switch~span {
   color: var(--gj-light);
 }
 
@@ -625,6 +625,7 @@ section {
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0px);
@@ -645,6 +646,7 @@ section {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -1909,7 +1911,8 @@ footer hr {
   font-weight: 600;
 }
 
-.petitioner, .respondent {
+.petitioner,
+.respondent {
   color: var(--gj-primary);
   font-size: 1rem;
   font-weight: 600;
@@ -2246,7 +2249,7 @@ footer hr {
 
 /* Right side branding - Updated with new gradient */
 .login-right {
-   flex: 1;
+  flex: 1;
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
   background-image: url('/back.jpeg');
   background-size: cover;
@@ -2258,8 +2261,9 @@ footer hr {
   position: relative;
   overflow: hidden;
 }
+
 .login-rightLe {
-   flex: 1;
+  flex: 1;
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
   background-image: url('/backle.jpg');
   background-size: cover;
@@ -2322,7 +2326,9 @@ footer hr {
 }
 
 @keyframes spin {
-  to { transform: translateY(-50%) rotate(360deg); }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
 }
 
 .brand-footer {
@@ -2465,6 +2471,7 @@ footer hr {
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
+
 /* Citation Error States */
 .citation-error {
   color: #dc3545;
@@ -2497,12 +2504,27 @@ footer hr {
   margin: 0;
   background-color: #f8f9fa;
 }
+
 /* Animation for loading text */
 @keyframes dots {
-  0%, 20% { content: ''; }
-  40% { content: '.'; }
-  60% { content: '..'; }
-  90%, 100% { content: '...'; }
+
+  0%,
+  20% {
+    content: '';
+  }
+
+  40% {
+    content: '.';
+  }
+
+  60% {
+    content: '..';
+  }
+
+  90%,
+  100% {
+    content: '...';
+  }
 }
 
 .citation-dropdown-btn:hover {
@@ -3232,7 +3254,7 @@ footer hr {
   z-index: 999;
 }
 
- .sidebar-header {
+.sidebar-header {
   padding: 0rem;
   border-bottom: 0px solid var(--gj-border);
   flex-shrink: 0;
@@ -3480,7 +3502,7 @@ footer hr {
 
 .ai-chat-layout-with-nav .chat-input {
   flex: 1;
- padding: 0.5rem 4.5rem 0.5rem 1rem;
+  padding: 0.5rem 4.5rem 0.5rem 1rem;
   border: 2px solid var(--gj-primary);
   border-radius: 12px;
   background: #f8f9fa;
@@ -3918,7 +3940,7 @@ footer hr {
   padding-right: 0.5rem;
 }
 
-.signup-form .g-3 > * {
+.signup-form .g-3>* {
   margin-bottom: 0.75rem;
 }
 
@@ -4077,9 +4099,15 @@ footer hr {
     background: #1e293b;
   }
 }
-.navbar-brand-label
-{
+
+.navbar-brand-label {
   font-size: 15px;
+}
+
+.loadmore {
+  position: absolute;
+  right: 33px;
+  bottom: 90px;
 }
 
 /* Responsive Breakpoints */
@@ -4090,57 +4118,65 @@ footer hr {
     flex-direction: row;
     align-items: center;
   }
-  
+
+
   .sort-dropdown-wrapper {
     width: auto;
     min-width: 200px;
   }
-  
- 
+
+
   .search-row {
     flex-direction: row;
     align-items: center;
   }
-  
+
   .jurisdiction-wrapper {
     width: auto;
     min-width: 220px;
   }
-  
+
   .citation-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
-  
+
   .citation-buttons {
     flex-direction: row;
     justify-content: center;
   }
-  
+
   .ai-search-content-with-sidebar .search-input-container {
     flex-direction: row;
     align-items: center;
   }
-  
+
+  .loadmore {
+
+    right: "33px";
+    bottom: "90px";
+    
+  }
+
   .ai-search-content-with-sidebar .ai-search-input {
     flex: 1;
   }
-  
+
   .ai-search-content-with-sidebar .search-submit {
     align-self: auto;
   }
-  
+
   .action-buttons-section {
     flex-direction: row;
     justify-content: center;
   }
-  
+
   .search-action-btn {
     width: auto;
     min-width: 160px;
   }
-  
+
   .signup-form .col-6 {
     flex: 0 0 50%;
     max-width: 50%;
@@ -4152,63 +4188,63 @@ footer hr {
   body {
     padding-top: var(--header-height);
   }
-  
+
   .tab-btn {
     flex-direction: row;
     padding: 12px 16px;
     gap: 6px;
   }
-  
+
   .tab-btn span {
     display: inline;
   }
-  
+
   .search-interface-compact {
     padding: 2rem 0;
   }
-  
+
   .search-card-compact {
     max-width: 900px;
   }
-  
+
   .action-buttons-row {
     justify-content: center;
   }
-  
+
   .gojuris-main {
     width: calc(100% - 70px);
   }
-  
+
   .ai-chat-layout-with-nav .ai-chat-main {
     margin-left: 350px;
     width: calc(100% - 350px);
   }
-  
+
   .ai-chat-layout-with-nav .ai-chat-sidebar {
     display: flex;
   }
-  
+
   .citation-container {
     padding: 3rem 2rem;
   }
-  
+
   .citation-form {
     padding: 3rem;
   }
-  
+
   .search-page {
     padding: 2rem;
   }
-  
+
   .advance-search-card {
     padding: 2rem;
   }
-  
+
   .services-grid-compact {
     max-width: 1000px;
     gap: 1rem;
   }
-  
+
   .service-card-compact {
     padding: 1.25rem;
   }
@@ -4219,48 +4255,48 @@ footer hr {
   .search-type-buttons {
     justify-content: center;
   }
-  
+
   .form-fields-section .row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  
+
   .ai-chat-layout-with-nav .quick-questions {
     padding: 0 2rem;
   }
-  
+
   .ai-chat-layout-with-nav .welcome-message {
     padding: 2rem;
   }
-  
+
   .ai-chat-layout-with-nav .chat-content {
     padding: 0rem 2rem;
     padding-bottom: 0;
   }
-  
+
   .ai-chat-layout-with-nav .chat-input-section {
     padding: 0rem 2rem;
   }
-  
+
   .ai-search-content-with-sidebar {
     padding: 2rem;
   }
-  
+
   .ai-search-content-with-sidebar .search-hero {
     margin-bottom: 4rem;
   }
-  
+
   .ai-search-content-with-sidebar .search-description {
     padding: 0;
   }
-  
+
   .filters-section {
     flex-direction: row;
     align-items: center;
     gap: 1rem;
   }
-  
+
   .services-grid-compact {
     max-width: 1200px;
     gap: 1.25rem;
@@ -4273,16 +4309,16 @@ footer hr {
   .container {
     max-width: 1200px;
   }
-  
+
   .ai-chat-layout-with-nav .ai-chat-sidebar {
     width: 250px;
   }
-  
+
   .ai-chat-layout-with-nav .ai-chat-main {
     margin-left: 310px;
     width: calc(100% - 310px);
   }
-  
+
   .services-grid-compact {
     max-width: 1020px;
   }
@@ -4293,58 +4329,74 @@ footer hr {
   :root {
     --header-height: 70px;
   }
-  
+  .myac
+  {
+    display: none;
+  }
+.loadmore {
+  position: static !important; 
+  right: 33px;
+  bottom: 90px;
+}
+  .exampleschat,
+  .examplesquestions {
+    display: none;
+  }
+
+
   body {
     padding-top: 70px;
   }
-  
+
   .navbar-brand {
     font-size: 1.1rem;
-    padding-left:65px !important;
+    padding-left: 0px !important;
   }
-  
+
   .navbar-brand img {
     height: 48px;
   }
-  
+
   .btn-lg {
     padding: 0.625rem 1.25rem;
     font-size: 1rem;
   }
-  
+
   .py-5 {
     padding-top: 2rem !important;
     padding-bottom: 2rem !important;
   }
-  
+
   .gojuris-sidebar {
     width: 60px;
   }
-  
-   .navbar-brand-label
-  {
+
+  .navbar-brand-label {
     text-align: center;
+    display: none !important;
     width: 100%;
   }
+
   .gojuris-main {
     margin-left: 60px;
     width: calc(100% - 60px);
+    
   }
-  
+
   .sidebar-text {
     font-size: 9px;
   }
-  
+
   .sidebar-icon {
     width: 36px;
     height: 36px;
     margin-bottom: 0.25rem;
   }
-  
+
   .sidebar-icon i {
     font-size: 16px;
   }
-  
+
   /* .ai-chat-layout-with-nav .ai-chat-sidebar {
     display: none;
   }
@@ -4355,90 +4407,96 @@ footer hr {
   } */
 
   /* Hamburger button */
-.hamburger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: transparent;
-  color: var(--gj-primary);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: background 0.2s ease;
-  padding: 0;
-  margin-right: 0.5rem;
-  flex-shrink: 0;
-}
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--gj-primary);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+    padding: 0;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
 
-.hamburger-btn:hover {
-  background: rgba(var(--gj-primary-rgb), 0.1);
-}
+  .hamburger-btn:hover {
+    background: rgba(var(--gj-primary-rgb), 0.1);
+  }
 
-.hamburger-btn:active {
-  background: rgba(var(--gj-primary-rgb), 0.2);
-}
+  .hamburger-btn:active {
+    background: rgba(var(--gj-primary-rgb), 0.2);
+  }
 
-/* Mobile sidebar styles */
-.ai-chat-layout-with-nav .ai-chat-sidebar {
-  position: fixed;
-  left: -280px; /* Hidden by default */
-  top: 0;
-  height: 100vh;
-  width: 280px;
-  z-index: 1050;
-  transition: left 0.3s ease;
-  display: flex;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-}
+  /* Mobile sidebar styles */
+  .ai-chat-layout-with-nav .ai-chat-sidebar {
+    position: fixed;
+    left: -280px;
+    /* Hidden by default */
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 1050;
+    transition: left 0.3s ease;
+    display: flex;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
 
-/* Show sidebar when open */
-.ai-chat-layout-with-nav .ai-chat-sidebar.sidebar-open {
-  left: 60px;
-}
+  /* Show sidebar when open */
+  .ai-chat-layout-with-nav .ai-chat-sidebar.sidebar-open {
+    left: 60px;
+  }
 
-/* Overlay styles */
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1040;
-  transition: opacity 0.3s ease;
-}
+  /* Overlay styles */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    transition: opacity 0.3s ease;
+  }
 
-.sidebar-overlay.active {
-  display: block;
-  animation: fadeIn 0.3s ease;
-}
+  .sidebar-overlay.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
 
-/* Main content adjustment */
-.ai-chat-layout-with-nav .ai-chat-main {
-  margin-left: 60px;
-  width: calc(100% - 60px);
-}
+    to {
+      opacity: 1;
+    }
+  }
 
-.ai-chat-layout-with-nav .chat-header {
-  padding: 0.5rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+  /* Main content adjustment */
+  .ai-chat-layout-with-nav .ai-chat-main {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
 
-.ai-chat-layout-with-nav .chat-header .sidebar-header {
-  flex: 1;
-}
-  
-   /* MOBILE HEADER FIX */
+  .ai-chat-layout-with-nav .chat-header {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ai-chat-layout-with-nav .chat-header .sidebar-header {
+    flex: 1;
+  }
+
+  /* MOBILE HEADER FIX */
   .ai-chat-layout-with-nav .chat-header {
     padding: 0.5rem 0.75rem;
     display: flex;
@@ -4447,7 +4505,8 @@ footer hr {
     flex-wrap: nowrap;
     overflow: hidden;
   }
-    /* Hamburger button on mobile */
+
+  /* Hamburger button on mobile */
   .hamburger-btn {
     display: flex !important;
     align-items: center;
@@ -4460,35 +4519,36 @@ footer hr {
     color: var(--gj-primary);
     cursor: pointer;
     border-radius: 8px;
-   
+
     padding: 0;
     margin-right: 0;
     flex-shrink: 0;
   }
+
   /* Logo container - make it flexible */
   .ai-chat-layout-with-nav .chat-header .sidebar-header {
     flex: 0 1 auto;
     min-width: 0;
     margin-right: auto;
   }
-  
+
   .ai-chat-layout-with-nav .chat-header .gojuris-logo {
     display: flex;
     align-items: center;
   }
-  
+
   .ai-chat-layout-with-nav .chat-header .gojuris-logo img {
     height: 40px !important;
     width: auto;
     max-width: 120px;
     object-fit: contain;
   }
-  
+
   /* Welcome text - hide or make very compact on mobile */
   .ai-chat-layout-with-nav .chat-header label {
     display: none !important;
   }
-  
+
   /* Right side buttons container */
   .ai-chat-layout-with-nav .chat-header .d-flex.align-items-center.gap-2 {
     display: flex !important;
@@ -4497,34 +4557,43 @@ footer hr {
     flex-shrink: 0;
     margin-left: auto;
   }
-  
+
+   .gojuris-main .gap-22
+    {
+      gap: 0.3rem !important;
+    }
+
+   .gojuris-main >.navbar >.px-33
+    {
+      padding-right:0px  !important; 
+    }
   /* Hide some buttons on mobile or make them smaller */
   .ai-chat-layout-with-nav .chat-header .btn-link img {
-    width: 20px !important;
-    height: 20px !important;
+    width: 30px !important;
+    height: 30px !important;
   }
-  
+
   /* Make account dropdown button compact */
   .ai-chat-layout-with-nav .chat-header .dropdown .btn {
     padding: 0.25rem 0.5rem !important;
     font-size: 0.75rem !important;
   }
-  
+
   .ai-chat-layout-with-nav .chat-header .dropdown .btn span {
     display: none !important;
   }
-  
+
   .ai-chat-layout-with-nav .chat-header .dropdown .btn .bx-chevron-down {
     margin-left: 0 !important;
   }
-  
+
   /* Settings button - make smaller */
   .ai-chat-layout-with-nav .chat-header .btn-outline-secondary {
     width: 32px !important;
     height: 32px !important;
     padding: 0.25rem !important;
   }
-  
+
   /* Adjust header height */
   .ai-chat-layout-with-nav .chat-header {
     min-height: 56px;
@@ -4541,10 +4610,11 @@ footer hr {
     background: #f8f9fa;
     border-radius: 8px;
     width: 100%;
+    
   }
 
   /* Answer Mode Label */
-  .radio-options > label:first-child {
+  .radio-options>label:first-child {
     font-size: 0.875rem;
     font-weight: 600;
     color: #8b5cf6;
@@ -4586,65 +4656,65 @@ footer hr {
   }
 
   /* Make the entire answer mode area scrollable if needed */
-  .chat-input-section > div:first-child {
+  .chat-input-section>div:first-child {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .ai-chat-layout-with-nav .chat-content {
     padding: 1rem 0.75rem;
   }
-  
+
   .ai-chat-layout-with-nav .chat-input-section {
     padding: 0rem 1rem;
   }
-  
+
   .ai-chat-layout-with-nav .welcome-message {
     padding: 1rem;
   }
-  
+
   .ai-chat-layout-with-nav .quick-questions {
     padding: 0 0.75rem;
   }
-  
+
   .search-page-title {
     text-align: center;
   }
-  
+
   .citation-main-title {
     text-align: center;
     padding: 0 1rem;
   }
-  
+
   .services-grid-compact {
     grid-template-columns: 1fr;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .service-card-compact {
     padding: 1rem;
     gap: 1rem;
   }
-  
+
   .service-icon-compact {
     width: 45px;
     height: 45px;
     font-size: 1.1rem;
   }
-  
+
   .gojuris-text-compact {
     font-size: 2rem;
   }
-  
+
   .dashboard-header-compact {
     margin-bottom: 1.5rem;
   }
-  
+
   .dashboard-footer-compact {
     padding-top: 1rem;
   }
-  
+
   .signup-form .col-6 {
     flex: 0 0 100%;
     max-width: 100%;
@@ -4656,59 +4726,68 @@ footer hr {
   .navbar-brand img {
     height: 40px;
   }
+
   .radio-options {
     padding: 0.5rem;
+
+  }
+
+  .radlabel {
+    display: none;
   }
 
   .radio-label {
     font-size: 0.75rem;
+
   }
 
   .court-select {
     font-size: 0.8rem;
     padding: 0.4rem;
   }
+
   .tab-btn {
     min-width: 70px;
     padding: 10px 6px;
     font-size: 11px;
   }
-  
+
   .search-card-compact,
   .advance-search-card,
   .citation-form {
     margin: 0 0.5rem;
     padding: 1rem;
   }
-  
+
   .ai-chat-layout-with-nav .quick-question-btn {
     font-size: 0.75rem;
     padding: 0.5rem 0.75rem;
   }
-    .ai-chat-layout-with-nav .chat-header .gojuris-logo img {
-    height: 35px !important;
-    max-width: 100px !important;
+
+  .ai-chat-layout-with-nav .chat-header .gojuris-logo img {
+    height: 45px !important;
+    max-width: 105px !important;
   }
-  
+
   .hamburger-btn {
     width: 32px !important;
     height: 32px !important;
     min-width: 32px !important;
   }
-  
+
   /* Hide dashboard button on very small screens */
-  .ai-chat-layout-with-nav .chat-header .d-flex.align-items-center.gap-2 > button:first-child {
+  .ai-chat-layout-with-nav .chat-header .d-flex.align-items-center.gap-2>button:first-child {
     display: none !important;
   }
-  
+
   .gojuris-text-compact {
     font-size: 1.75rem;
   }
-  
+
   .service-title-compact {
     font-size: 1rem;
   }
-  
+
   .service-description-compact {
     font-size: 0.8rem;
   }
@@ -4719,21 +4798,21 @@ footer hr {
   .ai-chat-layout-with-nav .welcome-message {
     padding: 1rem;
   }
-  
+
   .ai-chat-layout-with-nav .ai-avatar {
     width: 40px;
     height: 40px;
     font-size: 1rem;
   }
-  
+
   .ai-chat-layout-with-nav .welcome-text h3 {
     font-size: 1.1rem;
   }
-  
+
   .ai-chat-layout-with-nav .quick-questions {
     margin-top: 1rem;
   }
-  
+
   .dashboard-page-compact {
     padding: 0.5rem;
     align-items: flex-start;
@@ -4747,7 +4826,7 @@ footer hr {
     max-width: 1000px;
     gap: 1rem;
   }
-  
+
   .service-card-compact {
     padding: 1.25rem;
   }
@@ -4758,11 +4837,11 @@ footer hr {
   .dashboard-page-compact {
     padding: 2rem 1rem;
   }
-  
+
   .dashboard-header-compact {
     margin-bottom: 2.5rem;
   }
-  
+
   .services-grid-compact {
     margin-bottom: 2.5rem;
   }
@@ -4773,33 +4852,33 @@ footer hr {
     padding: 2rem;
     align-items: flex-start;
   }
-  
+
   .dashboard-header-compact {
     margin-bottom: 1rem;
   }
-  
+
   .gojuris-logo-compact {
     margin-bottom: 0.5rem;
   }
-  
+
   .services-grid-compact {
     gap: 0.75rem;
     margin-bottom: 1rem;
   }
-  
+
   .service-card-compact {
     padding: 1rem;
   }
-  
+
   .dashboard-footer-compact {
     padding-top: 1rem;
   }
-  
+
   .footer-text-compact {
     font-size: 0.85rem;
     margin-bottom: 0.25rem;
   }
-  
+
   .footer-includes-compact {
     font-size: 0.8rem;
   }
@@ -4840,73 +4919,73 @@ footer hr {
     padding-top: 2rem !important;
     padding-bottom: 2rem !important;
   }
-  
+
   .navbar .d-flex {
     gap: 0.5rem;
   }
-  
+
   .login-container {
     flex-direction: column;
   }
-  
+
   .login-right {
     display: none;
   }
-  
+
   .citation-row {
     grid-template-columns: 1fr;
   }
-  
+
   .citation-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .citation-buttons {
     justify-content: center;
   }
-  
+
   .ai-chat-sidebar {
     display: none;
   }
-  
+
   .search-main-title {
     font-size: 2rem;
   }
-  
+
   .gojuris-text {
     font-size: 2.5rem;
   }
-  
+
   .services-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .filters-section {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .filter-controls {
     flex-wrap: wrap;
   }
-  
+
   .breadcrumb-section {
     flex-direction: column;
     gap: 0.4rem;
     align-items: flex-start;
     padding: 0.5rem 1rem;
   }
-  
+
   .case-title {
     font-size: 1.3rem;
   }
-  
+
   .judgement-header {
     padding: 0.5rem 1rem;
   }
-  
+
   .case-content-section {
     padding: 1rem;
   }
@@ -4930,18 +5009,18 @@ footer hr {
   .team-card:hover {
     transform: translateY(-5px);
   }
-  
+
   .right-sidebar {
     width: 50px;
     height: 400px;
   }
-  
+
   .right-sidebar-btn {
     width: 36px;
     height: 36px;
     font-size: 1rem;
   }
-  
+
   .judgement-main {
     margin-left: 60px;
     margin-right: 15px;
@@ -4952,28 +5031,28 @@ footer hr {
   .case-title {
     font-size: 1.1rem;
   }
-  
+
   .header-actions {
     gap: 0.5rem;
   }
-  
+
   .search-history-btn {
     padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
   }
-  
+
   .brand-title {
     font-size: 2rem;
   }
-  
+
   .brand-subtitle {
     font-size: 1.8rem;
   }
-  
+
   .ai-text {
     font-size: 1.8rem;
   }
-  
+
   .gojuris-text {
     font-size: 2rem;
   }
@@ -4981,6 +5060,7 @@ footer hr {
 
 /* Print styles */
 @media print {
+
   .navbar-sticky,
   .gojuris-sidebar,
   .ai-chat-sidebar,
@@ -4988,7 +5068,7 @@ footer hr {
   .card-overlay {
     display: none !important;
   }
-  
+
   .gojuris-main,
   .ai-chat-main {
     margin-left: 0 !important;
@@ -5004,11 +5084,11 @@ footer hr {
     --si-border-radius: 0;
     --si-box-shadow: none;
   }
-  
+
   .card {
     border: 2px solid #000;
   }
-  
+
   .btn {
     border: 2px solid #000;
   }
@@ -5016,6 +5096,7 @@ footer hr {
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -5024,7 +5105,7 @@ footer hr {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
+
   .btn::before {
     display: none;
   }
@@ -5058,6 +5139,7 @@ footer hr {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -5069,6 +5151,7 @@ footer hr {
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -5132,11 +5215,7 @@ footer hr {
 }
 
 /* Mobile Hero Fixes */
-@media (max-width: 991.98px) {
-
-  
-
-}
+@media (max-width: 991.98px) {}
 
 
 
@@ -5178,11 +5257,11 @@ footer hr {
   .search-header-section {
     padding: 16px;
   }
-  
+
   .search-main-heading {
     font-size: 1.5rem;
   }
-  
+
   .search-main-heading::after {
     width: 40px;
     height: 2px;
@@ -5193,7 +5272,7 @@ footer hr {
   .search-header-section {
     padding: 12px;
   }
-  
+
   .search-main-heading {
     font-size: 1.25rem;
   }
@@ -5203,9 +5282,12 @@ footer hr {
 
 /* Hero Section - Simple and Clean */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-15px);
   }
@@ -5227,7 +5309,7 @@ footer hr {
   .hero-section .row {
     text-align: center;
   }
-  
+
   .hero-section .col-lg-6:first-child {
     margin-bottom: 2rem;
   }
@@ -5237,8 +5319,7 @@ footer hr {
 /* Add to your existing styles/main.css or create a new pricing.css */
 
 /* Pricing Plans Specific Styles */
-.pricing-plans-page {
-}
+.pricing-plans-page {}
 
 .pricing-hero {
   position: relative;
@@ -5318,11 +5399,10 @@ footer hr {
 /* Billing toggle switch */
 .form-check-input {
   width: 1rem;
-    height: 1rem;
-    background-color: #8b5cf6;
-    border: none;
-    transition: all 0.3s 
-ease;
+  height: 1rem;
+  background-color: #8b5cf6;
+  border: none;
+  transition: all 0.3s ease;
 }
 
 .form-check-input:checked {
@@ -5334,20 +5414,20 @@ ease;
   .pricing-hero .display-4 {
     font-size: 2rem;
   }
-  
+
   .pricing-hero .lead {
     font-size: 1rem;
   }
-  
+
   .card .display-4 {
     font-size: 2rem;
   }
-  
+
   .feature-comparison {
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+
   .table-responsive {
     border-radius: 0.5rem;
   }
@@ -5355,9 +5435,17 @@ ease;
 
 /* Animation for plan selection */
 @keyframes planSelected {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .card.plan-selected {
@@ -5384,7 +5472,7 @@ ease;
   .table-responsive .table {
     font-size: 0.875rem;
   }
-  
+
   .table-responsive .table td,
   .table-responsive .table th {
     padding: 0.75rem 0.5rem;
@@ -5434,6 +5522,7 @@ body {
     padding: 10px;
   }
 }
+
 .language-selector {
   width: 100%;
   padding: 8px 12px;
@@ -5454,6 +5543,7 @@ body {
 .language-selector option {
   padding: 5px;
 }
+
 /* End of CSS file */
 
 /* Add this to your styles/main.css file */
@@ -5513,7 +5603,8 @@ body {
 
 /* Enhance existing citation dropdown styles */
 .citation-dropdown {
-  max-height: 240px; /* Increased to accommodate search input */
+  max-height: 240px;
+  /* Increased to accommodate search input */
 }
 
 /* Dark mode support */
@@ -5542,16 +5633,17 @@ body {
     padding: 6px 10px 6px 28px;
     font-size: 13px;
   }
-  
+
   .dropdown-search-icon {
     left: 14px;
     font-size: 14px;
   }
-  
+
   .dropdown-options-container {
     max-height: 140px;
   }
 }
+
 /* Add these styles to your existing CSS file */
 
 /* Searchable Dropdown Styles */
@@ -5609,7 +5701,8 @@ body {
 
 /* Enhance existing citation dropdown styles */
 .citation-dropdown {
-  max-height: 240px; /* Increased to accommodate search input */
+  max-height: 240px;
+  /* Increased to accommodate search input */
 }
 
 /* Dark mode support */
@@ -5746,7 +5839,7 @@ body {
   .hamburger-btn {
     display: none !important;
   }
-  
+
   .sidebar-overlay {
     display: none !important;
   }
@@ -5784,7 +5877,7 @@ body {
   flex-wrap: wrap;
 }
 
-.radio-options > label:first-child {
+.radio-options>label:first-child {
   color: #8b5cf6;
   font-weight: bold;
   margin: 0;
@@ -5828,7 +5921,7 @@ body {
 @media (max-width: 768px) {
   .radio-options {
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
     align-items: flex-start;
     gap: 0.5rem;
     padding: 0.75rem;
@@ -5836,7 +5929,7 @@ body {
     border-radius: 8px;
   }
 
-  .radio-options > label:first-child {
+  .radio-options>label:first-child {
     width: 100%;
     margin-bottom: 0.25rem;
   }
@@ -5912,8 +6005,13 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Desktop - Everything stays exactly the same */
@@ -5921,11 +6019,11 @@ body {
   .nav-hamburger-btn {
     display: none !important;
   }
-  
+
   .nav-sidebar-overlay {
     display: none !important;
   }
-  
+
   .sidebar-nav-open {
     /* No effect on desktop */
   }
@@ -5933,6 +6031,7 @@ body {
 
 /* Mobile ONLY - Add slide behavior */
 @media (max-width: 768px) {
+
   /* Show hamburger button */
   .nav-hamburger-btn {
     display: flex !important;
@@ -5947,7 +6046,8 @@ body {
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     z-index: 1050 !important;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-        padding-top: 40px !important; /* ADD THIS LINE */
+    padding-top: 40px !important;
+    /* ADD THIS LINE */
 
   }
 
@@ -5970,7 +6070,8 @@ body {
 
   .ai-chat-layout-with-nav .ai-chat-sidebar {
     left: -280px !important;
-        padding-top: 65px !important; /* Add space for hamburger */
+    padding-top: 65px !important;
+    /* Add space for hamburger */
 
   }
 
@@ -5980,7 +6081,7 @@ body {
 
   /* Adjust chat header hamburger to not overlap */
   .ai-chat-layout-with-nav .chat-header .hamburger-btn {
-    margin-left: 50px;
+    margin-left: 0px;
   }
 }
 
@@ -6000,6 +6101,7 @@ body {
 /*********************** SEARCH ICON IN AI SEARCH PAGE8*****************************/
 /* Mobile - Fix search icon positioning */
 @media (max-width: 768px) {
+
   /* Search box container */
   .search-box,
   .search-input-wrapper,
@@ -6013,7 +6115,8 @@ body {
   input[type="search"],
   .search-box input {
     width: 100%;
-    padding-right: 1px !important; /* Make space for icons */
+    padding-right: 1px !important;
+    /* Make space for icons */
     padding-left: 1rem;
   }
 

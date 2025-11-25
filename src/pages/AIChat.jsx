@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import ApiService from '../services/apiService';
 import { Link, useNavigate } from 'react-router-dom';
-import { MoreVertical, Menu, X } from "lucide-react"; // Added Menu and X
+import { MoreVertical, Menu, Plus, X } from "lucide-react";// Added Menu and X
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import mammoth from "mammoth";
@@ -70,7 +70,7 @@ const AIChat = () => {
   };
 
   useEffect(() => {
-    if (research && userMessage ) {
+    if (research && userMessage) {
       handleSendMessage();
     }
   }, [research]);
@@ -442,7 +442,7 @@ const AIChat = () => {
 
     setChatHistory(prev => [...prev, {
       type: 'user',
-      text: e ? message : userMessage.replace(", ,",''),
+      text: e ? message : userMessage.replace(", ,", ''),
       isStreaming: true,
       timestamp: new Date().toLocaleTimeString()
     }]);
@@ -513,7 +513,7 @@ const AIChat = () => {
           sortBy: "relevance",
           sortOrder: "desc",
           prompt: searchMode,
-          inst: e ? message : userMessage.replace(", ,",''),
+          inst: e ? message : userMessage.replace(", ,", ''),
           sessionId: sessionIdchat
         },
         chatType,
@@ -929,9 +929,8 @@ const AIChat = () => {
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
           >
-            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            {isSidebarOpen ? <X size={24} /> : <Plus size={24} />}
           </button>
-
           <div className="sidebar-header">
             <Link to="/dashboard" className="gojuris-logo">
               <img
@@ -1287,7 +1286,7 @@ const AIChat = () => {
           </div>
 
           {chatHistory.length === 0 && (
-            <div>
+            <div className='exampleschat'>
               <h3 style={{
                 fontSize: "18px",
                 fontWeight: "600",
@@ -1298,7 +1297,7 @@ const AIChat = () => {
                 Examples
               </h3>
 
-              <div style={{
+              <div className='examplesquestions' style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "0px"
@@ -1355,12 +1354,14 @@ const AIChat = () => {
               <div style={{ borderColor: "#8b5cf6" }}>
                 <div>
                   <div className="radio-options">
-                    <label style={{
-                      color: "#8b5cf6",
-                      fontWeight: 'bold',
-                      marginBottom: '5px',
-                      alignSelf: "center"
-                    }}>Answer Mode :</label>
+                    <label className='radlabel'
+                      style={{
+                        color: "#8b5cf6",
+                        fontWeight: 'bold',
+                        marginBottom: '5px',
+
+                        alignSelf: "center"
+                      }}>Answer Mode :</label>
                     <label className="radio-label">
                       <input
                         disabled={isLoading}
@@ -1403,7 +1404,7 @@ const AIChat = () => {
                       onChange={(e) => {
                         setSelectedCourt(e.target.value);
                         setResearch(e.target.value);
-                      } }>
+                      }}>
                       {courts.map((court) => (
                         <option key={court.key} value={court.key}>
                           {court.value}
@@ -1413,10 +1414,8 @@ const AIChat = () => {
                   </div>
 
                   <div style={{
-                    position: 'absolute',
-                    right: "33px",
-                    bottom: "90px"
-                  }} className="d-flex">
+
+                  }} className="d-flex loadmore">
                     {openShareMenuId === true && (
                       <ul
                         className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
@@ -1716,7 +1715,7 @@ const AIChat = () => {
         }
         .deleteAll-btn
         {
-          isplay: flex;
+          display: flex;
           align-items: center;
           gap: 0.375rem; /* Reduced from 0.5rem */
           padding: 0.625rem 1.5rem; /* Reduced from 0.875rem 2rem */
@@ -2134,7 +2133,7 @@ const AIChat = () => {
 
         @media (max-width: 480px) {
           .chat-tagline {
-            font-size: 1.2rem;
+            font-size: 0.90rem;
           }
         }
       `}</style>

@@ -636,6 +636,7 @@ const Results = () => {
 
       <div className="gojuris-main">
         <Navbar />
+        
 
         {/* Header Section */}
         <div className="results-header-section">
@@ -818,8 +819,8 @@ const Results = () => {
                     {formatDate(result)}
                   </span>
                   {result.id && (
-                    <span>
-                      <i className="bx bx-file"></i>
+                    <span className='notshowmobile'>
+                      <i className="bx bx-file "></i>
                       {result.fullequivicit}
                     </span>
                   )}
@@ -1367,10 +1368,13 @@ const Results = () => {
           }
 
           .result-meta {
-            flex-direction: column;
+            // flex-direction: column;
             gap: 0.5rem;
           }
 
+          .notshowmobile{
+          display:none !important;}
+          
           .search-results {
             padding: 1rem;
           }

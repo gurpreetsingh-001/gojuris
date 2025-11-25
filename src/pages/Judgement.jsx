@@ -228,12 +228,17 @@ const Judgement = () => {
 
       <div className="gojuris-main">
         <Navbar />
+       
         {/* Back Button */}
         <div className="back-button-container">
           <button className="btn btn-outline-primary btn-sm" onClick={handleBackToResults}>
             <i className="bx bx-arrow-back me-1"></i>
             Back to Results
           </button>
+
+          <div className='gtranslate'>
+             <GoogleTranslate />
+          </div>
         </div>
 
         {/* Navigation Tabs */}
@@ -256,7 +261,7 @@ const Judgement = () => {
             </button>
           </div>
         </div>
-        <GoogleTranslate />
+        
         {/* Judgment Document */}
         <div className="judgment-document">
           {/* Header Information */}
@@ -440,7 +445,10 @@ const Judgement = () => {
         /* Clean Document Layout - No Lines */
         .back-button-container {
           padding: 1rem;
+          display:flex;
           background: #f8f9fa;
+          justify-content: space-between; /* left & right alignment */
+  align-items: center;  
         }
         mark {
           background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(217, 70, 239, 0.2));
@@ -676,6 +684,13 @@ const Judgement = () => {
           .judgment-document {
             padding: 1rem;
           }
+             .back-button-container {
+    flex-direction: column;
+    gap: 10px; /* spacing between button & translate */
+  }
+      .gtranslate {
+    margin-left: 0 !important;
+  }
 
           .nav-tabs-container {
             overflow-x: auto;
@@ -693,6 +708,7 @@ const Judgement = () => {
             flex-shrink: 0;
             font-size: 0.7rem;
             padding: 0.4rem 0.8rem;
+            display:none !important;
           }
 
           .section-text {

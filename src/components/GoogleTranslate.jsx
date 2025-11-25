@@ -53,10 +53,12 @@ export default function GoogleTranslate() {
     <div
       id="google_translate_element"
       style={{
-        width: "100px",
+        width: "200px",
         marginTop: "0px",
-        position: "absolute",
-        height: "30px",
+        marginBottom: "10px",
+        marginRight:"80px",
+        // position: "absolute",
+        height: "50px",
       }}
     ></div>
   );

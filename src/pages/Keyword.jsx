@@ -813,6 +813,7 @@ const Keyword = () => {
 
           .hero-title {
             margin-bottom: 2rem;
+            font-size:20px !important;
           }
 
           .search-input-wrapper {
@@ -844,9 +845,10 @@ const Keyword = () => {
           }
 
           .radio-group {
-            flex-direction: column;
+            // flex-direction: column;
             align-items: flex-start;
             gap: 0.75rem;
+            justify-content: left;
           }
 
           .group-label {

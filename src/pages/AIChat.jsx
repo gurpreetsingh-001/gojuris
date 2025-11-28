@@ -1546,7 +1546,7 @@ const AIChat = () => {
           </div>
         ) : (<></>)}
 
-        <div style={{ padding: "4px 30px" }}></div>
+        <div style={{ padding: "40px 30px" }}></div>
       </div>
 
       {showSettingsModal && (

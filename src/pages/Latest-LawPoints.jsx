@@ -75,7 +75,6 @@ const LatestLawPoints = () => {
         return 'Date not available';
     };
     const handleJudgementClick = (judgement) => {
-        debugger;
         //  console.log('Judgement clicked:', judgement);
         // Navigate to judgement detail page
         const currentIndex = blogPosts.findIndex(result => result.id === judgement.id);

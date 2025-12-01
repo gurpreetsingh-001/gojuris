@@ -48,7 +48,6 @@ const Signup = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    debugger;
     // First name validation
     if (!formData.UserName.trim()) {
       newErrors.UserName = 'Name is required';

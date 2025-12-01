@@ -163,7 +163,6 @@ const Results = () => {
       try {
         const resultsData = JSON.parse(savedResults);
         const results = resultsData.results || [];
-        debugger;
         setAllResults(results);
         setFilteredResults(results);
         setDisplayedResults(results);
@@ -342,7 +341,6 @@ const Results = () => {
 
   // Handle pagination with API calls
   const handlePageChange = async (page, sortm) => {
-    debugger;
     if (page >= 1 && !isLoading) {
       setIsLoading(true);
 

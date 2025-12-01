@@ -395,7 +395,6 @@ const Search = () => {
       else if (formData.section) {
         ActSearch = formData.section
       }
-      debugger;
       const trueKeys =
         selectedCourts.ALL
           ? ["ALL"]

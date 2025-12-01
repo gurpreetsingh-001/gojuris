@@ -822,7 +822,6 @@ const AIChat = () => {
   };
 
   const handleSignOut = () => {
-    debugger;
     setShowAccountDropdown(false);
     ApiService.clearTokensAndRedirect();
   };

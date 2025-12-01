@@ -21,6 +21,7 @@ import Database from './pages/Database'; // ADD THIS LINE
 import PricingPlans from './pages/PricingPlans';
 import Nominal from './pages/Nominal';
 import LatestLawPoints from './pages/Latest-LawPoints';
+import LatestLaw from './pages/Latest-Law';
 
 
 function App() {
@@ -105,6 +106,16 @@ function App() {
             <ProtectedRoute>
               <LatestLawPoints />
             </ProtectedRoute>
+          } />
+
+          <Route path="/Latest-Law" element={
+           <ProtectedRoute>
+              <Header />
+              <main className="page-wrapper">
+                <LatestLaw />
+              </main>
+              <Footer />
+              </ProtectedRoute>
           } />
           
           <Route path="/ai-search" element={

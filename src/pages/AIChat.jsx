@@ -71,7 +71,9 @@ const AIChat = () => {
 
   useEffect(() => {
     if (research && userMessage) {
-      handleSendMessage();
+      setMessage(userMessage.trim().replace(/,$/, ""));
+      setUserMessage('');
+      setCurrentQuery('');
     }
   }, [research]);
 
@@ -94,17 +96,17 @@ const AIChat = () => {
   }, [isSidebarOpen]);
 
   useEffect(() => {
-  function handleClickOutside(event) {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setShowAccountDropdown(false); // Close dropdown
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAccountDropdown(false); // Close dropdown
+      }
     }
-  }
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const onUploadFile = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -342,6 +344,11 @@ const AIChat = () => {
     "Draft a legal notice under Section 138 NI Act for cheque dishonour",
     "Draft a divorce petition under Section 13 HMA based on cruelty",
     "Draft a plaint for declaration and cancellation of sale deed"
+  ];
+  const helpExample = [
+    "What is the difference between bailable and non-bailable offences under CrPC?",
+    "At what stage can an accused apply for anticipatory bail?",
+    "What are the ingredients of Section 420 IPC?"
   ];
 
   function handleClick(e) {
@@ -956,8 +963,20 @@ const AIChat = () => {
           <label style={{ fontSize: "15px" }}>
             Welcome : {getDisplayName()}
           </label>
-
-          <div className="d-flex align-items-center gap-2">
+           <div className="d-flex align-items-center gap-2">
+            <button
+              className="btn btn-link p-0"
+              type="button"
+              onClick={() => navigate('/Latest-Law')}
+              style={{ border: 'none', background: 'transparent' }}
+              title="Latest Law"
+            >
+              <img
+                src="/Images/Latest-Law.png"
+                alt="Latest Law"
+                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+              />
+            </button>
             <button
               className="btn btn-link p-0"
               type="button"
@@ -1037,8 +1056,8 @@ const AIChat = () => {
                   </a>
                   <div className="dropdown-divider" ></div>
 
-                  <button className="dropdown-item text-danger" onClick={()=> handleSignOut()}>
-                    <i  className="bx bx-log-out me-2"></i>Sign Out
+                  <button className="dropdown-item text-danger" onClick={() => handleSignOut()}>
+                    <i className="bx bx-log-out me-2"></i>Sign Out
                   </button>
                 </div>
               )}
@@ -1071,31 +1090,17 @@ const AIChat = () => {
                       setUserMessage("");
                       setChatType('AISearch');
                     }}
-                    style={{
-                      padding: "12px 20px",
-                      borderRadius: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      background: "var(--gj-primary)",
-                      color: "white",
-                      border: "none",
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      whiteSpace: "nowrap"
-                    }}
+                    className={chatType === 'AISearch' ? 'active-button' : 'unactive-button'}
                     onMouseEnter={(e) => {
-                      e.target.style.background = "#6D28D9";
+                      e.target.style.borderColor = "#8B5CF6";
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.background = "#7C3AED";
+                      e.target.style.borderColor = "#d1d5db";
                     }}
                     title='Ask anything—get instant case laws, sections, and legal answers.'
                   >
                     <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
-                    <span>Ask a question</span>
+                    <span>Ask for Case Law</span>
                   </button>
 
                   <button
@@ -1106,28 +1111,12 @@ const AIChat = () => {
                       setUserMessage("");
                       setChatType('Draft');
                     }}
-                    style={{
-                      padding: "12px 20px",
-                      borderRadius: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      background: "transparent",
-                      color: "#6b7280",
-                      border: "1px solid #d1d5db",
-                      fontWeight: "400",
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      whiteSpace: "nowrap"
-                    }}
+                    className={chatType === 'Draft' ? 'active-button' : 'unactive-button'}
                     onMouseEnter={(e) => {
                       e.target.style.borderColor = "#8B5CF6";
-                      e.target.style.color = "#8B5CF6";
                     }}
                     onMouseLeave={(e) => {
                       e.target.style.borderColor = "#d1d5db";
-                      e.target.style.color = "#6b7280";
                     }}
                     title='Create ready-to-file legal drafts from a single command.'
                   >
@@ -1153,11 +1142,9 @@ const AIChat = () => {
                     }}
                     onMouseEnter={(e) => {
                       e.target.style.borderColor = "#8B5CF6";
-                      e.target.style.color = "#8B5CF6";
                     }}
                     onMouseLeave={(e) => {
                       e.target.style.borderColor = "#d1d5db";
-                      e.target.style.color = "#6b7280";
                     }}
                     title='Upload a case file and get instant AI-generated summary, issues, ratio, and headnotes.'
                   >
@@ -1175,6 +1162,27 @@ const AIChat = () => {
                     id="fileUpload"
                     accept=".pdf,.txt,.docx,.doc"
                   />
+
+                  <button
+                    onClick={() => {
+                      setChatHistory([]);
+                      setChatsessionId(null);
+                      setCurrentQuery("");
+                      setUserMessage("");
+                      setChatType('AIHelp');
+                    }}
+                    className={chatType === 'AIHelp' ? 'active-button' : 'unactive-button'}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = "#8B5CF6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = "#d1d5db";
+                    }}
+                    title='Ask anything—get instant case laws, sections, and legal answers.'
+                  >
+                    <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
+                    <span>Ask for Legal Help</span>
+                  </button>
                 </div>
 
                 {showComingSoonModal && (
@@ -1315,7 +1323,7 @@ const AIChat = () => {
                 flexDirection: "column",
                 gap: "0px"
               }}>
-                {(chatType === 'AISearch' ? quickQuestions : draftExample).map((question, index) => (
+                {(chatType === 'AISearch' ? quickQuestions : chatType === 'AIHelp' ? helpExample : draftExample).map((question, index) => (
                   <button
                     key={index}
                     onClick={() => handleQuickQuestion(question)}
@@ -1487,7 +1495,7 @@ const AIChat = () => {
                   rows="2"
                   className="chat-input"
                   width={"100vw"}
-                  placeholder={chatType === 'AISearch' ? "Ask your legal question here..." : "Describe your issue to generate a legal draft instantly"}
+                  placeholder={chatType === 'AISearch' ? "Ask your legal question here..." : chatType === 'AIHelp' ? 'Ask any law-related question.' : "Describe your issue to generate a legal draft instantly"}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   disabled={isLoading}
@@ -1631,7 +1639,7 @@ const AIChat = () => {
           </div>
         </>
       )}
-    
+
       <style jsx>{`
         .sidebar-section {
           padding-top: 10px;
@@ -1647,6 +1655,39 @@ const AIChat = () => {
           margin-bottom: 8px;
           margin-top: 8px;
           color: #444;
+        }
+        .unactive-button {
+          padding: 12px 20px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: transparent;
+          color: #6b7280;
+          border: 1px solid #d1d5db;
+          font-weight: 400;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .active-button {
+          padding: 10px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: var(--gj-primary);
+          color: white;
+          border: none;
+          font-weight: 500;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          margin-bottom: 5px;
+          margin-left: 10px;
         }
 
         .chat-item {

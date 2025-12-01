@@ -1,38 +1,10 @@
 // src/pages/Dashboard.jsx - Fixed version with image icons
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import ApiService from '../services/apiService';
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [showLawModel, setShowLawModel] = useState(false);
-  const latestLaw = [
-    {
-      title: 'Latest Case-Law',
-      description: 'Daily Supreme Court & High Court Rulings with Quick Summaries.',
-      icon: '/Images/LatestJudgments.png',
-      link: 'Case-Law'
-    },
-    {
-      title: 'Latest Law Points',
-      description: 'Fresh, concise legal principles extracted from New Judgments',
-      icon: '/Images/Latestlawpoints.png',
-      link: 'Latest-LawPoints',
-      isLink: true
-    },
-    {
-      title: 'Latest News',
-      description: 'Important legal and policy updates from trusted national sources',
-      icon: '/Images/LatestNews.png',
-      link: 'News'
-    },
-    {
-      title: 'Latest Notifications/Circulars',
-      description: ' Latest government notifications and circulars in one place, updated daily',
-      icon: '/Images/LatestNotifications.png',
-      link: 'Notification'
-    }
-  ]
+  
   const services = [
     {
       title: 'AI Chat',
@@ -80,7 +52,7 @@ const Dashboard = () => {
       title: 'Latest in LAW',
       description: ' Stay updated with the Latest in Law — Fresh judgments, Amendments, Legal Daily News and other legal developments on daily basis.',
       icon: '/Images/i-law.png',
-      link: 'Latest-Law'
+      link: '/Latest-Law'
     },
     {
       title: 'Database',
@@ -114,66 +86,7 @@ const Dashboard = () => {
     }
 
   ];
-  function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // mm
-    const day = String(date.getDate()).padStart(2, "0"); // dd
-
-    // yyyy + dd + mm
-    return `${year}${day}${month}`;
-  }
-  const handleLatestLawEvent = async (event) => {
-    if (event === 'Latest-LawPoints') {
-      navigate('/Latest-LawPoints');
-    }
-    else if (event === 'Case-Law') {
-      const endDate = new Date(); // today
-
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1); // last 1 month
-      const payload = {
-        requests: [{
-          yearFrom: 2025,
-          yearTo: 2025,
-          mainkeys: ['ALL']
-        }],
-        sortBy: "year",
-        sortOrder: "desc",
-        page: 1,
-        pageSize: 25,
-        inst: '',
-        prompt: "Database",
-      };
-      // const mockData = generateMockJudgements(courtKey, page, year);
-      const apiResponse = await ApiService.executeAllSearch(
-        payload
-      );
-
-
-      const resultsData = {
-
-        results: apiResponse.hits || [],
-        totalCount: apiResponse.total || 0,
-        query: '',
-        searchType: 'Latest Search',
-        timestamp: new Date().toISOString(),
-        courtsList: apiResponse.courtsList || [],
-        yearList: apiResponse.yearList || [],
-        searchData: {
-          query: '',
-          searchType: 'Latest Search',
-          sortOrder: 'year',
-          searchIn: 'B',
-          nearWordsDistance: '5'
-        }
-      };
-      localStorage.setItem('searchResults', JSON.stringify(resultsData));
-      console.log('🚀 Navigating to results page...');
-      navigate('/results');
-
-    }
-    setShowLawModel(false);
-  };
+  
   return (
     <div className="dashboard-page-compact">
       <div className="dashboard-container-compact">
@@ -272,62 +185,7 @@ const Dashboard = () => {
           </p>
         </div>
       </div>
-      {showLawModel && (
-        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "fit-content" }} >
-            <div className="modal-content">
-              <div className="modal-header border-0">
-                <h4 className="modal-title mb-0">Latest Law</h4>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowLawModel(false)}
-                ></button>
-              </div>
-              <div className="modal-body text-center py-5">
-                <div className="services-grid-compact">
-                  {latestLaw.map((service, index) => {
-                    return (
-                      <Link
-                        key={index}
-                        className="service-card-compact service-card-link"
-                        style={{ marginBottom: '10px' }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleLatestLawEvent(service.link);
-                        }}
-                      >
-                        <div>
-                          <img
-                            src={service.icon}
-                            alt={service.title}
-                            style={{
-                              width: '94px',
-                              height: '94px',
-                              objectFit: 'contain'
-                              // Makes image white to match the design
-                            }}
-                            onError={(e) => {
-                              console.error(`Failed to load icon: ${service.icon}`);
-                              // Show a fallback icon or text instead of hiding
-                              e.target.style.display = 'none';
-                              e.target.parentElement.innerHTML = '<span style="color: white; font-size: 24px;">📄</span>';
-                            }}
-                          />
-                        </div>
-                        <div className="service-content-compact">
-                          <h3 className="service-title-compact">{service.title}</h3>
-                          <p className="service-description-compact">{service.description}</p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+     
       <style jsx>{`
         /* Dashboard Service Card Links */
         .service-card-link {

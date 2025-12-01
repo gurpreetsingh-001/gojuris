@@ -1408,12 +1408,6 @@ const AIChat = () => {
                               fontSize: "12px",
                               alignItems: "center"
                             }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = "#6c757d"
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = "transparent"
-                            }}
                             onClick={() => copyMessage(msg.text, index)}
                           >
                             <i className="bx bx-copy" style={{ fontSize: "20px" }}></i> {copiedIndex === index ? "Copied!" : "Copy"}
@@ -1447,7 +1441,7 @@ const AIChat = () => {
 
                                 onClick={() => printAllMessage(index)}
                               >
-                                <i className="bx bx-print" style={{ fontSize: "20px" }}></i> Print
+                                <i className="bx bx-printer" style={{ fontSize: "20px" }}></i> Print
                               </button>
                             </>
                           )}

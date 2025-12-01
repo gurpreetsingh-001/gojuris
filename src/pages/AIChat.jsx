@@ -51,7 +51,8 @@ const AIChat = () => {
   const [chatType, setChatType] = useState('AISearch');
   const [research, setResearch] = useState(null);
   const dropdownRef = useRef(null);
-
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [copiedAllIndex, setCopiedAllIndex] = useState(null);
   const [textOutput, setTextOutput] = useState("");
 
   // NEW: Toggle sidebar function
@@ -206,8 +207,9 @@ const AIChat = () => {
     setopenShareMenuId(false);
   };
 
-  const handlePrint = (id) => {
-    alert(`Print chat ${id}`);
+  const handlePrint = async (id, isPined) => {
+    await ApiService.updatePinedChatSessions(id, isPined);
+    await loadChatHistory();
     setOpenMenuId(null);
   };
 
@@ -827,7 +829,109 @@ const AIChat = () => {
   const handleQuickQuestion = (question) => {
     setMessage(question);
   };
+  const copyMessage = async (htmlText, index) => {
+    const temp = document.createElement("div");
+    temp.innerHTML = htmlText;
+    const plainText = temp.innerText;
+    setCopiedIndex(index); // show "Copied!"
+    setTimeout(() => setCopiedIndex(null), 1500); // back to "Copy"
+    //navigator.clipboard.writeText(plainText);
 
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": new Blob([htmlText], { type: "text/html" }),
+        "text/plain": new Blob([plainText], { type: "text/plain" }),
+      })
+    ]);
+  };
+  const copyAllMessage = async (index) => {
+    const allHtml = chatHistory
+      .map((m) => {
+        // If AI message → style it
+        if (m.type != "ai") {
+          return `
+          <div style="
+            text-align: right;
+            color: blue;
+            margin: 6px 0;
+          ">
+            ${m.text}
+          </div>
+        `;
+        }
+
+        // Normal message
+        return `
+        <div style="margin: 6px 0;">
+          ${m.text}
+        </div>
+      `;
+      })
+      .join("<br/><br/>");   // optional spacing
+
+    const temp = document.createElement("div");
+    temp.innerHTML = allHtml;
+    const plainText = temp.innerText;
+
+    setCopiedAllIndex(index); // show "Copied!"
+    setTimeout(() => setCopiedAllIndex(null), 1500); // back to "Copy"
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": new Blob([allHtml], { type: "text/html" }),
+        "text/plain": new Blob([plainText], { type: "text/plain" }),
+      })
+    ]);
+  };
+  const printAllMessage = async (index) => {
+    const allHtml = chatHistory
+      .map((m) => {
+        // If AI message → style it
+        if (m.type != "ai") {
+          return `
+          <div style="
+            text-align: right;
+            color: blue;
+            margin: 6px 0;
+          ">
+            ${m.text}
+          </div>
+        `;
+        }
+
+        // Normal message
+        return `
+        <div style="margin: 6px 0;">
+          ${m.text}
+        </div>
+      `;
+      })
+      .join("<br/><br/>");   // optional spacing
+
+    const printContent = `
+            <html>
+              <head>
+                <title></title>
+                <style>
+                  body { font-family: Arial, sans-serif; padding: 20px; }
+                  h1 { color: #8b5cf6; }
+                  .meta { color: #666; margin: 10px 0; }
+                </style>
+              </head>
+              <body>
+                ${allHtml}
+                </div>
+              </body>
+            </html>
+          `;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.onafterprint = () => {
+      printWindow.close();
+    };
+
+    printWindow.print();
+  };
   const handleSignOut = () => {
     setShowAccountDropdown(false);
     ApiService.clearTokensAndRedirect();
@@ -919,7 +1023,7 @@ const AIChat = () => {
                           handleDelete(result.sessionId);
                         }
                       }}>🗑️ Delete</li>
-                      <li onClick={() => handlePrint(result.sessionId)}>📌 Pin</li>
+                      <li onClick={() => handlePrint(result.sessionId, !result.isPined)}>📌 {result.isPined ? 'UnPin' : 'Pin'}</li>
                     </ul>
                   )}
                 </div>
@@ -963,7 +1067,7 @@ const AIChat = () => {
           <label style={{ fontSize: "15px" }}>
             Welcome : {getDisplayName()}
           </label>
-           <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-2">
             <button
               className="btn btn-link p-0"
               type="button"
@@ -1291,6 +1395,62 @@ const AIChat = () => {
                           Loading <div className="typing-dot"></div>
                           <div className="typing-dot"></div>
                           <div className="typing-dot"></div>
+                        </div>
+                      )}
+                      {!isLoading && msg.type === 'ai' && (
+                        <div className="message-action">
+                          <button
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              right: "10px",
+                              top: "10px",
+                              fontSize: "12px",
+                              alignItems: "center"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#6c757d"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "transparent"
+                            }}
+                            onClick={() => copyMessage(msg.text, index)}
+                          >
+                            <i className="bx bx-copy" style={{ fontSize: "20px" }}></i> {copiedIndex === index ? "Copied!" : "Copy"}
+                          </button>
+                          {index === (chatHistory.length - 1) && (
+                            <>
+                              <button
+                                style={{
+                                  border: "none",
+                                  background: "transparent",
+                                  right: "10px",
+                                  top: "10px",
+                                  fontSize: "12px",
+                                  alignItems: "center"
+                                }}
+
+                                onClick={() => copyAllMessage(index)}
+                              >
+                                <i className="bx bx-copy" style={{ fontSize: "20px" }}></i> {copiedAllIndex === index ? "Copied!" : "Copy All"}
+                              </button>
+
+                              <button
+                                style={{
+                                  border: "none",
+                                  background: "transparent",
+                                  right: "10px",
+                                  top: "10px",
+                                  fontSize: "12px",
+                                  alignItems: "center"
+                                }}
+
+                                onClick={() => printAllMessage(index)}
+                              >
+                                <i className="bx bx-print" style={{ fontSize: "20px" }}></i> Print
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

@@ -2826,6 +2826,14 @@ footer hr {
   word-wrap: break-word;
   font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
+.message-action {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 1px;
+  word-wrap: break-word;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  border-bottom-left-radius: 4px;
+}
 
 .message.user .message-content {
 

@@ -1,90 +1,179 @@
 // src/pages/Dashboard.jsx - Fixed version with image icons
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
+import ApiService from '../services/apiService';
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const [showLawModel, setShowLawModel] = useState(false);
+  const latestLaw = [
+    {
+      title: 'Latest Case-Law',
+      description: 'Daily Supreme Court & High Court Rulings with Quick Summaries.',
+      icon: '/Images/LatestJudgments.png',
+      link: 'Case-Law'
+    },
+    {
+      title: 'Latest Law Points',
+      description: 'Fresh, concise legal principles extracted from New Judgments',
+      icon: '/Images/Latestlawpoints.png',
+      link: 'Latest-LawPoints',
+      isLink: true
+    },
+    {
+      title: 'Latest News',
+      description: 'Important legal and policy updates from trusted national sources',
+      icon: '/Images/LatestNews.png',
+      link: 'News'
+    },
+    {
+      title: 'Latest Notifications/Circulars',
+      description: ' Latest government notifications and circulars in one place, updated daily',
+      icon: '/Images/LatestNotifications.png',
+      link: 'Notification'
+    }
+  ]
   const services = [
     {
       title: 'AI Chat',
       description: 'Instantly search and analyze case law with AI-powered precision. Save hours of manual research.',
-      icon: '/i-ai-chat-02.png', 
+      icon: '/Images/i-ai-chat-02.png',
       link: '/ai-chat'
     },
     {
-      title: 'AI Search', 
+      title: 'AI Search',
       description: 'Instantly finds the exact judgments you need with full context and unmatched accuracy.',
-      icon: '/i-ai-search-03.png', 
+      icon: '/Images/i-ai-search-03.png',
       link: '/ai-search'
     },
     {
       title: 'Keyword Search',
       description: 'gives you instant, precise results using exact phrase, free word, all words, and near-word matching.',
-      icon: '/i-case-law-research-04.png', 
+      icon: '/Images/i-case-law-research-04.png',
       link: '/keyword'
     },
     {
       title: 'Citation Search',
       description: 'Quickly find Indian case laws using journal name, year, volume, and page. Supports all courts.',
-      icon: '/i-Citation Search-05.png', 
+      icon: '/Images/i-Citation Search-05.png',
       link: '/citation'
     },
     {
       title: 'Advance Search',
       description: 'Find case laws by keywords, party names, judges, or case numbers across all courts.',
-      icon: '/i-Advance Case Law Search-06.png', 
+      icon: '/Images/i-Advance Case Law Search-06.png',
       link: '/search'
     },
     {
       title: 'Nominal Search',
       description: 'Locate cases by petitioner/respondent names—fast and accurate.',
-      icon: '/i-NominalSearch-06.png', 
+      icon: '/Images/NominalSearch.png',
       link: '/Nominal'
     },
     {
       title: 'Virtual Legal Assistant',
       description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
-      icon: '/i-Virtual Legal Assistant-07.png', 
+      icon: '/Images/i-Virtual Legal Assistant-07.png',
       link: '#virtual-legal-assistant'
     },
     {
       title: 'Latest in LAW',
       description: ' Stay updated with the Latest in Law — Fresh judgments, Amendments, Legal Daily News and other legal developments on daily basis.',
-      icon: '/i-law.png', 
-      link: '#virtual-legal-assistant'
+      icon: '/Images/i-law.png',
+      link: 'Latest-Law'
     },
     {
       title: 'Database',
       description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
-      icon: '/i-database.png', 
+      icon: '/Images/i-database.png',
       link: '/database'
     },
-     {
+    {
       title: 'Legal Dictionary',
       description: 'Comprehensive Legal Terminology at your fingertips for precise legal research.',
-      icon: '/legaldictionary.png', 
+      icon: '/Images/legaldictionary.png',
       link: '#virtual-legal-assistant'
     },
-     {
+    {
       title: 'Reports',
       description: 'Covers Law Commission Reports, Constituent Assembly Debates and other Important Legal Reports.',
-      icon: '/reports.png', 
+      icon: '/Images/reports.png',
       link: '#virtual-legal-assistant'
     },
     {
       title: 'Central Laws ',
       description: 'A comprehensive library of all Central Statutes and regulations, providing quick access to authoritative legal texts in one place.',
-      icon: '/centrallaws.png', 
+      icon: '/Images/centrallaws.png',
       link: '#virtual-legal-assistant'
     },
-     {
+    {
       title: 'State Laws',
       description: 'A dedicated collection of state-specific statutes and regulations, enabling quick reference to region-wise legal provisions.',
-      icon: '/statelaw.png', 
+      icon: '/Images/statelaw.png',
       link: '#virtual-legal-assistant'
     }
-   
-  ];
 
+  ];
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // mm
+    const day = String(date.getDate()).padStart(2, "0"); // dd
+
+    // yyyy + dd + mm
+    return `${year}${day}${month}`;
+  }
+  const handleLatestLawEvent = async (event) => {
+    if (event === 'Latest-LawPoints') {
+      navigate('/Latest-LawPoints');
+    }
+    else if (event === 'Case-Law') {
+      const endDate = new Date(); // today
+
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 1); // last 1 month
+      const payload = {
+        requests: [{
+          yearFrom: 2025,
+          yearTo: 2025,
+          mainkeys: ['ALL']
+        }],
+        sortBy: "year",
+        sortOrder: "desc",
+        page: 1,
+        pageSize: 25,
+        inst: '',
+        prompt: "Database",
+      };
+      // const mockData = generateMockJudgements(courtKey, page, year);
+      const apiResponse = await ApiService.executeAllSearch(
+        payload
+      );
+
+
+      const resultsData = {
+
+        results: apiResponse.hits || [],
+        totalCount: apiResponse.total || 0,
+        query: '',
+        searchType: 'Latest Search',
+        timestamp: new Date().toISOString(),
+        courtsList: apiResponse.courtsList || [],
+        yearList: apiResponse.yearList || [],
+        searchData: {
+          query: '',
+          searchType: 'Latest Search',
+          sortOrder: 'year',
+          searchIn: 'B',
+          nearWordsDistance: '5'
+        }
+      };
+      localStorage.setItem('searchResults', JSON.stringify(resultsData));
+      console.log('🚀 Navigating to results page...');
+      navigate('/results');
+
+    }
+    setShowLawModel(false);
+  };
   return (
     <div className="dashboard-page-compact">
       <div className="dashboard-container-compact">
@@ -93,15 +182,15 @@ const Dashboard = () => {
             {/* <p>Offering a cutting-edge legal research AI tool. Accessible via web and app. Click for <br/> details. Empowering legal professionals with AI-driven insights.</p> */}
           </div>
         </div>
-        
+
         <div className="services-grid-compact">
           {services.map((service, index) => {
             const isExternalLink = service.link.startsWith('#');
-            
+
             if (isExternalLink) {
               return (
-                <a 
-                  key={index} 
+                <a
+                  key={index}
                   href={service.link}
                   className="service-card-compact service-card-link"
                   onClick={(e) => {
@@ -110,14 +199,14 @@ const Dashboard = () => {
                   }}
                 >
                   <div>
-                    <img 
-                      src={service.icon} 
+                    <img
+                      src={service.icon}
                       alt={service.title}
                       style={{
-                        width: '94px', 
+                        width: '94px',
                         height: '94px',
                         objectFit: 'contain'
-                         // Makes image white to match the design
+                        // Makes image white to match the design
                       }}
                       onError={(e) => {
                         console.error(`Failed to load icon: ${service.icon}`);
@@ -134,19 +223,25 @@ const Dashboard = () => {
                 </a>
               );
             }
-            
+
             return (
-              <Link 
-                key={index} 
-                to={service.link}
+              <Link
+                key={index}
+                to={service.link === "Latest-Law" ? "#" : service.link}
                 className="service-card-compact service-card-link"
+                onClick={(e) => {
+                  if (service.link === "Latest-Law") {
+                    e.preventDefault();       // stop navigation
+                    setShowLawModel(true);    // open modal
+                  }
+                }}
               >
                 <div>
-                  <img 
-                    src={service.icon} 
+                  <img
+                    src={service.icon}
                     alt={service.title}
                     style={{
-                      width: '94px', 
+                      width: '94px',
                       height: '94px',
                       objectFit: 'contain'
                       // Makes image white to match the design
@@ -167,7 +262,7 @@ const Dashboard = () => {
             );
           })}
         </div>
-        
+
         <div className="dashboard-footer-compact">
           <p className="footer-text-compact">
             GoJuris specializes in legal research AI tools, ensuring compliance with all legal and ethical standards for AI in the legal industry.
@@ -177,7 +272,62 @@ const Dashboard = () => {
           </p>
         </div>
       </div>
-
+      {showLawModel && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "fit-content" }} >
+            <div className="modal-content">
+              <div className="modal-header border-0">
+                <h4 className="modal-title mb-0">Latest Law</h4>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowLawModel(false)}
+                ></button>
+              </div>
+              <div className="modal-body text-center py-5">
+                <div className="services-grid-compact">
+                  {latestLaw.map((service, index) => {
+                    return (
+                      <Link
+                        key={index}
+                        className="service-card-compact service-card-link"
+                        style={{ marginBottom: '10px' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleLatestLawEvent(service.link);
+                        }}
+                      >
+                        <div>
+                          <img
+                            src={service.icon}
+                            alt={service.title}
+                            style={{
+                              width: '94px',
+                              height: '94px',
+                              objectFit: 'contain'
+                              // Makes image white to match the design
+                            }}
+                            onError={(e) => {
+                              console.error(`Failed to load icon: ${service.icon}`);
+                              // Show a fallback icon or text instead of hiding
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = '<span style="color: white; font-size: 24px;">📄</span>';
+                            }}
+                          />
+                        </div>
+                        <div className="service-content-compact">
+                          <h3 className="service-title-compact">{service.title}</h3>
+                          <p className="service-description-compact">{service.description}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <style jsx>{`
         /* Dashboard Service Card Links */
         .service-card-link {

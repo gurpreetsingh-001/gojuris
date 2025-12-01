@@ -49,7 +49,7 @@ const Blog = () => {
         {blogPosts.map((post, index) => (
           <div key={index} className="col-lg-4 col-md-6">
             <article className="card card-hover border-0 shadow-lg h-100">
-              <div className={`${post.image} rounded-top d-flex align-items-center justify-content-center text-white`}
+              <div className={` rounded-top d-flex align-items-center justify-content-center text-white`}
                    style={{ height: '200px' }}>
                 <div className="text-center">
                   <i className="bx bx-news display-4 mb-2"></i>

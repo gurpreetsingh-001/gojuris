@@ -19,12 +19,14 @@ const Home = () => {
     <>
       <Hero />
       <SearchInterface />
+       <NewsJudgement/>
       <Features />
+      
       <NewSection /> {/* New component placed above VideoSection */}
       <VideoSection />
       <Services />
       <CallToAction />
-      <NewsJudgement/>
+     
       <Blog />
       {/*<Team />*/}
       <Testimonials />

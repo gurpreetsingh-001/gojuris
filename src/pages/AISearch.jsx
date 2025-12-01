@@ -260,7 +260,7 @@ const AISearch = () => {
                           <i className="bx bx-loader bx-spin" style={{ color: '#8b5cf6', fontSize: '24px' }}></i>
                         ) : (
                           <img
-                            src="/i-ai-search.png"
+                            src="/Images/i-ai-search.png"
                             alt="Search"
                             className="search-icon-img"
                           />

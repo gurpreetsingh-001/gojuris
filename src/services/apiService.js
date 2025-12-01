@@ -1,7 +1,7 @@
 // src/services/apiService.js - COMPLETE FILE WITH ALL FUNCTIONALITY
 class ApiService {
   constructor() {
-    // this.baseURL = 'http://localhost:8001';
+     //this.baseURL = 'http://localhost:8001';
     this.baseURL = 'https://api.gojuris.ai';
     this.defaultTimeout = 30000;
   }
@@ -1299,6 +1299,32 @@ class ApiService {
   async executeSearchFilter(payload) {
     try {
       const response = await fetch(`${this.baseURL}/Judgement/Search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Search Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Search Response:', result);
+      return result;
+
+    } catch (error) {
+      console.error(`❌ ${type.toUpperCase()} Search Error:`, error);
+      throw new Error(`${type} search failed: ${error.message}`);
+    }
+  }
+
+  async getLawPoints(payload) {
+    try {
+      const response = await fetch(`${this.baseURL}/Judgement/GetLawPoints`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

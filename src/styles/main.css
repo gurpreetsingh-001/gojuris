@@ -2251,7 +2251,7 @@ footer hr {
 .login-right {
   flex: 1;
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
-  background-image: url('/back.jpeg');
+  background-image: url('/Images/back.jpeg');
   background-size: cover;
   background-position: top;
   background-repeat: no-repeat;
@@ -2265,7 +2265,7 @@ footer hr {
 .login-rightLe {
   flex: 1;
   background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
-  background-image: url('/backle.jpg');
+  background-image: url('/Images/backle.jpg');
   background-size: cover;
   background-position: top;
   background-repeat: no-repeat;
@@ -2388,6 +2388,7 @@ footer hr {
   line-height: 1.2;
 }
 
+
 .citation-form {
   background: white;
   border-radius: 12px;
@@ -2503,6 +2504,21 @@ footer hr {
 .citation-dropdown .citation-loading {
   margin: 0;
   background-color: #f8f9fa;
+}
+
+.lawpoint-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.lawpoint-main-title {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 700;
+  color: var(--gj-dark);
+  text-align: center;
+  margin-bottom: 2rem;
+  line-height: 1.2;
 }
 
 /* Animation for loading text */

@@ -50,7 +50,7 @@ const AIChat = () => {
   const [pageSizeSearch, setPageSizeSearch] = useState(15);
   const [chatType, setChatType] = useState('AISearch');
   const [research, setResearch] = useState(null);
-
+  const dropdownRef = useRef(null);
 
   const [textOutput, setTextOutput] = useState("");
 
@@ -93,6 +93,18 @@ const AIChat = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isSidebarOpen]);
 
+  useEffect(() => {
+  function handleClickOutside(event) {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setShowAccountDropdown(false); // Close dropdown
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
   const onUploadFile = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -810,6 +822,8 @@ const AIChat = () => {
   };
 
   const handleSignOut = () => {
+    debugger;
+    setShowAccountDropdown(false);
     ApiService.clearTokensAndRedirect();
   };
 
@@ -953,9 +967,9 @@ const AIChat = () => {
               title="Dashboard"
             >
               <img
-                src="/dashboard.png"
+                src="/Images/home.png"
                 alt="Dashboard"
-                style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
               />
             </button>
 
@@ -994,7 +1008,7 @@ const AIChat = () => {
               </button>
 
               {showAccountDropdown && (
-                <div className="dropdown-menu dropdown-menu-end show" style={{ minWidth: '220px' }}>
+                <div className="dropdown-menu dropdown-menu-end show" ref={dropdownRef} style={{ minWidth: '220px' }}>
                   <div className="dropdown-header">
                     <div className="d-flex align-items-center">
                       <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 text-white fw-bold flex-shrink-0"
@@ -1022,10 +1036,10 @@ const AIChat = () => {
                   <a className="dropdown-item" href="#">
                     <i className="bx bx-history me-2"></i>Search History
                   </a>
-                  <div className="dropdown-divider"></div>
+                  <div className="dropdown-divider" ></div>
 
-                  <button className="dropdown-item text-danger" onClick={handleSignOut}>
-                    <i className="bx bx-log-out me-2"></i>Sign Out
+                  <button className="dropdown-item text-danger" onClick={()=> handleSignOut()}>
+                    <i  className="bx bx-log-out me-2"></i>Sign Out
                   </button>
                 </div>
               )}
@@ -1546,7 +1560,7 @@ const AIChat = () => {
           </div>
         ) : (<></>)}
 
-        <div style={{ padding: "40px 30px" }}></div>
+        <div className='paddingBottomDiv'></div>
       </div>
 
       {showSettingsModal && (
@@ -1618,19 +1632,15 @@ const AIChat = () => {
           </div>
         </>
       )}
-
-      {showAccountDropdown && (
-        <div
-          className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: 1 }}
-          onClick={() => setShowAccountDropdown(false)}
-        ></div>
-      )}
-
+    
       <style jsx>{`
         .sidebar-section {
           padding-top: 10px;
           font-family: "Segoe UI", sans-serif;
+        }
+        .paddingBottomDiv {
+        padding: 4px 30px;
+        
         }
 
         .section-title {
@@ -2134,6 +2144,10 @@ const AIChat = () => {
         @media (max-width: 480px) {
           .chat-tagline {
             font-size: 0.90rem;
+          }
+            .paddingBottomDiv {
+            padding: 20px 30px;
+        
           }
         }
       `}</style>

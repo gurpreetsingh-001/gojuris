@@ -154,9 +154,9 @@ const Navbar = () => {
               title="Dashboard"
             >
               <img
-                src="/dashboard.png"
+                src="/Images/home.png"
                 alt="Dashboard"
-                style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
               />
             </button>
 

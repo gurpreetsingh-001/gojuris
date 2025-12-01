@@ -20,6 +20,7 @@ import Keyword from './pages/keyword';
 import Database from './pages/Database'; // ADD THIS LINE
 import PricingPlans from './pages/PricingPlans';
 import Nominal from './pages/Nominal';
+import LatestLawPoints from './pages/Latest-LawPoints';
 
 
 function App() {
@@ -97,6 +98,12 @@ function App() {
           <Route path="/Nominal" element={
             <ProtectedRoute>
               <Nominal />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/Latest-LawPoints" element={
+            <ProtectedRoute>
+              <LatestLawPoints />
             </ProtectedRoute>
           } />
           

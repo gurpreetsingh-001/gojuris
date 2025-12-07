@@ -83,6 +83,12 @@ const Dashboard = () => {
       description: 'A dedicated collection of state-specific statutes and regulations, enabling quick reference to region-wise legal provisions.',
       icon: '/Images/statelaw.png',
       link: '#virtual-legal-assistant'
+    },
+    {
+      title: 'Bookmarks',
+      description: '',
+      icon: '/Images/statelaw.png',
+      link: '/saveBookmarks'
     }
 
   ];

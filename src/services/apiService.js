@@ -245,6 +245,90 @@ class ApiService {
       throw error;
     }
   }
+  async deleteBookmarkItem(Id) {
+    try {
+      const response = await fetch(`${this.baseURL}/bookmark/deleteBookmarkItem/${Id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Accept': '*/*'
+        }
+      });
+
+      const data = await response.json();
+      return { success: response.ok, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+async getBookmarksList()  {
+    try {
+      const response = await fetch(`${this.baseURL}/bookmark/GetBookmarks`, {
+        method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
+  async getBookmarkItems(bname)  {
+    try {
+      const response = await fetch(`${this.baseURL}/bookmark/GetBookmarkItems/${bname}`, {
+       method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
+  async addBookmark(bookmarkData) {
+    try {
+      const response = await fetch(`${this.baseURL}/bookmark/addbookmark`, {
+        method: 'POST',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookmarkData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.text();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  }
 
   async refreshToken() {
     const refreshToken = this.getRefreshToken();
@@ -531,20 +615,6 @@ class ApiService {
       });
     } catch (error) {
       console.error('❌ Get bookmarks failed:', error);
-      throw error;
-    }
-  }
-
-  async addBookmark(bookmarkData) {
-    try {
-      console.log('🔖 Adding bookmark:', bookmarkData);
-
-      return await this.makeRequest('/bookmarks', {
-        method: 'POST',
-        body: JSON.stringify(bookmarkData)
-      });
-    } catch (error) {
-      console.error('❌ Add bookmark failed:', error);
       throw error;
     }
   }

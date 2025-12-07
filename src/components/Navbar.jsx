@@ -146,19 +146,7 @@ const Navbar = () => {
           {/* Right side buttons */}
           <div className="d-flex align-items-center gap-22">
             {/* Dashboard Icon Button - Plain */}
-            <button
-              className="btn btn-link p-0"
-              type="button"
-              onClick={() => navigate('/Latest-Law')}
-              style={{ border: 'none', background: 'transparent' }}
-              title="Latest Law"
-            >
-              <img
-                src="/Images/Latest-Law.png"
-                alt="Latest Law"
-                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
-              />
-            </button>
+           
             <button
               className="btn btn-link p-0"
               type="button"
@@ -172,7 +160,19 @@ const Navbar = () => {
                 style={{ width: '30px', height: '30px', objectFit: 'contain' }}
               />
             </button>
-
+             <button
+              className="btn btn-link p-0"
+              type="button"
+              onClick={() => navigate('/Latest-Law')}
+              style={{ border: 'none', background: 'transparent' }}
+              title="Latest Law"
+            >
+              <img
+                src="/Images/Latest-Law.png"
+                alt="Latest Law"
+                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+              />
+            </button>
             {/* Bookmark Icon Button - Plain */}
             <button
               className="btn btn-link p-0"

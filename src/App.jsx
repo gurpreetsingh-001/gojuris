@@ -16,8 +16,9 @@ import AIChat from './pages/AIChat';
 import AISearch from './pages/AISearch';
 import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
-import Keyword from './pages/keyword';
-import Database from './pages/Database'; // ADD THIS LINE
+import Keyword from './pages/Keyword';
+import Database from './pages/Database';
+import SaveBookmarks from './pages/SaveBookmarks';
 import PricingPlans from './pages/PricingPlans';
 import Nominal from './pages/Nominal';
 import LatestLawPoints from './pages/Latest-LawPoints';
@@ -131,6 +132,13 @@ function App() {
             </ProtectedRoute>
           } />
 
+          {/* FIXED SaveBookmarks ROUTE */}
+          <Route path="/savebookmarks" element={
+            <ProtectedRoute>
+              <SaveBookmarks />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/virtual"
            element={
             <ProtectedRoute>

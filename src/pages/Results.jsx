@@ -19,6 +19,7 @@ const SearchableDropdown = ({
   className = ""
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  
   // Filter items based on search term
   const filteredItems = items.filter(item =>
     item.toString().toLowerCase().includes(searchTerm.toLowerCase())
@@ -139,7 +140,9 @@ const Results = () => {
   const [openSortMenuId, setOpenSortMenuId] = useState(false);
   const [sortMode, setSortMode] = useState("");
   const [isAi, setIsAi] = useState(false);
-
+  const [showAddBoomkarkModal, setShowAddBoomkarkModal] = useState(false);
+  const [bookmarkName, setBookmarkName] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
   const handleSort = (item) => {
     setSortMode(item)
     setOpenSortMenuId(false);
@@ -187,7 +190,35 @@ const Results = () => {
 
     setIsLoading(false);
   }, [navigate]);
+const handleAddBookmark = async (e) => {
+     e.preventDefault();
+    
+    setIsLoading(true);
+    try {
+      const judgmentData = displayedResults.find(result => result.id === currentIndex);
+      const bookmarkData = {
+        UserId : 'ok',
+        appelantRespondant: judgmentData.appellant + ' Vs. ' + judgmentData.respondent,
+        highlightLink: judgmentData.id,
+        jDate: judgmentData.date,
+        bokmarkName: bookmarkName
+      };
 
+      console.log('🚀 Attempting add bookmark...');
+      debugger;
+      const result = await ApiService.addBookmark(bookmarkData);
+
+      alert(result);
+
+    } catch (error) {
+      console.error('❌ error:', error);
+      alert(error);
+    } finally {
+      setIsLoading(false);
+      setShowAddBoomkarkModal(false);
+    }
+    
+  }
   // NEW: Extract filter options from API response
   // Updated extractFiltersFromApiResponse function in Results.jsx
   const extractFiltersFromApiResponse = (resultsData) => {
@@ -854,7 +885,7 @@ const Results = () => {
                           e.stopPropagation();
                           // Bookmark functionality - you can customize this
                           const bookmarked = localStorage.getItem(`bookmark_${result.id}`);
-                          if (bookmarked) {
+                         /* if (bookmarked) {
                             localStorage.removeItem(`bookmark_${result.id}`);
                             e.target.closest('button').classList.remove('bookmarked');
                             alert('Bookmark removed!');
@@ -867,7 +898,9 @@ const Results = () => {
                             }));
                             e.target.closest('button').classList.add('bookmarked');
                             alert('Bookmarked successfully!');
-                          }
+                          } */
+                         setShowAddBoomkarkModal(true);
+                         setCurrentIndex(result.id);
                         }}
                         title="Bookmark"
                       >
@@ -885,28 +918,28 @@ const Results = () => {
                           e.stopPropagation();
                           // Print functionality
                           const printContent = `
-            <html>
-              <head>
-                <title>${formatResultTitle(result)}</title>
-                <style>
-                  body { font-family: Arial, sans-serif; padding: 20px; }
-                  h1 { color: #8b5cf6; }
-                  .meta { color: #666; margin: 10px 0; }
-                </style>
-              </head>
-              <body>
-                <h1>${formatResultTitle(result)}</h1>
-                <div class="meta">
-                  <p><strong>Court:</strong> ${formatCourt(result)}</p>
-                  <p><strong>Date:</strong> ${formatDate(result)}</p>
-                  <p><strong>Keycode:</strong> ${result.id}</p>
-                </div>
-                <div class="content">
-                  ${formatResultContent(result)}
-                </div>
-              </body>
-            </html>
-          `;
+                            <html>
+                              <head>
+                                <title>${formatResultTitle(result)}</title>
+                                <style>
+                                  body { font-family: Arial, sans-serif; padding: 20px; }
+                                  h1 { color: #8b5cf6; }
+                                  .meta { color: #666; margin: 10px 0; }
+                                </style>
+                              </head>
+                              <body>
+                                <h1>${formatResultTitle(result)}</h1>
+                                <div class="meta">
+                                  <p><strong>Court:</strong> ${formatCourt(result)}</p>
+                                  <p><strong>Date:</strong> ${formatDate(result)}</p>
+                                  <p><strong>Keycode:</strong> ${result.id}</p>
+                                </div>
+                                <div class="content">
+                                  ${formatResultContent(result)}
+                                </div>
+                              </body>
+                            </html>
+                          `;
                           const printWindow = window.open('', '_blank');
                           printWindow.document.write(printContent);
                           printWindow.document.close();
@@ -956,7 +989,73 @@ const Results = () => {
           )}
         </div>
       </div>
-
+      {showAddBoomkarkModal && (
+                  <div
+                    className="modal fade show d-block"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                    onClick={() => setShowAddBoomkarkModal(false)}
+                  >
+                    <div
+                      className="modal-dialog modal-dialog-centered"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="modal-content" style={{
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+                      }}>
+                        <div className="modal-header border-0">
+                          <h5 className="modal-title" style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#1a1a1a'
+                          }}>
+                           Add To Bookmark
+                          </h5>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setShowAddBoomkarkModal(false)}
+                          ></button>
+                        </div>
+                        <div className="modal-body">
+                           <form onSubmit={handleAddBookmark}>
+                          <div style={{
+                            marginBottom: '16px'
+                          }}>
+                          
+                          <label className="form-label">Enter Bookmark Name</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={bookmarkName}
+                            onChange={(e) => setBookmarkName(e.target.value)}
+                            placeholder="Enter Bookmark Name"
+                            required
+                          />
+                         
+                          </div>
+                        <div className="m-2 text-center">
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{
+                              minWidth: "100px",
+                              borderRadius: '8px',
+                              background: '#7C3AED',
+                              border: 'none',
+                              padding: '10px'
+                            }}
+                          >
+                           Add
+                          </button>
+                        </div>
+                          </form>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
       <style jsx>{`
         .gojuris-layout {
           display: flex;

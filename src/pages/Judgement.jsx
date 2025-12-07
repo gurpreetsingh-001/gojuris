@@ -27,7 +27,6 @@ const Judgement = () => {
   const judgmentOrderRef = useRef(null);
   const [marks, setMarks] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
-
   useEffect(() => {
     document.body.style.paddingTop = '0';
 
@@ -184,7 +183,7 @@ const Judgement = () => {
             </div>
           </div>
         </div>
-        <RightSidebar />
+        <RightSidebar  judgmentData={judgmentData} />
       </div>
     );
   }
@@ -207,7 +206,7 @@ const Judgement = () => {
             </button>
           </div>
         </div>
-        <RightSidebar />
+        <RightSidebar judgmentData={judgmentData}/>
       </div>
     );
   }
@@ -439,7 +438,7 @@ const Judgement = () => {
         </div>
       </div>
 
-      <RightSidebar />
+      <RightSidebar judgmentData={judgmentData}/>
 
       <style jsx>{`
         /* Clean Document Layout - No Lines */

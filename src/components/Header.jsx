@@ -589,14 +589,7 @@ const Header = () => {
                   SUBSCRIPTIONS
                 </button>
               </li>
-              <li className="nav-item">
-                <img src="ic_beta_96.png"
-                  style={{
-                    marginLeft: '10px'
-                  }}>
-
-                </img>
-              </li>
+             
             </ul>
           </div>
         </div>

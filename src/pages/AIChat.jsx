@@ -906,11 +906,11 @@ const AIChat = () => {
       `;
       })
       .join("<br/><br/>");   // optional spacing
-
+const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
     const printContent = `
             <html>
               <head>
-                <title></title>
+                <title>This Software is licensed to : ${getDisplayName()} </title>
                 <style>
                   body { font-family: Arial, sans-serif; padding: 20px; }
                   h1 { color: #8b5cf6; }
@@ -923,14 +923,100 @@ const AIChat = () => {
               </body>
             </html>
           `;
+    const pnew= `<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+
+    <style>
+        @media print {
+           
+  footer {
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+      @page {
+        margin-top:10px; margin-bottom:10px;
+        @bottom-right {
+          content: "Page " counter(page);
+          font-size: 9pt;
+          margin-top: -7mm;
+        }
+  }
+    tfoot td {
+        text-align: center !important;
+    }
+    }
+    </style>
+</head>
+<body>
+        <table>
+            <thead>
+                <tr>
+                    <td style="width: 400px;">
+                        <a href="index.aspx" class="navbar-brand active">
+                            <img id="imglogo" alt="Legal Egale Elite"   crossorigin="anonymous" style="margin-top: -5px; height: 50px;" src="${logoUrl}" /></a>
+                    </td>
+                    <td style="text-align: right; vertical-align: central; font-family: Cambria; font-size: 8pt;">This Application is licensed to : ${getDisplayName()}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div style="border: 1px solid;"></div>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2">
+                        <p style="page-break-inside: avoid;">
+                            <div id="myDiv" style="text-align: justify; margin-right: 20px; margin-left: 20px;">
+                            ${allHtml}
+                            </div>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2">
+                        <div style="border: 1px solid;"></div>
+                        <br />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: center; border: 0px;">
+                        <footer style="text-align: center;border-bottom: none;font-family: Cambria;font-size: 9pt;">
+                           © 2025-2026 | All Rights Reserved with Capital Law Infotech, Delhi (India)
+                        </footer>
+
+                    </td>
+                </tr>
+
+
+            </tfoot>
+        </table>
+</body>
+</html>`
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
+    printWindow.document.write(pnew);
     printWindow.document.close();
+   // setTimeout(() => {
+    //  printWindow.print();
+   // }, 300);
+    if(window.innerWidth <= 768) {
+      printWindow.print();
+    }
+    else {
+      printWindow.onload = () => {
+        printWindow.print();
+      }
+    }
     printWindow.onafterprint = () => {
       printWindow.close();
     };
 
-    printWindow.print();
+    //printWindow.print();
   };
   const handleSignOut = () => {
     setShowAccountDropdown(false);
@@ -987,7 +1073,8 @@ const AIChat = () => {
             {chatsessionsList?.length > 0 ? (
               chatsessionsList.map((result) => (
                 <div key={result.id} className="chat-item">
-                  <span
+                  {}
+                  <i className={result.isPined ? 'bx bx-pin' : result.type === 'AISearch' ? 'bx bx-chat' : result.type === 'Draft' ? 'bx bx-file' : result.type === 'AIHelp' ? "bx bx-bot" : "bx bx-receipt"} style={{ fontSize: "20px", marginRight: "5px" }}></i> <span
                     className="chat-title"
                     title={result.subject}
                     onClick={() => loadChatdata(result.sessionId, result.id, result.type)}
@@ -1071,19 +1158,6 @@ const AIChat = () => {
             <button
               className="btn btn-link p-0"
               type="button"
-              onClick={() => navigate('/Latest-Law')}
-              style={{ border: 'none', background: 'transparent' }}
-              title="Latest Law"
-            >
-              <img
-                src="/Images/Latest-Law.png"
-                alt="Latest Law"
-                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
-              />
-            </button>
-            <button
-              className="btn btn-link p-0"
-              type="button"
               onClick={() => navigate('/dashboard')}
               style={{ border: 'none', background: 'transparent' }}
               title="Dashboard"
@@ -1094,7 +1168,19 @@ const AIChat = () => {
                 style={{ width: '30px', height: '30px', objectFit: 'contain' }}
               />
             </button>
-
+            <button
+              className="btn btn-link p-0"
+              type="button"
+              onClick={() => navigate('/Latest-Law')}
+              style={{ border: 'none', background: 'transparent' }}
+              title="Latest Law"
+            >
+              <img
+                src="/Images/Latest-Law.png"
+                alt="Latest Law"
+                style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+              />
+            </button>
             <button
               className="btn btn-link p-0"
               type="button"
@@ -1206,7 +1292,26 @@ const AIChat = () => {
                     <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
                     <span>Ask for Case Law</span>
                   </button>
-
+                  <button
+                    onClick={() => {
+                      setChatHistory([]);
+                      setChatsessionId(null);
+                      setCurrentQuery("");
+                      setUserMessage("");
+                      setChatType('AIHelp');
+                    }}
+                    className={chatType === 'AIHelp' ? 'active-button' : 'unactive-button'}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = "#8B5CF6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = "#d1d5db";
+                    }}
+                    title='Ask anything—get instant case laws, sections, and legal answers.'
+                  >
+                    <i className="bx bx-bot" style={{ fontSize: "20px" }}></i>
+                    <span>General Legal Query</span>
+                  </button>
                   <button
                     onClick={() => {
                       setChatHistory([]);
@@ -1224,7 +1329,7 @@ const AIChat = () => {
                     }}
                     title='Create ready-to-file legal drafts from a single command.'
                   >
-                    <i className="bx bx-envelope" style={{ fontSize: "20px" }}></i>
+                    <i className="bx bx-file" style={{ fontSize: "20px" }}></i>
                     <span>Generate a Draft</span>
                   </button>
 
@@ -1267,26 +1372,6 @@ const AIChat = () => {
                     accept=".pdf,.txt,.docx,.doc"
                   />
 
-                  <button
-                    onClick={() => {
-                      setChatHistory([]);
-                      setChatsessionId(null);
-                      setCurrentQuery("");
-                      setUserMessage("");
-                      setChatType('AIHelp');
-                    }}
-                    className={chatType === 'AIHelp' ? 'active-button' : 'unactive-button'}
-                    onMouseEnter={(e) => {
-                      e.target.style.borderColor = "#8B5CF6";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.borderColor = "#d1d5db";
-                    }}
-                    title='Ask anything—get instant case laws, sections, and legal answers.'
-                  >
-                    <i className="bx bx-chat" style={{ fontSize: "20px" }}></i>
-                    <span>Ask for Legal Help</span>
-                  </button>
                 </div>
 
                 {showComingSoonModal && (
@@ -1529,14 +1614,14 @@ const AIChat = () => {
               <div style={{ borderColor: "#8b5cf6" }}>
                 <div>
                   <div className="radio-options">
-                    <label className='radlabel'
+                   {/* <label className='radlabel'
                       style={{
                         color: "#8b5cf6",
                         fontWeight: 'bold',
                         marginBottom: '5px',
 
                         alignSelf: "center"
-                      }}>Answer Mode :</label>
+                      }}>Answer Mode :</label> */}
                     <label className="radio-label">
                       <input
                         disabled={isLoading}
@@ -1653,6 +1738,12 @@ const AIChat = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   disabled={isLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
                 />
 
                 <div className="input-buttons">
@@ -2318,7 +2409,10 @@ const AIChat = () => {
           .chat-tagline {
             font-size: 1.4rem;
           }
-          
+           .paddingBottomDiv {
+            padding: 30px;
+        
+          }
           .chat-tagline-container {
             padding: .5rem 1rem 0.5rem;
           }
@@ -2340,7 +2434,7 @@ const AIChat = () => {
             font-size: 0.90rem;
           }
             .paddingBottomDiv {
-            padding: 20px 30px;
+            padding: 30px;
         
           }
         }

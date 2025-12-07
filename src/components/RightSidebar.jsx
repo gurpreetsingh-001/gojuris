@@ -1,16 +1,26 @@
 // components/RightSidebar.jsx - Vertical slide-in for mobile
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-const RightSidebar = () => {
+import ApiService from '../services/apiService';
+var isGJ = false;
+const RightSidebar = ({judgmentData} ) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [navigationData, setNavigationData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isOpen, setIsOpen] = useState(false); // Mobile toggle state
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showAddBoomkarkModal, setShowAddBoomkarkModal] = useState(false);
+  const [bookmarkName, setBookmarkName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
+     const domain = window.location.hostname;
+
+    if (domain.includes("gojuris.ai")) {
+      isGJ = true;
+    }
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -58,7 +68,201 @@ const RightSidebar = () => {
       }
     }
   };
+  const getDisplayName = () => {
+    const storedUserData = localStorage.getItem('userData');
+      
+     const userProfile =  JSON.parse(storedUserData);
+    if (!userProfile) return '';
 
+    return userProfile.displayName ||
+      userProfile.name ||
+      userProfile.username ||
+      (userProfile.email ? userProfile.email.split('@')[0] : 'Legal User');
+  };
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Date not available';
+
+    try {
+      const dateStr = dateString.toString();
+      if (dateStr.length === 8) {
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        return `${day}-${month}-${year}`;
+      }
+      return dateString;
+    } catch {
+      return dateString;
+    }
+  };
+  const printCustom = () => {
+    const allHtml =judgmentData.judgement;
+    const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
+    const pnew= `<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+
+    <style>
+        @media print {
+           body {
+        counter-reset: page 1;
+    }
+  footer {
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+@page {
+    margin-top:10px; margin-bottom:10px;
+    @bottom-right {
+      content: "Page " counter(page);
+      font-size: 9pt;
+      margin-top: -7mm;
+    }
+  }
+    tfoot td {
+        text-align: center !important;
+    }
+       
+    }
+    
+    </style>
+</head>
+<body>
+        <table>
+            <thead>
+                <tr>
+                    <td style="width: 400px;">
+                        <a href="index.aspx" class="navbar-brand active">
+                            <img id="imglogo" alt="Legal Egale Elite"   crossorigin="anonymous" style="margin-top: -5px; height: 50px;" src="${logoUrl}" /></a>
+                    </td>
+                    <td style="text-align: right; vertical-align: central; font-family: Cambria; font-size: 8pt;">This Application is licensed to : ${getDisplayName()}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div style="border: 1px solid;"></div>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2">
+                        <p style="page-break-inside: avoid;">
+<div style="text-align: center;">
+           
+            <div style="margin-top: 5px;">
+              ${judgmentData.mainCitation}
+            </div>
+            <div style="margin-top: 5px;">
+             <strong> IN THE ${judgmentData.court?.toUpperCase()} </strong>
+            </div>
+
+          
+            <div style="margin-top: 5px;">
+              Equivalent Citations : ${judgmentData.fullequivicit}
+            </div>
+
+            
+            <div style="margin-top: 5px;">
+              <strong>[Before : ${judgmentData.judges || ''}]</strong>
+            </div>
+
+           
+            <div style="margin-top: 5px;">
+              <div className="appellant-name">
+                <strong>${judgmentData.appellant || ''}</strong>
+              </div>
+              <div style="margin-top: 5px;">vs.</div>
+              <div style="margin-top: 5px;">
+                <strong>${judgmentData.respondent || ''}</strong>
+              </div>
+            </div>
+
+            
+            <div style="margin-top: 5px;">
+              Case No. : ${judgmentData.caseNo || '.'}
+            </div>
+            <div style="margin-top: 5px;">
+              Date of Decision : ${formatDate(judgmentData.date)}
+            </div>
+          </div>
+
+                       <div style="text-align: center;margin-top: 5px;"><strong>ISSUE FOR CONSIDERATION</strong></div>
+              <div style="text-align: justify;margin-top: 5px;"> ${judgmentData.issueForConsideration }</div>
+              <div style="text-align: center;margin-top: 5px;"><strong>LAW POINTS</strong></div>
+              <div style="text-align: justify;margin-top: 5px;"> ${judgmentData.lawPoint }</div>
+                        <div  style="text-align: center;margin-top: 5px;"><strong>HEADNOTE/S</strong></div>
+                         <div style="text-align: justify;margin-top: 5px;">
+                  <strong> ${judgmentData.newHeadnote}</strong>
+                </div>
+                <div style="text-align: justify;margin-top: 5px;">
+                  <em><strong>Held: </strong></em> <spam >${judgmentData.held }</spam>
+                </div>
+                <div style="text-align: justify;margin-top: 5px;">
+                  <em><strong>Background Facts: </strong></em><spam >${judgmentData.backgroundFacts }</spam>
+                </div>
+                 <div style="text-align: justify;margin-top: 5px;">
+                <em><strong>Parties Contentions:</strong></em><spam >${judgmentData.partiesContentions }</spam>
+              </div>
+              <div style="text-align: justify;margin-top: 5px;">
+                <em><strong>Disposition: </strong></em><spam >${judgmentData.disposition }</spam>
+              </div>
+               <div style="text-align: center;margin-top: 5px;"><strong>${judgmentData.headnote.length > 5 ? 'Case Notes & Summaries' : ''}</strong></div>
+                <div className="headnote-content">
+                  <strong>${judgmentData.headnote.length > 5 ? judgmentData.headnote : ''}</strong>
+                </div>
+                <div style="margin-top: 5px;font-size: 9pt;"><strong>Advocates Appeared :</strong></div>
+              <div style="text-align: justify;margin-top: 5px;font-size: 9pt;"> ${judgmentData.advocates }</div>
+              <div style="margin-top: 5px;font-size: 9pt;"><strong>Cases Referred :</strong></div>
+              <div style="text-align: justify;margin-top: 5px;font-size: 9pt;"> ${judgmentData.actReferred }</div>
+               <div style="margin-top: 5px;font-size: 9pt;"><strong>Statutes Referred :</strong></div>
+              <div style="text-align: justify;margin-top: 5px;font-size: 9pt;"> ${judgmentData.casesReferred }</div>
+                 <div style="text-align: center;margin-top: 10px;"><strong>JUDGMENT ORDER :</strong></div>
+                            <div id="myDiv" style="text-align: justify; margin-top: 10px;">
+                            ${allHtml}
+                            </div>
+                        </p>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2">
+                        <div style="border: 1px solid;"></div>
+                        <br />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: center; border: 0px;">
+                        <footer style="text-align: center;border-bottom: none;font-family: Cambria;font-size: 9pt;">
+                           © 2025-2026 | All Rights Reserved with Capital Law Infotech, Delhi (India)
+                            <span class="page-number"></span>
+                        </footer>
+
+                    </td>
+                </tr>
+
+
+            </tfoot>
+        </table>
+</body>
+</html>`
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(pnew);
+    printWindow.document.close();
+    if(window.innerWidth <= 768) {
+      printWindow.print();
+    }
+    else {
+      printWindow.onload = () => {
+        printWindow.print();
+      }
+    }
+    printWindow.onafterprint = () => {
+      printWindow.close();
+    };
+  }
   const handleAction = (action) => {
     switch (action) {
       case 'previous':
@@ -78,10 +282,10 @@ const RightSidebar = () => {
         console.log('Expand content');
         break;
       case 'print':
-        window.print();
+        printCustom();
         break;
       case 'bookmark':
-        console.log('Bookmark judgment');
+        setShowAddBoomkarkModal(true);
         break;
       case 'copy':
         navigator.clipboard.writeText(window.location.href);
@@ -111,6 +315,35 @@ const RightSidebar = () => {
       setIsOpen(false);
     }
   };
+
+  const handleAddBookmark = async (e) => {
+     e.preventDefault();
+    setErrors({});
+    setIsLoading(true);
+    try {
+      const bookmarkData = {
+        UserId : 'ok',
+        appelantRespondant: judgmentData.appellant + ' Vs. ' + judgmentData.respondent,
+        highlightLink: judgmentData.id,
+        jDate: judgmentData.date,
+        bokmarkName: bookmarkName
+      };
+
+      console.log('🚀 Attempting add bookmark...');
+      debugger;
+      const result = await ApiService.addBookmark(bookmarkData);
+
+      alert(result);
+
+    } catch (error) {
+      console.error('❌ error:', error);
+      alert(error);
+    } finally {
+      setIsLoading(false);
+      setShowAddBoomkarkModal(false);
+    }
+    
+  }
 
   const canGoPrevious = navigationData && currentIndex > 0;
   const canGoNext = navigationData && currentIndex < navigationData.results.length - 1;
@@ -163,7 +396,7 @@ const RightSidebar = () => {
             <button
               key={index}
               className={`right-sidebar-btn ${item.disabled ? 'disabled' : ''}`}
-              onClick={() => !item.disabled && handleAction(item.action)}
+              onClick={() => !item.disabled &&  handleAction(item.action)}
               title={item.title}
               disabled={item.disabled}
             >
@@ -172,7 +405,73 @@ const RightSidebar = () => {
           ))}
         </div>
       </div>
-
+      {showAddBoomkarkModal && (
+                  <div
+                    className="modal fade show d-block"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                    onClick={() => setShowAddBoomkarkModal(false)}
+                  >
+                    <div
+                      className="modal-dialog modal-dialog-centered"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="modal-content" style={{
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+                      }}>
+                        <div className="modal-header border-0">
+                          <h5 className="modal-title" style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#1a1a1a'
+                          }}>
+                           Add To Bookmark
+                          </h5>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setShowAddBoomkarkModal(false)}
+                          ></button>
+                        </div>
+                        <div className="modal-body">
+                           <form onSubmit={handleAddBookmark}>
+                          <div style={{
+                            marginBottom: '16px'
+                          }}>
+                          
+                          <label className="form-label">Enter Bookmark Name</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={bookmarkName}
+                            onChange={(e) => setBookmarkName(e.target.value)}
+                            placeholder="Enter Bookmark Name"
+                            required
+                          />
+                         
+                          </div>
+                        <div className="m-2 text-center">
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{
+                              minWidth: "100px",
+                              borderRadius: '8px',
+                              background: '#7C3AED',
+                              border: 'none',
+                              padding: '10px'
+                            }}
+                          >
+                           Add
+                          </button>
+                        </div>
+                          </form>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
       <style jsx>{`
         /* Floating Toggle Button - Mobile Only */
         .floating-toggle-btn {

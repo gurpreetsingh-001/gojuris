@@ -216,7 +216,7 @@ Technical Support     :   9310 22 60 00</small>
         <div className="row align-items-center">
           <div className="col-md-6">
             <small style={{ color: '#CBD5E0' }}>
-              © 2025 {isGJ? 'GoJuris Legal' : 'Legal Eagle'} Platform. All rights reserved.
+              © 2025-2026 | All Rights Reserved with Capital Law Infotech, Delhi (India)
             </small>
           </div>
           <div className="col-md-6 text-md-end mt-2 mt-md-0">

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/apiService';
 const LatestLaw = () => {
   const navigate = useNavigate();
-  const [showLawModel, setShowLawModel] = useState(false);
   const latestLaw = [
     {
       title: 'Latest Case-Law',
@@ -43,7 +42,10 @@ const LatestLaw = () => {
     return `${year}${day}${month}`;
   }
   const handleLatestLawEvent = async (event) => {
-    if (event === 'Latest-LawPoints') {
+    if (event === 'News') {
+      navigate('/News');
+    }
+    else if (event === 'Latest-LawPoints') {
       navigate('/Latest-LawPoints');
     }
     else if (event === 'Case-Law') {
@@ -103,7 +105,7 @@ const LatestLaw = () => {
           </div>
         </div>
 
-        <div className="services-grid-compact">
+        <div className="services-grid-compact robotofont">
            {latestLaw.map((service, index) => {
                     return (
                       <Link

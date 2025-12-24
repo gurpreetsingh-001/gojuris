@@ -294,7 +294,7 @@ const RightSidebar = ({judgmentData} ) => {
         if (navigator.share) {
           navigator.share({
             title: 'Legal Judgment',
-            url: window.location.href
+            url: isGJ ? 'https://gojuris.ai/judgementapp/'+ judgmentData.keycodeEn : 'https://legaleagleai.in/judgementapp/'+ judgmentData.keycodeEn
           });
         } else {
           navigator.clipboard.writeText(window.location.href);

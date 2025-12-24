@@ -3771,6 +3771,9 @@ footer hr {
   align-items: center;
   justify-content: center;
 }
+.robotofont {
+  font-family: "Roboto Condensed", sans-serif;;
+}
 
 .dashboard-container-compact {
   max-width: 1150px;

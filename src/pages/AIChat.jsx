@@ -38,7 +38,7 @@ const AIChat = () => {
 
   const [recognition, setRecognition] = useState(null);
   const [courts, setCourts] = useState([]);
-  const [selectedCourt, setSelectedCourt] = useState("ALL");
+  const [selectedCourt, setSelectedCourt] = useState("SC");
   const [chatsessionId, setChatsessionId] = useState(null);
   const [chatsessionsList, setChatsessionsList] = useState(null);
 
@@ -759,7 +759,22 @@ const AIChat = () => {
       setIsLoading(false);
     }
   };
+  const formatDate = (dateValue) => {
+  const date = new Date(dateValue);
 
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const period = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12 || 12; // convert to 12-hour format
+  hours = String(hours).padStart(2, '0');
+
+  return `${day}-${month}-${year} ${hours}:${minutes} ${period}`;
+};
   const processSearchResults = (searchResults, userMessage) => {
     if (!searchResults) {
       return 'No response received from the legal database.';
@@ -1072,6 +1087,7 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
 
             {chatsessionsList?.length > 0 ? (
               chatsessionsList.map((result) => (
+                <>
                 <div key={result.id} className="chat-item">
                   {}
                   <i className={result.isPined ? 'bx bx-pin' : result.type === 'AISearch' ? 'bx bx-chat' : result.type === 'Draft' ? 'bx bx-file' : result.type === 'AIHelp' ? "bx bx-bot" : "bx bx-receipt"} style={{ fontSize: "20px", marginRight: "5px" }}></i> <span
@@ -1081,6 +1097,7 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
                   >
                     {result.subject}
                   </span>
+                  
 
                   <div
                     className="menu-icon"
@@ -1091,7 +1108,7 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
                   >
                     <MoreVertical size={18} />
                   </div>
-
+                   
                   {openMenuId === result.sessionId && (
                     <ul
                       className="dropdown-menu dropdown-menu-end show position-absolute bg-white border shadow"
@@ -1113,7 +1130,14 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
                       <li onClick={() => handlePrint(result.sessionId, !result.isPined)}>📌 {result.isPined ? 'UnPin' : 'Pin'}</li>
                     </ul>
                   )}
+                 
                 </div>
+                 <div className='chat-subtitle' style={{
+                  paddingLeft: '30px'
+
+                 }}><span >{formatDate(result?.updatedAt)}</span></div>
+                </>
+                 
               ))
             ) : (
               <div className="history-placeholder">
@@ -1184,7 +1208,8 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
             <button
               className="btn btn-link p-0"
               type="button"
-              onClick={() => setShowBookmarksModal(true)}
+             // onClick={() => setShowBookmarksModal(true)}
+              onClick={() => navigate('/SaveBookmarks')}
               style={{ border: 'none', background: 'transparent' }}
               title="Bookmarks"
             >
@@ -1862,7 +1887,8 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
                   <button
                     type="button"
                     className="btn-close"
-                    onClick={() => setShowBookmarksModal(false)}
+                   // onClick={() => setShowBookmarksModal(false)}
+                    onClick={() => navigate('/SaveBookmarks')}
                   ></button>
                 </div>
                 <div className="modal-body text-center py-5">
@@ -1984,7 +2010,17 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          font-size: 14px;
+          font-size: 12px;
+          color: #333;
+          z-index: 1;
+          transition: color 0.2s;
+        }
+          .chat-subtitle {
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 12px;
           color: #333;
           z-index: 1;
           transition: color 0.2s;
@@ -2404,7 +2440,11 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
           line-height: 1.3;
           letter-spacing: -0.025em;
         }
-
+         @media (max-width: 868px) {
+          .paddingBottomDiv {
+            padding: 30px;
+          }
+      }
         @media (max-width: 768px) {
           .chat-tagline {
             font-size: 1.4rem;
@@ -2417,8 +2457,8 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
             padding: .5rem 1rem 0.5rem;
           }
             .ai-chat-layout-with-nav .chat-header {
-      z-index: 1050;
-    }
+            z-index: 1050;
+          }
 
     .ai-chat-layout-with-nav .chat-header .dropdown-menu {
       position: fixed;

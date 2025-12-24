@@ -284,6 +284,116 @@ async getBookmarksList()  {
       throw error;
     }
   };
+  async getArticle(id)  {
+    try {
+      const response = await fetch(`${this.baseURL}/Article/GetArticle/${id}`, {
+        method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
+  async getNews(id)  {
+    try {
+      const response = await fetch(`${this.baseURL}/Article/GetNews/${id}`, {
+        method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
+  async getArticles()  {
+    try {
+      const response = await fetch(`${this.baseURL}/Article/GetArticles`, {
+        method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
+   async getDics()  {
+    try {
+      const response = await fetch(`${this.baseURL}/Article/GetDics`, {
+        method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
+  async getDefination(id)  {
+    try {
+      const response = await fetch(`${this.baseURL}/Article/GetDefination/${id}`, {
+        method: 'GET',
+       headers: {
+          'Authorization': `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || 'failed');
+      }
+      const data = await response.json();
+      console.log('✅ Added successful');
+      return data;
+    } catch (error) {
+      console.error('❌ Registration failed:', error);
+      throw error;
+    }
+  };
   async getBookmarkItems(bname)  {
     try {
       const response = await fetch(`${this.baseURL}/bookmark/GetBookmarkItems/${bname}`, {
@@ -1028,6 +1138,32 @@ async getBookmarksList()  {
           'Authorization': `Bearer ${this.getAccessToken()}`,
         },
         body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch judgment: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Judgment details retrieved successfully');
+      return result;
+
+    } catch (error) {
+      console.error('❌ Get judgment failed:', error);
+      throw error;
+    }
+  }
+
+   async getJudgementDetailsById(keycode) {
+    try {
+      console.log('⚖️ Fetching judgment details for keycode:', keycode);
+
+      const response = await fetch(`${this.baseURL}/Judgement/GetJudgementbyId/${keycode}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       if (!response.ok) {

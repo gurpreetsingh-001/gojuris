@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ApiService from '../services/apiService';
-var isGJ = false;
+var isGJ = true;
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();

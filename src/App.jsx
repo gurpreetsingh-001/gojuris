@@ -23,8 +23,15 @@ import PricingPlans from './pages/PricingPlans';
 import Nominal from './pages/Nominal';
 import LatestLawPoints from './pages/Latest-LawPoints';
 import LatestLaw from './pages/Latest-Law';
-
-
+import CAActsList from './pages/CAActsList';
+import StateLaws from './pages/StateLaws';
+import Reports from './pages/Reports';
+import Articles from './pages/Articles';
+import Article from './pages/Article';
+import Dictionary from './pages/dictionary';
+import News from './pages/News';
+import NewsDetail from './pages/NewsDetail';
+import JudgementApp from './pages/JudgementApp';
 function App() {
   useEffect(() => {
     import('bootstrap/dist/js/bootstrap.bundle.min.js');
@@ -44,7 +51,7 @@ function App() {
               <Footer />
             </>
           } />
-          
+
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
@@ -58,7 +65,7 @@ function App() {
               <Footer />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/search" element={
             <ProtectedRoute>
               <main className="page-wrapper">
@@ -66,31 +73,36 @@ function App() {
               </main>
             </ProtectedRoute>
           } />
-          
+
           <Route path="/results" element={
             <ProtectedRoute>
               <Results />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/judgement/:id" element={
             <ProtectedRoute>
               <Judgement />
             </ProtectedRoute>
           } />
-          
+
+          <Route path="/judgementApp/:id" element={
+           
+              <JudgementApp />
+          } />
+
           <Route path="/citation" element={
             <ProtectedRoute>
               <Citation />
             </ProtectedRoute>
           } />
-          
+
           <Route path="/ai-chat" element={
             <ProtectedRoute>
               <AIChat />
             </ProtectedRoute>
           } />
-           
+
           <Route path="/keyword" element={
             <ProtectedRoute>
               <Keyword />
@@ -102,29 +114,65 @@ function App() {
               <Nominal />
             </ProtectedRoute>
           } />
-
           <Route path="/Latest-LawPoints" element={
             <ProtectedRoute>
               <LatestLawPoints />
             </ProtectedRoute>
           } />
+          <Route path="/CAActsList" element={
+            <ProtectedRoute>
+              <CAActsList />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/Articles" element={
+            <ProtectedRoute>
+              <Articles />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/Dictionary" element={
+            <ProtectedRoute>
+              <Dictionary />
+            </ProtectedRoute>
+          } />
+          
+
+          <Route path="/Article/:id" element={
+            <ProtectedRoute>
+              <Article />
+            </ProtectedRoute>
+          } />
+
+           <Route path="/News" element={
+            <ProtectedRoute>
+              <News />
+            </ProtectedRoute>
+          } />
+
+           <Route path="/NewsDetail/:id" element={
+            <ProtectedRoute>
+              <NewsDetail />
+            </ProtectedRoute>
+          } />
+
 
           <Route path="/Latest-Law" element={
-           <ProtectedRoute>
+            <ProtectedRoute>
               <Header />
               <main className="page-wrapper">
                 <LatestLaw />
               </main>
               <Footer />
-              </ProtectedRoute>
+            </ProtectedRoute>
           } />
-          
+
           <Route path="/ai-search" element={
             <ProtectedRoute>
               <AISearch />
             </ProtectedRoute>
           } />
-          
+
           {/* FIXED DATABASE ROUTE */}
           <Route path="/database" element={
             <ProtectedRoute>
@@ -138,17 +186,31 @@ function App() {
               <SaveBookmarks />
             </ProtectedRoute>
           } />
-          
-          <Route path="/virtual"
-           element={
+
+          {/* FIXED SaveBookmarks ROUTE */}
+          <Route path="/statelaws" element={
             <ProtectedRoute>
-              <Virtual />
+              <StateLaws />
             </ProtectedRoute>
+          } />
+
+          {/* FIXED SaveBookmarks ROUTE */}
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/virtual"
+            element={
+              <ProtectedRoute>
+                <Virtual />
+              </ProtectedRoute>
             } />
 
 
 
-  <Route path="/pricing" element={<PricingPlans />} />
+          <Route path="/pricing" element={<PricingPlans />} />
 
         </Routes>
       </div>

@@ -1,10 +1,34 @@
 // src/pages/Dashboard.jsx - Fixed version with image icons
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const navigate = useNavigate();
-  
+  const stateCodeMap = {
+  "Andhra Pradesh": "AP",
+  "Assam & North East": "NorthPDF",
+  "Bihar": "PAT",
+  "Chhattisgarh": "CHHAT",
+  "Delhi": "DEL",
+  "Goa": "Goa",
+  "Gujarat": "Guj",
+  "Himachal": "HIM",
+  "Jammu and Kashmir": "JK",
+  "Jharkhand": "JHAR",
+  "Kerala": "KER",
+  "Karnataka": "KAR",
+  "Madhya Pradesh": "MP",
+  "Maharashtra": "MAH",
+  "Orissa": "ORI",
+  "Punjab & Haryana": "PUN",
+  "Rajasthan": "RAJ",
+  "Tamil Nadu": "TAM",
+  "Uttar Pradesh": "UP",
+  "Uttaranchal": "UTT",
+  "West Bengal": "WB"
+};
+
   const services = [
     {
       title: 'AI Chat',
@@ -43,12 +67,6 @@ const Dashboard = () => {
       link: '/Nominal'
     },
     {
-      title: 'Virtual Legal Assistant',
-      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
-      icon: '/Images/i-Virtual Legal Assistant-07.png',
-      link: '#virtual-legal-assistant'
-    },
-    {
       title: 'Latest in LAW',
       description: ' Stay updated with the Latest in Law — Fresh judgments, Amendments, Legal Daily News and other legal developments on daily basis.',
       icon: '/Images/i-law.png',
@@ -64,35 +82,47 @@ const Dashboard = () => {
       title: 'Legal Dictionary',
       description: 'Comprehensive Legal Terminology at your fingertips for precise legal research.',
       icon: '/Images/legaldictionary.png',
-      link: '#virtual-legal-assistant'
+      link: '/Dictionary'
     },
     {
       title: 'Reports',
       description: 'Covers Law Commission Reports, Constituent Assembly Debates and other Important Legal Reports.',
       icon: '/Images/reports.png',
-      link: '#virtual-legal-assistant'
+      link: '/Reports'
     },
     {
       title: 'Central Laws ',
       description: 'A comprehensive library of all Central Statutes and regulations, providing quick access to authoritative legal texts in one place.',
       icon: '/Images/centrallaws.png',
-      link: '#virtual-legal-assistant'
+      link: '/CAActsList'
     },
     {
       title: 'State Laws',
       description: 'A dedicated collection of state-specific statutes and regulations, enabling quick reference to region-wise legal provisions.',
       icon: '/Images/statelaw.png',
-      link: '#virtual-legal-assistant'
+      link: 'state-Law'
     },
     {
       title: 'Bookmarks',
-      description: '',
-      icon: '/Images/statelaw.png',
+      description: 'Save important judgments instantly with the Bookmark feature for quick future access.',
+      icon: '/Images/bookmark.png',
       link: '/saveBookmarks'
+    },
+    {
+      title: 'Articles & Blogs',
+      description: 'Handpicked, expertly written legal articles and blogs by eminent authors—reliable insights you can cite and trust.',
+      icon: '/Images/articles_ic.png',
+      link: '/articles'
+    },
+    {
+      title: 'Virtual Legal Assistant',
+      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
+      icon: '/Images/i-Virtual Legal Assistant-07.png',
+      link: '#virtual-legal-assistant'
     }
 
   ];
-  
+
   return (
     <div className="dashboard-page-compact">
       <div className="dashboard-container-compact">
@@ -114,7 +144,7 @@ const Dashboard = () => {
                   className="service-card-compact service-card-link"
                   onClick={(e) => {
                     e.preventDefault();
-                    console.log(`${service.title} - Coming Soon`);
+                    setShowComingSoonModal(true);
                   }}
                 >
                   <div>
@@ -146,12 +176,12 @@ const Dashboard = () => {
             return (
               <Link
                 key={index}
-                to={service.link === "Latest-Law" ? "#" : service.link}
+                to={service.link === "state-Law" ? "#" : service.link}
                 className="service-card-compact service-card-link"
                 onClick={(e) => {
-                  if (service.link === "Latest-Law") {
+                  if (service.link === "state-Law") {
                     e.preventDefault();       // stop navigation
-                    setShowLawModel(true);    // open modal
+                   navigate(`/StateLaws`);
                   }
                 }}
               >
@@ -190,6 +220,66 @@ const Dashboard = () => {
             Includes: Case Law Research | Statute Finder | Legal Document Analysis | Virtual Legal Assistant
           </p>
         </div>
+          {showComingSoonModal && (
+                  <div
+                    className="modal fade show d-block"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                    onClick={() => setShowComingSoonModal(false)}
+                  >
+                    <div
+                      className="modal-dialog modal-dialog-centered"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="modal-content" style={{
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+                      }}>
+                        <div className="modal-header border-0">
+                          <h5 className="modal-title" style={{
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            color: '#1a1a1a'
+                          }}>
+                            Coming Soon
+                          </h5>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setShowComingSoonModal(false)}
+                          ></button>
+                        </div>
+                        <div className="modal-body text-center py-4">
+                          <div style={{
+                            fontSize: '48px',
+                            color: '#7C3AED',
+                            marginBottom: '16px'
+                          }}>
+                            <i className="bx bx-time-five"></i>
+                          </div>
+                          <p style={{ fontSize: '16px', color: '#6b7280', marginBottom: '0' }}>
+                            This feature is currently under development and will be available soon!
+                          </p>
+                        </div>
+                        <div className="modal-footer border-0">
+                          <button
+                            type="button"
+                            className="btn btn-primary w-100"
+                            onClick={() => setShowComingSoonModal(false)}
+                            style={{
+                              borderRadius: '8px',
+                              background: '#7C3AED',
+                              border: 'none',
+                              padding: '10px'
+                            }}
+                          >
+                            Got it!
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
       </div>
      
       <style jsx>{`

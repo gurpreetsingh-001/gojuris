@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ApiService from '../services/apiService';
+import { TextAlignCenter } from 'lucide-react';
 
 const LatestLawPoints = () => {
     const navigate = useNavigate();
@@ -132,12 +133,12 @@ const LatestLawPoints = () => {
                                             handleJudgementClick(post)
                                         }
                                         }>
-                                            <a href="#" className="text-decoration-none stretched-link" style={{ color: "#337ab7" }} dangerouslySetInnerHTML={{ __html: post.lawPoint || '' }}>
+                                            <a href="#" className="text-decoration-none stretched-link" style={{ color: "#337ab7" }} dangerouslySetInnerHTML={{ __html: post.lawPoint.toString().replace('\n<br>','\n<br><br>') || '' }}>
 
                                             </a>
                                         </h3>
-                                        <p className="text mb-1">[{post.appellant} Vs. {post.respondent}] <span style={{ color: "green" }}>Date of Decision : {formatDate(post.date)} </span></p>
-                                        <small className="text" style={{ color: "red" }}>{post.court}</small>
+                                        <p className="text mb-1" ><i className="bx bx-building" style={{ fontSize: "20px" }}></i> [{post.appellant} Vs. {post.respondent}] <span style={{ color: "green" }}>Date of Decision : {formatDate(post.date)} |  </span> <span className="text" style={{ color: "red" }}>{post.court}</span></p>
+                                        
                                     </div>
                                 </article>
                             </div>
@@ -145,7 +146,12 @@ const LatestLawPoints = () => {
                     </div>
                 </div>
             </div>
+                         <style>{`
+        .lawpoint-container {
+            font-family: "Roboto Condensed", sans-serif;
+            }
 
+      `}</style>
         </div>
     )
 }

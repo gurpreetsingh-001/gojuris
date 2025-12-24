@@ -959,7 +959,7 @@ const handleAddBookmark = async (e) => {
                           const shareData = {
                             title: formatResultTitle(result),
                             text: `Check out this case: ${formatResultTitle(result)}`,
-                            url: `${window.location.origin}/judgement/${result.id}`
+                            url: `${window.location.origin}/judgementapp/${result.keycodeEn}`
                           };
 
                           if (navigator.share) {

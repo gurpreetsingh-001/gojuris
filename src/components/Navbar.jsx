@@ -177,7 +177,8 @@ const Navbar = () => {
             <button
               className="btn btn-link p-0"
               type="button"
-              onClick={() => setShowBookmarksModal(true)}
+               onClick={() => navigate('/SaveBookmarks')}
+              //onClick={() => setShowBookmarksModal(true)}
               style={{ border: 'none', background: 'transparent' }}
               title="Bookmarks"
             >
@@ -366,7 +367,8 @@ const Navbar = () => {
                   <button
                     type="button"
                     className="btn-close"
-                    onClick={() => setShowBookmarksModal(false)}
+                   // onClick={() => setShowBookmarksModal(false)}
+                    onClick={() => navigate('/SaveBookmarks')}
                     aria-label="Close"
                   ></button>
                 </div>

@@ -8,7 +8,7 @@ import ApiService from '../services/apiService';
 import GoogleTranslate from "../components/GoogleTranslate";
 
 
-const Judgement = () => {
+const JudgementLink = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [judgmentData, setJudgmentData] = useState(null);
@@ -105,19 +105,8 @@ const Judgement = () => {
     try {
       setIsLoading(true);
       setError('');
-      const savedResults = localStorage.getItem('searchResults');
-
-      const resultsData = JSON.parse(savedResults);
-      const searchPayload = {
-        keycode: keycode,
-        query: resultsData?.query || '',
-        pageSize: 1,
-        page: 0,
-        sortBy: "relevance",
-        sortOrder: "desc"
-      };
-
-      const response = await ApiService.getJudgementDetails(keycode, searchPayload);
+      
+      const response = await ApiService.getJudgementDetailsByKeycode(keycode.toString().split("@")[0]+ "_");
 
       if (response && response.id) {
         setJudgmentData(response);
@@ -850,4 +839,4 @@ const Judgement = () => {
   );
 };
 
-export default Judgement;
+export default JudgementLink;

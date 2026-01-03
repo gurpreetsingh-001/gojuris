@@ -1,7 +1,7 @@
 // src/services/apiService.js - COMPLETE FILE WITH ALL FUNCTIONALITY
 class ApiService {
   constructor() {
-    //this.baseURL = 'http://localhost:8001';
+  // this.baseURL = 'http://localhost:8001';
     this.baseURL = 'https://api.gojuris.ai';
     this.defaultTimeout = 30000;
   }
@@ -925,7 +925,7 @@ async getBookmarksList()  {
   // ================ AI SEARCH METHODS ================
 
   // Generate AI Embedding
-  async generateEmbedding(message) {
+  async generateEmbedding(message, type) {
     try {
       console.log('🤖 Generating AI embedding for:', message);
 
@@ -936,7 +936,8 @@ async getBookmarksList()  {
           'Authorization': `Bearer ${this.getAccessToken()}`
         },
         body: JSON.stringify({
-          message: message
+          message: message,
+          type : type
         })
       });
 
@@ -1180,6 +1181,33 @@ async getBookmarksList()  {
       throw error;
     }
   }
+
+  async getJudgementDetailsByKeycode(keycode) {
+    try {
+      console.log('⚖️ Fetching judgment details for keycode:', keycode);
+
+      const response = await fetch(`${this.baseURL}/Judgement/GetJudgementBykeycode/${keycode}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAccessToken()}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch judgment: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Judgment details retrieved successfully');
+      return result;
+
+    } catch (error) {
+      console.error('❌ Get judgment failed:', error);
+      throw error;
+    }
+  }
   // Add this method to your ApiService class in apiService.js
 
   // ================ AI CHAT SEARCH - MAIN METHOD ================
@@ -1261,6 +1289,7 @@ async getBookmarksList()  {
       inst: options.inst || "",
       prompt: options.prompt || "Find relevant legal cases",
       sessionId: options.sessionId,
+      model : options.model || "",
     }
       :
       {
@@ -1456,6 +1485,7 @@ async getBookmarksList()  {
       sortOrder: options.sortOrder || "desc",
       page: options.page || 1,
       pageSize: options.pageSize || 25,
+      model: options.model || '',
       inst: options.inst,
       prompt: options.prompt || (type === "citation"
         ? "Citation search by journal, year, volume, and page"

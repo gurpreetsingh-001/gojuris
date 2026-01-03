@@ -8,12 +8,15 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import Results from './pages/Results';
 import Judgement from './pages/Judgement';
+import JudgementLink from './pages/JudgementLink';
 import Login from './pages/Login';
 import Citation from './pages/Citation';
 import Virtual from './pages/Virtual';
 
 import AIChat from './pages/AIChat';
+import AIChatTest from './pages/AIChatTest';
 import AISearch from './pages/AISearch';
+import AISearchTest from './pages/AISearchTest';
 import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
 import Keyword from './pages/Keyword';
@@ -86,6 +89,12 @@ function App() {
             </ProtectedRoute>
           } />
 
+           <Route path="/judgementlink/:id" element={
+            <ProtectedRoute>
+              <JudgementLink />
+            </ProtectedRoute>
+          } />
+
           <Route path="/judgementApp/:id" element={
            
               <JudgementApp />
@@ -102,6 +111,12 @@ function App() {
               <AIChat />
             </ProtectedRoute>
           } />
+          <Route path="/ai-chatTest" element={
+            <ProtectedRoute>
+              <AIChatTest />
+            </ProtectedRoute>
+          } />
+
 
           <Route path="/keyword" element={
             <ProtectedRoute>
@@ -170,6 +185,12 @@ function App() {
           <Route path="/ai-search" element={
             <ProtectedRoute>
               <AISearch />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/ai-searchTest" element={
+            <ProtectedRoute>
+              <AISearchTest />
             </ProtectedRoute>
           } />
 

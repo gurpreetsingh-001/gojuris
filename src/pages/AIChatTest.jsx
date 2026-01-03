@@ -15,7 +15,7 @@ import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker?url";
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
 var isGJ = false;
-const AIChat = () => {
+const AIChatTest = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [userMessage, setUserMessage] = useState('');
@@ -490,7 +490,7 @@ const AIChat = () => {
         sessionIdchat = chatsessionId?.id;
       }
 
-      const embeddingData = chatType === "AISearch" ? await ApiService.generateEmbedding(finalQuery) : [];
+      const embeddingData = chatType === "AISearch" ? await ApiService.generateEmbedding(finalQuery,'large') : [];
 
       if (!embeddingData) {
         throw new Error('Failed to generate embedding');
@@ -535,6 +535,7 @@ const AIChat = () => {
           sortOrder: "desc",
           prompt: searchMode,
           inst: e ? message : userMessage.replace(", ,", ''),
+          model : 'large',
           sessionId: sessionIdchat
         },
         chatType,
@@ -2440,7 +2441,11 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
           line-height: 1.3;
           letter-spacing: -0.025em;
         }
-        
+         @media (max-width: 868px) {
+          .paddingBottomDiv {
+            padding: 30px;
+          }
+      }
         @media (max-width: 768px) {
           .chat-tagline {
             font-size: 1.4rem;
@@ -2479,4 +2484,4 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
   );
 };
 
-export default AIChat;
+export default AIChatTest;

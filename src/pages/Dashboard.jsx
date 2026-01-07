@@ -29,7 +29,7 @@ const Dashboard = () => {
   "West Bengal": "WB"
 };
 
-  const services = [
+  const services = [   
     {
       title: 'AI Chat',
       description: 'Instantly search and analyze case law with AI-powered precision. Save hours of manual research.',
@@ -41,6 +41,18 @@ const Dashboard = () => {
       description: 'Instantly finds the exact judgments you need with full context and unmatched accuracy.',
       icon: '/Images/i-ai-search-03.png',
       link: '/ai-search'
+    },
+    {
+      title: 'Latest in Law',
+      description: ' Stay updated with the Latest in Law — Fresh judgments, Amendments, Legal Daily News and other legal developments on daily basis.',
+      icon: '/Images/i-law.png',
+      link: '/Latest-Law'
+    },
+    {
+      title: 'Database',
+      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
+      icon: '/Images/i-database.png',
+      link: '/database'
     },
     {
       title: 'Keyword Search',
@@ -67,16 +79,16 @@ const Dashboard = () => {
       link: '/Nominal'
     },
     {
-      title: 'Latest in LAW',
-      description: ' Stay updated with the Latest in Law — Fresh judgments, Amendments, Legal Daily News and other legal developments on daily basis.',
-      icon: '/Images/i-law.png',
-      link: '/Latest-Law'
+      title: 'Overruled Cases',
+      description: 'A dedicated collection of judgments that have been expressly overruled or reversed by higher courts.',
+      icon: '/Images/OverruledCases.png',
+      link: '#OverruledCases'
     },
     {
-      title: 'Database',
-      description: 'Get instant answers to legal questions, draft documents, and streamline your workflow.',
-      icon: '/Images/i-database.png',
-      link: '/database'
+      title: 'Bookmarks',
+      description: 'Save important judgments instantly with the Bookmark feature for quick future access.',
+      icon: '/Images/bookmark.png',
+      link: '/saveBookmarks'
     },
     {
       title: 'Legal Dictionary',
@@ -101,12 +113,6 @@ const Dashboard = () => {
       description: 'A dedicated collection of state-specific statutes and regulations, enabling quick reference to region-wise legal provisions.',
       icon: '/Images/statelaw.png',
       link: 'state-Law'
-    },
-    {
-      title: 'Bookmarks',
-      description: 'Save important judgments instantly with the Bookmark feature for quick future access.',
-      icon: '/Images/bookmark.png',
-      link: '/saveBookmarks'
     },
     {
       title: 'Articles & Blogs',

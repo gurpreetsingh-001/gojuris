@@ -38,7 +38,7 @@ const AIChat = () => {
 
   const [recognition, setRecognition] = useState(null);
   const [courts, setCourts] = useState([]);
-  const [selectedCourt, setSelectedCourt] = useState("SC");
+  const [selectedCourt, setSelectedCourt] = useState("ALL");
   const [chatsessionId, setChatsessionId] = useState(null);
   const [chatsessionsList, setChatsessionsList] = useState(null);
 

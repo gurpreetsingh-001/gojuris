@@ -573,14 +573,7 @@ const Header = () => {
                   LATEST
                 </button>
               </li>
-              <li className="nav-item">
-                <button
-                  className="nav-link btn btn-link"
-                  onClick={() => scrollToSection('cta')}
-                >
-                  PRODUCTS
-                </button>
-              </li>
+             
               <li className="nav-item">
                 <button
                   className="nav-link btn btn-link"
@@ -647,15 +640,7 @@ const Header = () => {
                 Latest
               </button>
             </li>
-            <li className="nav-item">
-              <button
-                className="nav-link btn btn-link w-100 text-start"
-                onClick={() => scrollToSection('doctors')}
-              >
-                <i className="bx bx-package me-2"></i>
-                Products
-              </button>
-            </li>
+           
             <li className="nav-item">
               <button
                 className="nav-link btn btn-link w-100 text-start"

@@ -39,6 +39,7 @@ import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
 import JudgementApp from './pages/JudgementApp';
 import AIChat_Redesigned from'./pages/AIChat_Redesigned';
+import AIChat_3 from './pages/AIChat_3';
 
 function App() {
   useEffect(() => {
@@ -120,6 +121,11 @@ function App() {
            <Route path="/ai-chat-2" element={
             <ProtectedRoute>
               <AIChat_Redesigned />
+            </ProtectedRoute>
+          } />
+           <Route path="/ai-chat-3" element={
+            <ProtectedRoute>
+              <AIChat_3/>
             </ProtectedRoute>
           } />
 

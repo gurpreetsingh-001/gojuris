@@ -38,6 +38,8 @@ import Dictionary from './pages/dictionary';
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
 import JudgementApp from './pages/JudgementApp';
+import AIChat_Redesigned from'./pages/AIChat_Redesigned';
+
 function App() {
   useEffect(() => {
     import('bootstrap/dist/js/bootstrap.bundle.min.js');
@@ -114,6 +116,13 @@ function App() {
               <AIChat />
             </ProtectedRoute>
           } />
+
+           <Route path="/ai-chat-2" element={
+            <ProtectedRoute>
+              <AIChat_Redesigned />
+            </ProtectedRoute>
+          } />
+
           <Route path="/ai-chatTest" element={
             <ProtectedRoute>
               <AIChatTest />

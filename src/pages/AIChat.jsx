@@ -2440,7 +2440,161 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
           line-height: 1.3;
           letter-spacing: -0.025em;
         }
+
+        /* TABLET PORTRAIT FIXES (768px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+          .ai-chat-main {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .chat-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 220px !important;
+          }
+
+          .chat-input-section {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 70px !important;
+            right: 0 !important;
+            background: white;
+            border-top: 2px solid #e5e7eb;
+            padding: 12px 16px;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+          }
+
+          .radio-options {
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+          }
+
+          .court-select {
+            width: 100%;
+            margin-top: 8px;
+          }
+
+          .chat-input {
+            font-size: 16px;
+          }
+
+          .paddingBottomDiv {
+            padding: 20px;
+          }
+
+          .exampleschat {
+            padding-bottom: 250px;
+          }
+
+          .chat-tagline {
+            font-size: 1.5rem;
+          }
+        }
+
+        /* TABLET LANDSCAPE FIXES (768px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+          .ai-chat-main {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .chat-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 200px !important;
+          }
+
+          .chat-input-section {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 70px !important;
+            right: 0 !important;
+            background: white;
+            border-top: 2px solid #e5e7eb;
+            padding: 10px 16px;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+          }
+
+          .radio-options {
+            flex-wrap: nowrap;
+            gap: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+          }
+
+          .radio-label {
+            font-size: 0.85rem;
+            white-space: nowrap;
+          }
+
+          .court-select {
+            font-size: 13px;
+          }
+
+          .chat-input {
+            font-size: 14px;
+            padding: 8px 80px 8px 12px;
+          }
+
+          .input-buttons {
+            bottom: 10px;
+          }
+
+          .paddingBottomDiv {
+            padding: 15px;
+          }
+
+          .exampleschat {
+            padding-bottom: 220px;
+          }
+
+          .chat-tagline {
+            font-size: 1.4rem;
+          }
+
+          .loadmore {
+            margin-bottom: 5px;
+          }
+
+          .active-button {
+            padding: 8px;
+            font-size: 13px;
+            margin-left: 5px;
+          }
+        }
+
+        /* iPad SPECIFIC FIXES */
+        @media only screen 
+          and (min-device-width: 768px) 
+          and (max-device-width: 1024px) 
+          and (-webkit-min-device-pixel-ratio: 1) {
+          
+          .chat-input-section {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 70px !important;
+            right: 0 !important;
+            background: white;
+            z-index: 100;
+          }
+
+          .chat-content {
+            padding-bottom: 220px !important;
+            margin-bottom: 0 !important;
+          }
+
+          .exampleschat {
+            padding-bottom: 250px !important;
+          }
+        }
         
+        /* MOBILE FIXES */
         @media (max-width: 768px) {
           .chat-tagline {
             font-size: 1.4rem;
@@ -2456,13 +2610,13 @@ const logoUrl = window.location.origin + (isGJ ? "/logo.png" : "/logoLe.png");
             z-index: 1050;
           }
 
-    .ai-chat-layout-with-nav .chat-header .dropdown-menu {
-      position: fixed;
-      top: 60px;
-      right: 10px;
-      left: auto;
-      min-width: 200px;
-    }
+          .ai-chat-layout-with-nav .chat-header .dropdown-menu {
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            left: auto;
+            min-width: 200px;
+          }
         }
 
         @media (max-width: 480px) {

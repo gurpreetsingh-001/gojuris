@@ -12,6 +12,9 @@ import JudgementLink from './pages/JudgementLink';
 import Login from './pages/Login';
 import Citation from './pages/Citation';
 import Virtual from './pages/Virtual';
+import UniversalSearch from './pages/UniversalSearch';
+import Payment from './pages/Payment'; // Add this import
+
 
 import AIChat from './pages/AIChat';
 import AIChatTest from './pages/AIChatTest';
@@ -228,8 +231,17 @@ function App() {
                 <Virtual />
               </ProtectedRoute>
             } />
-
-
+ <Route path="/universal-search"
+            element={
+              <ProtectedRoute>
+                <UniversalSearch />
+              </ProtectedRoute>
+            } />
+<Route path="/payment" element={
+ 
+    <Payment />
+ 
+} />
 
           <Route path="/pricing" element={<PricingPlans />} />
 

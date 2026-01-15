@@ -1,12 +1,15 @@
-import React, { useState, useEffect  } from 'react';
+// src/pages/UniversalSearch.jsx - UPDATED WITH ALL CHANGES
+import React, { useState,useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 
 const UniversalSearch = () => {
-  const [searchQuery, setSearchQuery] = useState('right to die is a fundamental right');
-  const [activeTab, setActiveTab] = useState('ai');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('keyword');
   const [courtFilter, setCourtFilter] = useState('all');
-  // ADD THIS useEffect to remove top space
+  const [searchField, setSearchField] = useState('all');
+
+    // ADD THIS useEffect to remove top space
   useEffect(() => {
     document.body.style.paddingTop = '0';
 
@@ -16,6 +19,7 @@ const UniversalSearch = () => {
   }, []);
 
 
+  // Mock search results
   const searchResults = [
     {
       id: 1,
@@ -24,20 +28,20 @@ const UniversalSearch = () => {
       court: 'SUPREME COURT OF INDIA',
       date: '09/03/2018',
       citation: '2018 Legis bilge (SC) 141 | 2018 Legis (SC) 345',
-      content: 'Constitution of India — Article 21 — Right to die with dignity — Will petition seeking for declaration of the right to die with dignity as a fundamental right — Petitioner argued that terminally ill patients should have the right to die refuse unwanted medical or medical treatment at heading the end even out a living Will — Respondent s noted in that the person they of doctors is to preserve life, preventing the suspension...',
+      content: 'Constitution of India — Article 21 — Right to die with dignity — Will petition seeking just declaration of the right to die with dignity as a fundamental right — Petitioner argued that termina patients should have the right to die refuse unwanted medical or continue at heading the will even out a living Will — Respondent s noted in that person they of doctors is to preserve life, preventing the suspension...',
       highlights: [
-        { text: 'Right to die', type: 'right' },
-        { text: 'fundamental right', type: 'fundamental' }
+        { text: 'right to die', type: 'right' },
+        { text: 'fundamental', type: 'fundamental' }
       ]
     },
     {
       id: 2,
-      title: 'Union Of India vs Dhrubalal Gokuladas Vara',
-      accuracy: '94.4%',
-      court: 'Calcutta High Court',
-      date: '07/12/1970',
-      citation: '1970 Legis bilge (CAL) 441 / 1970 Legis (CAL) 441',
-      content: 'Further recital, 1) For right to die minus any court for the enforcement of fundamental rights can be suspended during a proclamation of emergency under article VIII of the Constitution. 2) The intrusion of an act in the Ninth Schedule of the Constitution renders it immune from being challenged on the grounds of infringement of fundamental rights.',
+      title: 'State of Punjab vs Davinder Pal Singh Bhullar',
+      accuracy: '96.5%',
+      court: 'SUPREME COURT OF INDIA',
+      date: '12/04/2013',
+      citation: '2013 Legis bilge (SC) 89 | 2013 Legis (SC) 234',
+      content: '1) Courts are not required to hold that there is a right to die as part of the fundamental right to life of this Article: 2) The intrusion of an act in the Ninth Schedule of the Constitution renders it immune from being challenged on the grounds of infringement of fundamental rights.',
       highlights: [
         { text: 'right to die', type: 'right' },
         { text: 'fundamental', type: 'fundamental' }
@@ -83,38 +87,58 @@ const UniversalSearch = () => {
             <div className="search-section">
               <div className="search-bar-wrapper">
                 <div className="search-bar">
+                  {/* Combo Dropdown on LEFT */}
+                  <select 
+                    className="search-field-dropdown"
+                    value={searchField}
+                    onChange={(e) => setSearchField(e.target.value)}
+                  >
+                    <option value="all">All</option>
+                    <option value="citations">Citations</option>
+                    <option value="parties">Parties</option>
+                    <option value="statutes">Statutes</option>
+                    <option value="subjects">Subjects</option>
+                  </select>
+
                   <input
                     type="text"
                     className="search-input"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Enter your search query..."
+                    placeholder="right to die is a fundamental right"
                   />
-                  <button className="icon-btn clear-btn" onClick={() => setSearchQuery('')}>
-                    <i className="fas fa-times"></i>
-                  </button>
+
+                  {/* Vertical Divider Line */}
+                  <div className="vertical-divider"></div>
+
                   <button className="icon-btn voice-btn">
-                    <i className="fas fa-microphone"></i>
+                    <i className="bx bx-microphone"></i>
                   </button>
                   <button className="icon-btn search-btn-icon">
-                    <i className="fas fa-search"></i>
+                    <i className="bx bx-search"></i>
                   </button>
                 </div>
               </div>
 
-              {/* Search Type Tabs */}
+              {/* Search Type Tabs - Smaller & Left-Aligned with 3 buttons */}
               <div className="search-tabs">
                 <button
                   className={`tab-btn ${activeTab === 'keyword' ? 'active' : ''}`}
                   onClick={() => setActiveTab('keyword')}
                 >
-                  <i className="fas fa-search"></i> Keyword Search
+                  Keyword Search
                 </button>
                 <button
                   className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}
                   onClick={() => setActiveTab('ai')}
                 >
-                  <i className="fas fa-robot"></i> AI Search
+                  AI Search
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === 'deep' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('deep')}
+                >
+                  AI Deep Search
                 </button>
               </div>
 
@@ -141,9 +165,6 @@ const UniversalSearch = () => {
                   />
                   <span>All Courts</span>
                 </label>
-                <button className="filter-icon-btn">
-                  <i className="fas fa-filter"></i>
-                </button>
               </div>
             </div>
 
@@ -160,13 +181,13 @@ const UniversalSearch = () => {
 
                   <div className="result-meta">
                     <span className="meta-item">
-                      <i className="fas fa-landmark"></i> {result.court}
+                      <i className="bx bx-building"></i> {result.court}
                     </span>
                     <span className="meta-item">
-                      <i className="fas fa-calendar"></i> {result.date}
+                      <i className="bx bx-calendar"></i> {result.date}
                     </span>
                     <span className="meta-item">
-                      <i className="fas fa-gavel"></i> {result.citation}
+                      <i className="bx bx-file"></i> {result.citation}
                     </span>
                   </div>
 
@@ -176,24 +197,36 @@ const UniversalSearch = () => {
                     }} />
                   </div>
 
+                  {/* Action Buttons Layout - Like Results Page */}
                   <div className="result-actions">
-                    <button className="action-btn primary-btn">
-                      <i className="fas fa-book-open"></i> Read Full Judgement
+                    {/* Left Side - Read Full Judgement Button */}
+                    <button className="read-judgement-btn">
+                      <i className="bx bx-book-open"></i>
+                      Read Full Judgement
                     </button>
-                    <button className="action-btn icon-only">
-                      <i className="fas fa-bookmark"></i>
-                    </button>
-                    <button className="action-btn icon-only">
-                      <i className="fas fa-print"></i>
-                    </button>
-                    <button className="action-btn icon-only">
-                      <i className="fas fa-share-alt"></i>
-                    </button>
-                  </div>
 
-                  <button className="next-arrow-btn">
-                    <i className="fas fa-chevron-right"></i>
-                  </button>
+                    {/* Right Side - Icon Buttons */}
+                    <div className="icon-actions">
+                      {/* Bookmark Button - Using Image */}
+                      <button className="action-btn bookmark-btn" title="Bookmark">
+                        <img
+                          src="/bookmarkresults.png"
+                          alt="Bookmark"
+                          style={{ width: '40px', height: '40px' }}
+                        />
+                      </button>
+
+                      {/* Print Button - Circular with Boxicon */}
+                      <button className="action-btn print-btn" title="Print">
+                        <i className="bx bx-printer"></i>
+                      </button>
+
+                      {/* Share Button - Circular with Boxicon */}
+                      <button className="action-btn share-btn" title="Share">
+                        <i className="bx bx-share-alt"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -201,7 +234,7 @@ const UniversalSearch = () => {
         </div>
       </div>
 
- <style jsx>{`
+      <style jsx>{`
   .gojuris-layout {
     display: flex;
     min-height: 100vh;
@@ -217,14 +250,14 @@ const UniversalSearch = () => {
 
   .universal-search-page {
     background: #f8f9fa;
-    padding: 0; /* REMOVED ALL PADDING */
+    padding: 0;
   }
 
   .universal-search-container {
     max-width: 1400px;
     width: 100%;
     margin: 0 auto;
-    padding: 1.5rem 1rem; /* Moved padding here instead */
+    padding: 1.5rem 1rem;
   }
 
   /* Search Section */
@@ -251,6 +284,30 @@ const UniversalSearch = () => {
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
   }
 
+  /* Search Field Dropdown on LEFT */
+  .search-field-dropdown {
+    padding: 8px 12px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    min-width: 120px;
+  }
+
+  .search-field-dropdown:hover {
+    background: #e5e7eb;
+  }
+
+  .search-field-dropdown:focus {
+    background: #ddd6fe;
+    color: #8b5cf6;
+  }
+
   .search-input {
     flex: 1;
     border: none;
@@ -264,6 +321,14 @@ const UniversalSearch = () => {
     color: #999;
   }
 
+  /* Vertical Divider Line */
+  .vertical-divider {
+    width: 2px;
+    height: 30px;
+    background: #e5e7eb;
+    margin: 0 8px;
+  }
+
   .icon-btn {
     background: transparent;
     border: none;
@@ -275,6 +340,7 @@ const UniversalSearch = () => {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    font-size: 20px;
   }
 
   .icon-btn:hover {
@@ -292,26 +358,26 @@ const UniversalSearch = () => {
     background: #7c3aed !important;
   }
 
-  /* Search Tabs */
+  /* Search Tabs - Smaller & Left-Aligned with 3 buttons */
   .search-tabs {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     margin-bottom: 20px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .tab-btn {
-    padding: 12px 24px;
-    border: 2px solid #e5e7eb;
+    padding: 8px 16px;
+    border: 1px solid #e5e7eb;
     background: white;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
     color: #666;
     transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    white-space: nowrap;
   }
 
   .tab-btn:hover {
@@ -323,10 +389,6 @@ const UniversalSearch = () => {
     background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
     color: white;
     border-color: #8b5cf6;
-  }
-
-  .tab-btn i {
-    font-size: 16px;
   }
 
   /* Search Filters */
@@ -358,22 +420,6 @@ const UniversalSearch = () => {
     accent-color: #8b5cf6;
   }
 
-  .filter-icon-btn {
-    margin-left: auto;
-    background: transparent;
-    border: 1px solid #e5e7eb;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: #8b5cf6;
-    transition: all 0.3s ease;
-  }
-
-  .filter-icon-btn:hover {
-    background: #f3f4f6;
-    border-color: #8b5cf6;
-  }
-
   /* Results Container */
   .results-container {
     display: flex;
@@ -387,7 +433,6 @@ const UniversalSearch = () => {
     padding: 24px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    position: relative;
     transition: all 0.3s ease;
     border-left: 4px solid transparent;
   }
@@ -445,7 +490,7 @@ const UniversalSearch = () => {
 
   .meta-item i {
     color: #8b5cf6;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   /* Result Content */
@@ -497,71 +542,97 @@ const UniversalSearch = () => {
     color: #9a3412;
   }
 
-  /* Result Actions */
+  /* Result Actions - Like Results Page Layout */
   .result-actions {
     display: flex;
-    gap: 10px;
+    justify-content: space-between;
     align-items: center;
+    margin-top: 1rem;
   }
 
-  .action-btn {
+  /* Read Full Judgement Button */
+  .read-judgement-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 20px;
-    border: 1px solid #e5e7eb;
-    background: white;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    color: #6b7280;
     transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
 
-  .action-btn:hover {
-    background: #f9fafb;
-    border-color: #8b5cf6;
-    color: #8b5cf6;
-  }
-
-  .action-btn.primary-btn {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    color: white;
-    border-color: #8b5cf6;
-  }
-
-  .action-btn.primary-btn:hover {
+  .read-judgement-btn:hover {
     background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
   }
 
-  .action-btn.icon-only {
-    padding: 10px 12px;
+  .read-judgement-btn i {
+    font-size: 16px;
   }
 
-  /* Next Arrow Button */
-  .next-arrow-btn {
-    position: absolute;
-    right: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #f3f4f6;
+  /* Icon Actions Container */
+  .icon-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  /* Action Buttons - Exact Style from Results Page */
+  .action-btn {
+    background: transparent;
     border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    padding: 0;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    color: #6b7280;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
   }
 
-  .next-arrow-btn:hover {
-    background: #8b5cf6;
-    color: white;
-    transform: translateY(-50%) scale(1.1);
+  .action-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Bookmark Button - Image */
+  .bookmark-btn img {
+    width: 40px;
+    height: 40px;
+    transition: opacity 0.2s ease;
+  }
+
+  .bookmark-btn:hover img {
+    opacity: 0.7;
+  }
+
+  /* Print and Share Buttons - Circular Background */
+  .print-btn i,
+  .share-btn i {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 18px;
+    transition: all 0.2s ease;
+  }
+
+  .print-btn:hover i,
+  .share-btn:hover i {
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+    background: #f9fafb;
   }
 
   /* Responsive Design */
@@ -594,13 +665,26 @@ const UniversalSearch = () => {
       padding: 20px;
     }
 
+    .search-bar {
+      flex-wrap: wrap;
+    }
+
+    .search-field-dropdown {
+      min-width: 100px;
+      font-size: 13px;
+    }
+
+    .vertical-divider {
+      height: 25px;
+    }
+
     .search-tabs {
-      flex-direction: column;
+      gap: 8px;
     }
 
     .tab-btn {
-      width: 100%;
-      justify-content: center;
+      font-size: 12px;
+      padding: 6px 12px;
     }
 
     .search-filters {
@@ -613,18 +697,17 @@ const UniversalSearch = () => {
     }
 
     .result-actions {
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
     }
 
-    .next-arrow-btn {
-      position: static;
-      transform: none;
-      margin-top: 16px;
-      align-self: center;
+    .read-judgement-btn {
+      justify-content: center;
     }
 
-    .next-arrow-btn:hover {
-      transform: scale(1.1);
+    .icon-actions {
+      justify-content: center;
     }
   }
 
